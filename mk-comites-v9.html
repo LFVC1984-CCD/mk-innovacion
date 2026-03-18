@@ -1,0 +1,2320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal de Comités — MK Ingeniería</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --co:#0B5ED7;--co-dk:#0847A8;--co-lt:#EFF6FF;
+  --go:#E1BA10;--go-dk:#C4A00C;
+  --gr:#16A34A;--gr-lt:#DCFCE7;
+  --re:#DC2626;--re-lt:#FEE2E2;
+  --am:#D97706;--am-lt:#FEF3C7;
+  --sl:#64748B;--sl-lt:#F8FAFC;
+  --bd:#E2E8F0;--ink:#1E293B;--ink2:#475569;--bg:#F1F5F9;--wh:#fff;
+}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+.dn{display:none!important}
+
+/* TOPBAR */
+.tb{background:var(--wh);border-bottom:2px solid var(--co);padding:0 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;height:52px;box-shadow:0 1px 6px rgba(0,0,0,.07)}
+.tb-l{display:flex;align-items:center;gap:8px}
+.tb-gold{width:4px;height:30px;background:var(--go);border-radius:2px}
+.tb-logo{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:800;color:var(--co);cursor:pointer}
+.tb-logo span{color:var(--go)}
+.bc{display:flex;align-items:center;gap:5px;margin-left:10px;font-size:12px}
+.bc .c{color:var(--sl);cursor:pointer}.bc .c:hover{color:var(--co)}
+.bc .s{color:#CBD5E1}.bc .cur{color:var(--ink);font-weight:600}
+.tb-r{display:flex;align-items:center;gap:8px}
+.rpill{display:flex;align-items:center;gap:5px;background:var(--sl-lt);border:1px solid var(--bd);border-radius:20px;padding:3px 11px;font-size:11px;font-weight:600;color:var(--sl);cursor:pointer}
+.rpill .dot{width:6px;height:6px;border-radius:50%;background:var(--gr)}
+.btn{padding:6px 14px;border-radius:6px;border:1px solid var(--bd);background:var(--wh);color:var(--ink);font-family:'Barlow',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{border-color:var(--co);color:var(--co)}
+.btn.pri{background:var(--co);color:#fff;border-color:var(--co)}.btn.pri:hover{background:var(--co-dk)}
+.btn.gol{background:var(--go);color:#1A1200;border-color:var(--go)}.btn.gol:hover{background:var(--go-dk)}
+.btn.sm{padding:4px 10px;font-size:11px}
+.btn.gh{background:transparent;border-color:transparent;color:var(--sl)}.btn.gh:hover{background:var(--sl-lt);border-color:var(--bd)}
+.btn.wh{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff}.btn.wh:hover{background:rgba(255,255,255,.25)}
+.sc{display:none;animation:fi .2s ease}.sc.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── LOGIN ── */
+.lw{min-height:calc(100vh - 52px);display:flex;align-items:center;justify-content:center;padding:24px}
+.lc{background:var(--wh);border-radius:12px;border:1px solid var(--bd);padding:32px 36px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.lt{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:var(--co);margin-bottom:3px}
+.ls{font-size:13px;color:var(--sl);margin-bottom:24px}
+.lbl{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:5px;display:block}
+.li{width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:7px;font-family:'Barlow',sans-serif;font-size:14px;color:var(--ink);background:var(--wh);margin-bottom:12px}
+.li:focus{outline:none;border-color:var(--co);box-shadow:0 0 0 3px rgba(11,94,215,.1)}
+.lerr{font-size:12px;color:var(--re);margin-bottom:8px;display:none}
+.lhint{font-size:11px;color:#94A3B8;margin-top:12px;text-align:center}
+
+/* ── HOME ── */
+.hw{padding:22px;max-width:1060px;margin:0 auto}
+.hh{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px}
+.ht{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--ink)}
+.ht span{color:var(--co)}
+.hdate{font-size:12px;color:var(--sl)}
+.gbanner{background:var(--co);border-radius:10px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;border-left:4px solid var(--go)}
+.slbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--sl);margin-bottom:10px}
+.dg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.dc{background:var(--wh);border-radius:10px;border:1px solid var(--bd);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04);transition:box-shadow .2s}
+.dc:hover{box-shadow:0 4px 14px rgba(0,0,0,.09)}
+.dc-top{height:4px}
+.dc-body{padding:14px}
+.dn-name{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.dn-freq{font-size:11px;color:var(--sl);margin-bottom:10px}
+.dn-pills{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.pill{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.pok{background:var(--gr-lt);color:var(--gr)}.pwarn{background:var(--am-lt);color:var(--am)}.pbad{background:var(--re-lt);color:var(--re)}.pinfo{background:var(--co-lt);color:var(--co)}
+.dn-acts{display:flex;gap:6px}
+.lock-msg{font-size:11px;color:#94A3B8;font-style:italic;padding:4px 0}
+.btn.danger{background:var(--re-lt);color:var(--re);border-color:#FECACA}.btn.danger:hover{background:#FECACA}
+
+/* ── EDIT ── */
+.ew{padding:18px 22px;max-width:1060px;margin:0 auto}
+.etbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.etitle{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--ink)}
+.egrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{background:var(--wh);border-radius:10px;border:1px solid var(--bd);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.ch{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd);background:var(--sl-lt)}
+.chl{display:flex;align-items:center;gap:7px}
+.cstrip{width:3px;height:18px;border-radius:2px;flex-shrink:0}
+.chtitle{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--sl)}
+.addbtn{font-size:11px;color:var(--co);background:none;border:none;cursor:pointer;font-weight:600;padding:2px 7px;border-radius:4px}
+.addbtn:hover{background:var(--co-lt)}
+.cb{padding:12px 14px}
+
+/* KPI EDIT CARD */
+.kcard{border:1px solid var(--bd);border-radius:8px;padding:12px 14px;margin-bottom:10px;background:var(--wh);border-left-width:3px;transition:box-shadow .15s}
+.kcard:hover{box-shadow:0 2px 10px rgba(0,0,0,.07)}
+.kcard-row1{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.kcard-name{font-size:13px;font-weight:600;color:var(--ink);flex:1}
+.ki{font-family:'Barlow',sans-serif;font-size:12px;padding:4px 8px;border:1px solid var(--bd);border-radius:5px;color:var(--ink);background:var(--wh);text-align:center}
+.ki:focus{outline:none;border-color:var(--co)}
+.ki.wide{width:90px}.ki.narrow{width:70px}
+.ksel{font-family:'Barlow',sans-serif;font-size:10px;padding:3px 6px;border-radius:5px;border:1px solid var(--bd);background:var(--wh);cursor:pointer;font-weight:700}
+.xbtn{background:none;border:none;color:#CBD5E1;cursor:pointer;font-size:16px;padding:0 2px;flex-shrink:0;line-height:1}
+.xbtn:hover{color:var(--re)}
+
+/* KPI STORY — the core visual storytelling element */
+.kstory{background:var(--sl-lt);border-radius:6px;padding:8px 10px;margin-top:6px}
+.kstory-headline{font-size:12px;font-weight:600;color:var(--ink);line-height:1.4;margin-bottom:4px}
+.kstory-sub{font-size:11px;color:var(--ink2);line-height:1.4;margin-bottom:6px}
+.kstory-bar{height:6px;background:var(--bd);border-radius:3px;overflow:hidden;margin-bottom:3px}
+.kstory-fill{height:6px;border-radius:3px;transition:width .5s ease}
+.kstory-nums{display:flex;justify-content:space-between;font-size:10px}
+.kstory-trend{display:flex;gap:4px;align-items:center;margin-top:5px}
+
+.kstory-sbar{width:6px;border-radius:1px 1px 0 0;flex-shrink:0}
+.kstory-trend-text{font-size:10px;font-weight:600}
+
+/* zero KPI */
+.kzero-ok{background:#DCFCE7;border-radius:5px;padding:6px 10px;display:flex;align-items:center;gap:8px;margin-top:6px}
+.kzero-bad{background:#FEE2E2;border-radius:5px;padding:6px 10px;display:flex;align-items:center;gap:8px;margin-top:6px}
+.kzero-icon{font-size:20px;flex-shrink:0}
+.kzero-text-ok{font-size:12px;font-weight:600;color:#166534}
+.kzero-text-bad{font-size:12px;font-weight:600;color:#991B1B}
+.kzero-sub{font-size:11px;margin-top:1px}
+
+/* Suggested KPIs */
+.sugg-wrap{background:#F0F7FF;border:1px solid #BFDBFE;border-radius:7px;padding:10px 12px;margin-top:8px}
+.sugg-title{font-size:11px;font-weight:700;color:var(--co);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.sugg-grid{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.sugg-pill{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid #BFDBFE;background:var(--wh);color:var(--co);cursor:pointer;transition:all .15s}
+.sugg-pill:hover{background:var(--co);color:#fff;border-color:var(--co)}
+
+/* Add form */
+.aform{background:#F0F7FF;border:1px solid #BFDBFE;border-radius:7px;padding:10px 12px;margin-top:8px;display:none}
+.aform.op{display:block}
+.aform input,.aform select{width:100%;font-size:12px;padding:6px 9px;border:1px solid var(--bd);border-radius:5px;font-family:'Barlow',sans-serif;color:var(--ink);background:var(--wh);margin-bottom:6px}
+.aform input:focus,.aform select:focus{outline:none;border-color:var(--co)}
+.frow{display:flex;gap:6px;margin-bottom:6px}
+.frow input,.frow select{flex:1;margin-bottom:0}
+.fbtns{display:flex;gap:5px}
+.fbtns .btn{font-size:11px;padding:4px 10px}
+
+/* Task / Dec rows */
+.trow{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--sl-lt)}
+.trow:last-child{border-bottom:none}
+.tinfo{flex:1;min-width:0}
+.tt{font-size:12px;color:var(--ink);line-height:1.35}
+.tresp{font-size:11px;color:#94A3B8;margin-top:1px}
+.tdate{font-size:10px;color:var(--co);font-weight:600}
+.tnodate{font-size:10px;color:var(--re);font-weight:600}
+.tauto{font-size:10px;color:var(--co);font-style:italic}
+select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-size:10px;border-radius:20px;padding:2px 7px;cursor:pointer}
+.drow{display:flex;gap:7px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--sl-lt)}
+.drow:last-child{border-bottom:none}
+.dnum{width:20px;height:20px;border-radius:50%;background:var(--co);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.dc2{flex:1;min-width:0}
+.dt{font-size:12px;color:var(--ink);line-height:1.35}
+.dm{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
+.dbadge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700}
+.dcheck{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--sl);cursor:pointer}
+.hitem{display:flex;gap:8px;padding:5px 0;border-top:1px solid var(--sl-lt);font-size:11px}
+.hdate{color:#94A3B8;width:80px;flex-shrink:0;font-weight:600}
+.park-item{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--sl-lt);font-size:12px;color:var(--ink2)}
+.park-item:last-child{border-bottom:none}
+
+/* ── PROJECTION — larger, cleaner, legible at distance ── */
+.pw{background:var(--wh);min-height:calc(100vh - 52px)}
+.ph{background:var(--co);padding:14px 28px;display:flex;align-items:center;justify-content:space-between}
+.pname{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.01em}
+.pname span{color:var(--go)}
+.pmeta{font-size:12px;color:rgba(255,255,255,.45);margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+.pnav{display:flex;align-items:center;gap:10px}
+.pdots{display:flex;gap:6px}
+.pdot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.25);cursor:pointer;border:none;transition:all .2s}
+.pdot.on{background:var(--go);transform:scale(1.3)}
+.pctr{font-size:13px;color:rgba(255,255,255,.5);min-width:40px;text-align:center}
+.trow-bar{display:flex;align-items:center;justify-content:space-between;padding:7px 28px;background:rgba(11,94,215,.04);border-bottom:1px solid var(--bd)}
+.tlabel{font-size:12px;font-weight:700;color:var(--sl);text-transform:uppercase;letter-spacing:.06em}
+.tval{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--co)}
+.tval.urg{color:var(--re)}
+.tbtns{display:flex;gap:6px}
+.tbar-bg{height:4px;background:rgba(255,255,255,.15)}
+.tbar-fill{height:4px;transition:width 1s linear;background:var(--go)}
+.pslide{display:none;padding:14px 24px;animation:fi .2s ease}
+.pslide.on{display:block}
+.pslide-shown{display:block !important}
+.pstitle{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--sl);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.pstitle .s2{width:3px;height:18px;border-radius:2px}
+
+/* PROJ KPI — compact row layout, fits without scroll */
+.pkgrid{display:flex;flex-direction:column;gap:6px}
+.pkcard{background:var(--wh);border-radius:8px;padding:10px 14px;border:1px solid var(--bd);border-left:4px solid transparent;display:grid;grid-template-columns:180px 1fr auto;align-items:center;gap:12px}
+.pkcard-name{font-size:12px;font-weight:700;color:var(--ink);line-height:1.3}
+/* Compact number */
+.pk-number-row{display:flex;align-items:baseline;gap:6px}
+.pk-big{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;line-height:1}
+.pk-trend-big{font-size:16px;font-weight:700}
+.pk-meta-label{font-size:11px;color:#94A3B8}
+/* Headline only — no story */
+.pk-headline{font-size:12px;font-weight:600;color:var(--ink2);margin-top:2px}
+.pk-story{display:none}
+/* Bar */
+.pk-bar-bg{height:5px;background:var(--bd);border-radius:3px;overflow:hidden;margin-top:4px}
+.pk-bar-fill{height:5px;border-radius:3px;transition:width .6s ease}
+.pk-bar-labels{display:none}
+/* Zero KPI compact */
+.pk-zero-box{display:flex;align-items:center;gap:8px;padding:0}
+.pk-zero-icon{font-size:18px;flex-shrink:0}
+.pk-zero-headline{font-size:13px;font-weight:700;line-height:1.2}
+.pk-zero-sub{font-size:11px;margin-top:1px}
+/* Sparkline removed — real data only */
+
+
+
+
+ /* hidden — tooltip replaces it */
+/* Task edit modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:center;justify-content:center;display:none}
+.modal-bg.on{display:flex}
+.modal-box{background:var(--wh);border-radius:12px;padding:24px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--ink);margin-bottom:16px}
+.modal-field{margin-bottom:12px}
+.modal-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--sl);margin-bottom:5px;display:block}
+.modal-inp{width:100%;font-size:13px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;font-family:'Barlow',sans-serif;color:var(--ink);background:var(--wh)}
+.modal-inp:focus{outline:none;border-color:var(--co);box-shadow:0 0 0 3px rgba(11,94,215,.1)}
+.modal-btns{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+/* Comment area proj */
+.pk-comment-wrap{margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)}
+.pk-comment-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--sl);margin-bottom:4px}
+.pk-comment-inp{width:100%;font-size:13px;padding:6px 10px;border:1px solid var(--bd);border-radius:5px;font-family:'Barlow',sans-serif;color:var(--ink);background:var(--wh)}
+.pk-comment-inp:focus{outline:none;border-color:var(--co)}
+.pk-comment-saved{font-size:12px;color:var(--co);font-style:italic;margin-top:4px}
+
+/* Prev compromisos */
+.prev-box{background:var(--co-lt);border:1px solid #BFDBFE;border-radius:6px;padding:8px 12px;margin-top:10px}
+.prev-title{font-size:10px;font-weight:700;color:var(--co);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.prev-row{display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid #BFDBFE;font-size:12px}
+.prev-row:last-child{border-bottom:none}
+
+/* Moment 2 */
+.pm2g{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pm2c{background:var(--sl-lt);border-radius:8px;border:1px solid var(--bd);overflow:hidden}
+.pm2h{padding:10px 14px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#fff;display:flex;align-items:center;justify-content:space-between}
+.pm2body{padding:12px 14px}
+.pdec-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd);align-items:flex-start}
+.pdec-item:last-child{border-bottom:none}
+.pdec-num{width:26px;height:26px;border-radius:50%;background:var(--co);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pdec-body{flex:1}
+.pdec-text{font-size:14px;color:var(--ink);line-height:1.35;font-weight:500}
+.pdec-badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:700;flex-shrink:0;margin-top:3px}
+.pdec-resolve{font-size:12px;padding:4px 12px;border-radius:5px;border:1px solid var(--bd);background:var(--wh);color:var(--co);font-weight:600;cursor:pointer;font-family:'Barlow',sans-serif;flex-shrink:0;margin-top:3px}
+.pdec-resolve:hover{background:var(--co-lt)}
+.pdec-resolved .pdec-num{background:var(--gr)}
+.pdec-resolved .pdec-text{text-decoration:line-through;opacity:.5}
+.ptask-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd)}
+.ptask-item:last-child{border-bottom:none}
+.ptask-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.ptask-body{flex:1}
+.ptask-text{font-size:14px;color:var(--ink);font-weight:500;line-height:1.35}
+.ptask-resp{font-size:12px;color:var(--sl);margin-top:2px}
+.ptask-date{font-size:11px;color:var(--co);font-weight:600}
+.pest-badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:700;flex-shrink:0}
+.parking{background:var(--am-lt);border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;margin-top:12px}
+.parking-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--am);margin-bottom:8px}
+.qradd{background:var(--co-lt);border:1px solid #BFDBFE;border-radius:7px;padding:10px 12px;margin-top:10px}
+.qradd-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--co);margin-bottom:8px}
+.qrf{display:flex;gap:6px;flex-wrap:wrap}
+.qrf input,.qrf select{font-size:12px;padding:5px 9px;border:1px solid var(--bd);border-radius:5px;font-family:'Barlow',sans-serif;color:var(--ink);background:var(--wh)}
+.qrf input{flex:1;min-width:120px}
+
+/* Moment 3 */
+.m3g{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.me{background:var(--wh);border-radius:8px;border:1px solid var(--bd);overflow:hidden}
+.me-h{padding:10px 14px;background:var(--ink);display:flex;align-items:center;justify-content:space-between}
+.me-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#fff}
+.me-badge{font-size:10px;padding:2px 8px;border-radius:20px;background:var(--gr);color:#fff;font-weight:700}
+.me-body{padding:12px 14px}
+.me-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--sl-lt)}
+.me-row:last-child{border-bottom:none}
+.me-tag{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;flex-shrink:0;white-space:nowrap}
+.me-text{color:var(--ink);font-size:12px;flex:1;line-height:1.4}
+.me-origin{font-size:10px;color:#94A3B8;flex-shrink:0}
+.comp-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--sl-lt)}
+.comp-item:last-child{border-bottom:none}
+.comp-check{width:18px;height:18px;border-radius:4px;border:2px solid var(--bd);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.comp-check.done{background:var(--gr);border-color:var(--gr)}
+.comp-text{font-size:14px;color:var(--ink);font-weight:500;line-height:1.35}
+.comp-meta{font-size:12px;color:var(--sl);margin-top:2px}
+.rulebar{background:var(--ink);padding:9px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.rule{font-size:11px;color:rgba(255,255,255,.5)}.rule::before{content:'· ';color:rgba(255,255,255,.2)}.rule:first-child::before{display:none}
+
+
+/* ── USERS SCREEN ── */
+.uw{padding:22px;max-width:900px;margin:0 auto}
+.users-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.ucard{background:var(--wh);border-radius:10px;border:1px solid var(--bd);padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.04);position:relative}
+.ucard-top{height:3px;border-radius:2px;margin:-14px -14px 12px;border-radius:10px 10px 0 0}
+.ucard-name{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.ucard-cargo{font-size:11px;color:var(--sl);margin-bottom:8px}
+.ucard-pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.ucard-pin{font-family:monospace;font-size:12px;background:var(--sl-lt);padding:2px 8px;border-radius:4px;color:var(--sl);cursor:pointer;border:1px solid var(--bd)}
+.ucard-actions{display:flex;gap:6px;margin-top:10px}
+/* Dec edit */
+.drow-edit{background:var(--co-lt);border:1px solid #BFDBFE;border-radius:7px;padding:10px 12px;margin-top:4px;display:none}
+.drow-edit.op{display:block}
+.drow-edit input,.drow-edit select{width:100%;font-size:12px;padding:6px 9px;border:1px solid var(--bd);border-radius:5px;font-family:'Barlow',sans-serif;color:var(--ink);background:var(--wh);margin-bottom:6px}
+.drow-edit input:focus,.drow-edit select:focus{outline:none;border-color:var(--co)}
+/* User modal */
+.umodal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:none;align-items:center;justify-content:center}
+.umodal-bg.on{display:flex}
+.umodal{background:var(--wh);border-radius:12px;padding:24px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.umodal-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--ink);margin-bottom:16px}
+.ufield{margin-bottom:12px}
+.ufield label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--sl);margin-bottom:5px;display:block}
+.uinp{width:100%;font-size:13px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;font-family:'Barlow',sans-serif;color:var(--ink);background:var(--wh)}
+.uinp:focus{outline:none;border-color:var(--co);box-shadow:0 0 0 3px rgba(11,94,215,.1)}
+.pin-show{display:flex;align-items:center;gap:8px}
+.pin-show input{flex:1}
+.pin-toggle{background:none;border:1px solid var(--bd);border-radius:5px;padding:5px 9px;font-size:11px;cursor:pointer;color:var(--sl);font-family:'Barlow',sans-serif}
+
+
+/* KPI expandable chart */
+.kcard{cursor:pointer;transition:box-shadow .15s,border-color .15s}
+.kcard.expanded{border-color:var(--co);box-shadow:0 4px 20px rgba(11,94,215,.15)}
+.kcard-chart{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)}
+.kcard.expanded .kcard-chart{display:block}
+.kcard.expanded .kstory{display:none}
+/* pkcard expand removed — compact layout */
+
+/* ── OBRAS REGISTRO ── */
+.obras-wrap{display:flex;flex-direction:column;gap:14px}
+.obra-card{background:var(--wh);border-radius:10px;border:1px solid var(--bd);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.obra-header{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd)}
+.obra-header-left{display:flex;align-items:center;gap:8px}
+.obra-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.obra-name{font-size:14px;font-weight:700;color:var(--ink)}
+.obra-estado{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700}
+.obra-body{padding:14px}
+/* Number register grid */
+.obra-form{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.obra-field{display:flex;flex-direction:column;gap:4px}
+.obra-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--sl)}
+.obra-field input{font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;padding:6px 10px;border:1px solid var(--bd);border-radius:6px;color:var(--ink);background:var(--wh);text-align:right}
+.obra-field input:focus{outline:none;border-color:var(--co);box-shadow:0 0 0 2px rgba(11,94,215,.08)}
+.obra-field input.calc{background:var(--sl-lt);color:var(--co);font-weight:700;cursor:default}
+.obra-field input.calc-ok{background:var(--gr-lt);color:var(--gr);font-weight:700}
+.obra-field input.calc-bad{background:var(--re-lt);color:var(--re);font-weight:700}
+/* KPI cards row */
+.obra-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding-top:12px;border-top:1px solid var(--bd)}
+.obra-kpi{background:var(--sl-lt);border-radius:7px;padding:10px 12px;border-left:3px solid transparent}
+.obra-kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--sl);margin-bottom:4px}
+.obra-kpi-val{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;line-height:1;margin-bottom:2px}
+.obra-kpi-sub{font-size:11px;color:var(--sl)}
+.obra-kpi-bar{height:4px;background:var(--bd);border-radius:2px;margin-top:6px}
+.obra-kpi-fill{height:4px;border-radius:2px;transition:width .5s}
+/* Consolidado banner */
+.obras-consolidado{background:var(--ink);border-radius:10px;padding:14px 18px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.con-item{display:flex;flex-direction:column;gap:3px}
+.con-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.45)}
+.con-val{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#fff;line-height:1}
+.con-val.gold{color:var(--go)}
+.con-val.green{color:#4ADE80}
+.con-val.red{color:#F87171}
+.con-sub{font-size:11px;color:rgba(255,255,255,.4)}
+/* Proj obras slide */
+.pob-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.pob-card{background:var(--sl-lt);border-radius:10px;border:1px solid var(--bd);overflow:hidden}
+.pob-head{padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.pob-name{font-size:13px;font-weight:700;color:var(--ink)}
+.pob-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 14px;border-top:1px solid var(--bd)}
+.pob-kpi{text-align:center}
+.pob-kpi-val{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;line-height:1}
+.pob-kpi-label{font-size:10px;color:var(--sl);margin-top:2px}
+.pob-fin{display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:10px 14px}
+.pob-fin-item{display:flex;flex-direction:column;gap:2px;padding:6px 8px}
+.pob-fin-item+.pob-fin-item{border-left:1px solid var(--bd)}
+.pob-fin-label{font-size:10px;color:var(--sl);font-weight:600}
+.pob-fin-val{font-size:14px;font-weight:700;color:var(--ink)}
+
+.toast{position:fixed;bottom:18px;right:18px;background:var(--gr);color:#fff;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);transition:all .3s;z-index:999;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.toast.on{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<div class="tb">
+  <div class="tb-l">
+    <div class="tb-gold"></div>
+    <span class="tb-logo" onclick="goHome()">Portal de <span>Comités</span></span>
+    <div class="bc" id="bc"></div>
+  </div>
+  <div class="tb-r">
+    <button class="btn sm gh" id="btn-users" style="display:none" onclick="showUsers()">Usuarios</button>
+    <div class="rpill dn" id="rpill" onclick="logout()"><div class="dot"></div><span id="rlabel">—</span></div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="sc on" id="sc-login">
+  <div class="lw"><div class="lc">
+    <div class="lt">MK Ingeniería</div>
+    <div class="ls">Portal de Comités — ingresa tu área y PIN</div>
+    <label class="lbl">Área</label>
+    <select class="li" id="l-area">
+      <option value="">— Selecciona —</option>
+      <option value="admin">Administrador (acceso total)</option>
+      <option value="finanzas">Finanzas y Tesorería</option>
+      <option value="rrhh">Recursos Humanos</option>
+      <option value="legal">Legal</option>
+      <option value="prevencion">Prevención de Riesgos</option>
+      <option value="estudios">Estudios y Licitaciones</option>
+      <option value="obras">Obras Activas</option>
+      <option value="viewer">Solo visualización</option>
+    </select>
+    <label class="lbl">PIN</label>
+    <input class="li" type="password" id="l-pin" placeholder="••••" maxlength="6" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <div class="lerr" id="l-err">PIN incorrecto.</div>
+    <button class="btn pri" style="width:100%;padding:9px;font-size:14px" onclick="doLogin()">Ingresar →</button>
+    <div class="lhint">Contacta a Felipe Valenzuela si no tienes acceso.</div>
+  </div></div>
+</div>
+
+<!-- HOME -->
+<div class="sc" id="sc-home">
+  <div class="hw">
+    <div class="hh">
+      <div><div class="ht">Comités <span>MK Ingeniería</span></div><div class="hdate" id="hdate"></div></div>
+      <button class="btn pri" onclick="toast2('Próximamente — requiere Supabase')">Proyectar consolidado →</button>
+    </div>
+    <div class="gbanner">
+      <div><div style="font-size:15px;font-weight:600;color:#fff">Comité Ampliado — Todas las áreas</div><div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">Vista ejecutiva · 3 momentos · 20 min</div></div>
+      <button class="btn gol" onclick="toast2('Próximamente — requiere Supabase')">Proyectar →</button>
+    </div>
+    <div class="slbl">Áreas</div>
+    <div class="dg" id="dg"></div>
+  </div>
+</div>
+
+<!-- EDIT -->
+<div class="sc" id="sc-edit">
+  <div class="ew">
+    <div class="etbar">
+      <div class="etitle" id="et"></div>
+      <div style="display:flex;gap:7px">
+        <button class="btn" onclick="projectArea(CA)">Proyectar →</button>
+        <button class="btn gol" onclick="saveArea()">Guardar</button>
+      </div>
+    </div>
+    <div id="obras-panel" style="display:none;margin-bottom:14px"></div>
+    <div class="egrid">
+      <div class="card" id="card-kpis">
+        <div class="ch"><div class="chl"><div class="cstrip" id="strip-k"></div><span class="chtitle">Indicadores clave</span></div><button class="addbtn" onclick="toggleSugg()">+ Agregar</button></div>
+        <div class="cb">
+          <div id="kl"></div>
+          <div id="sugg-box" style="display:none"></div>
+          <div class="aform" id="f-kpi">
+            <input type="text" id="fkn" placeholder="Nombre del indicador"/>
+            <div class="frow">
+              <input type="text" id="fkv" placeholder="Valor actual"/>
+              <input type="text" id="fkm" placeholder="Meta"/>
+            </div>
+            <div class="frow">
+              <select id="fkt"><option value="porcentaje">Porcentaje</option><option value="numero">Número</option><option value="dinero">Dinero ($MM)</option><option value="indice">Índice</option><option value="zero">Meta cero (accidentes, juicios)</option></select>
+              <select id="fks"><option value="ok">OK</option><option value="warn">Alerta</option><option value="bad">Crítico</option></select>
+            </div>
+            <input type="text" id="fkg" placeholder="Guía de interpretación (aparece como ayuda)"/>
+            <div class="fbtns"><button class="btn pri sm" onclick="addKpi()">Agregar</button><button class="btn sm" onclick="closeF('kpi')">Cancelar</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="chl"><div class="cstrip" style="background:var(--go)"></div><span class="chtitle">Decisiones del comité</span></div><button class="addbtn" onclick="openF('dec')">+ Agregar</button></div>
+        <div class="cb">
+          <div id="dl"></div>
+          <div class="aform" id="f-dec">
+            <input type="text" id="fdt" placeholder="¿Qué necesita aprobar el comité?"/>
+            <select id="fdu"><option value="urgente">Urgente</option><option value="reunion">Esta reunión</option><option value="proxima">Próxima reunión</option></select>
+            <div class="fbtns"><button class="btn pri sm" onclick="addDec()">Agregar</button><button class="btn sm" onclick="closeF('dec')">Cancelar</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="chl"><div class="cstrip" style="background:var(--co)"></div><span class="chtitle">Tareas en proceso</span></div><button class="addbtn" onclick="openF('task')">+ Agregar</button></div>
+        <div class="cb">
+          <div id="tl"></div>
+          <div class="aform" id="f-task">
+            <input type="text" id="ftt" placeholder="Descripción de la tarea"/>
+            <div class="frow"><input type="text" id="ftr" placeholder="Responsable"/><input type="date" id="ftd"/></div>
+            <select id="fte"><option value="pendiente">Pendiente</option><option value="en-proceso">En proceso</option><option value="completada">Completada</option><option value="bloqueada">Bloqueada</option></select>
+            <div class="fbtns"><button class="btn pri sm" onclick="addTask()">Agregar</button><button class="btn sm" onclick="closeF('task')">Cancelar</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="chl"><div class="cstrip" style="background:var(--sl)"></div><span class="chtitle">Parking Lot y Reuniones Anteriores</span></div></div>
+        <div class="cb">
+          <div style="font-size:11px;font-weight:700;color:var(--am);margin-bottom:6px">Parking Lot — temas para próxima reunión</div>
+          <div id="park-list"></div>
+          <div class="frow" style="margin-top:6px">
+            <input type="text" id="park-inp" placeholder="Agregar tema..." style="font-size:12px;padding:5px 8px;border:1px solid var(--bd);border-radius:5px;font-family:'Barlow',sans-serif;color:var(--ink);background:var(--wh);flex:1"/>
+            <button class="btn sm pri" onclick="addParking()">+ Agregar</button>
+          </div>
+          <div style="margin-top:14px"><div style="font-size:11px;font-weight:600;color:#94A3B8;margin-bottom:5px">Reuniones anteriores</div><div id="hl"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECTION -->
+<div class="sc" id="sc-proj">
+  <div class="pw">
+    <div class="ph">
+      <div><div class="pname" id="ptitle"></div><div class="pmeta" id="pmeta"></div></div>
+      <div class="pnav">
+        <button class="btn sm wh" onclick="pPrev()">←</button>
+        <div><div class="pctr" id="pctr">1/3</div><div class="pdots" id="pdots"></div></div>
+        <button class="btn sm wh" onclick="pNext()">→</button>
+        <button class="btn sm wh" style="margin-left:8px" onclick="editArea(CA)">Editar</button>
+        <button class="btn sm wh" onclick="goHome()">Salir</button>
+      </div>
+    </div>
+    <div class="trow-bar">
+      <span class="tlabel" id="tlabel">Momento 1</span>
+      <span class="tval" id="tval">5:00</span>
+      <div class="tbtns"><button class="btn sm" id="tbtn" onclick="toggleTimer()">Iniciar</button><button class="btn sm" onclick="resetTimer()">Reset</button></div>
+    </div>
+    <div class="tbar-bg"><div class="tbar-fill" id="tfill" style="width:100%"></div></div>
+
+    <!-- OBRAS: Slide 0 — Vista financiera -->
+    <div class="pslide" id="ps-obras">
+      <div class="pstitle"><div class="s2" style="background:var(--gr)"></div>Control Obras — Vista financiera</div>
+      <div id="proj-obras-content"></div>
+    </div>
+
+    <!-- OBRAS: Slide 1 — Tareas + Decisiones -->
+    <div class="pslide" id="ps-obras-td">
+      <div class="pstitle"><div class="s2" style="background:var(--co)"></div>Tareas activas y Decisiones pendientes</div>
+      <div class="pm2g">
+        <div class="pm2c">
+          <div class="pm2h" style="background:var(--am)"><span>Tareas activas</span></div>
+          <div class="pm2body">
+            <div id="pt-content-obras"></div>
+            <div class="qradd" id="qr-task-obras">
+              <div class="qradd-title">+ Agregar tarea</div>
+              <div class="qrf">
+                <input type="text" id="qtt-obras" placeholder="Nueva tarea..."/>
+                <input type="text" id="qtr-obras" placeholder="Responsable" style="max-width:130px"/>
+                <input type="date" id="qtd-obras"/>
+                <button class="btn pri sm" onclick="projAddTaskObras()">Agregar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pm2c">
+          <div class="pm2h" style="background:var(--re)">
+            <span>Decisiones del comité</span>
+            <span id="dec-count-obras" style="font-size:10px;background:rgba(255,255,255,.2);padding:1px 7px;border-radius:20px"></span>
+          </div>
+          <div class="pm2body">
+            <div id="pd-content-obras"></div>
+            <div class="qradd" id="qr-dec-obras">
+              <div class="qradd-title">+ Agregar decisión</div>
+              <div class="qrf">
+                <input type="text" id="qdt-obras" placeholder="Nueva decisión..."/>
+                <select id="qdu-obras"><option value="urgente">Urgente</option><option value="reunion">Esta reunión</option><option value="proxima">Próxima</option></select>
+                <button class="btn pri sm" onclick="projAddDecObras()">Agregar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="cm-slot-obras-td"></div>
+    </div>
+
+    <!-- TODAS: Slide 0 — KPIs Scoreboard -->
+    <div class="pslide" id="ps-0">
+      <div class="pstitle"><div class="s2" id="pstrip-k"></div>Momento 1 · Scoreboard — KPIs de la semana</div>
+      <div class="pkgrid" id="pk-content"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+        <div class="prev-box"><div class="prev-title">Compromisos de reunión anterior</div><div id="prev-comp"></div></div>
+        <div id="cm-slot-kpi"></div>
+      </div>
+    </div>
+
+    <!-- TODAS: Slide 1 — Decisiones y Tareas -->
+    <div class="pslide" id="ps-1">
+      <div class="pstitle"><div class="s2" style="background:var(--am)"></div>Momento 2 · Problemas, Alertas y Decisiones</div>
+      <div class="pm2g">
+        <div class="pm2c">
+          <div class="pm2h" style="background:var(--re)"><span>Decisiones del comité</span><span id="dec-count" style="font-size:10px;background:rgba(255,255,255,.2);padding:1px 7px;border-radius:20px"></span></div>
+          <div class="pm2body">
+            <div id="pd-content"></div>
+            <div class="qradd" id="qr-dec"><div class="qradd-title">+ Agregar decisión ahora</div>
+              <div class="qrf"><input type="text" id="qdt" placeholder="Nueva decisión..."/><select id="qdu"><option value="urgente">Urgente</option><option value="reunion">Esta reunión</option><option value="proxima">Próxima</option></select><button class="btn pri sm" onclick="projAddDec()">Agregar</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="pm2c">
+          <div class="pm2h" style="background:var(--am)"><span>Tareas activas</span></div>
+          <div class="pm2body">
+            <div id="pt-content"></div>
+            <div class="qradd" id="qr-task"><div class="qradd-title">+ Agregar tarea ahora</div>
+              <div class="qrf"><input type="text" id="qtt" placeholder="Nueva tarea..."/><input type="text" id="qtr" placeholder="Responsable" style="max-width:130px"/><input type="date" id="qtd"/><button class="btn pri sm" onclick="projAddTask()">Agregar</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="parking" style="margin-top:12px">
+        <div class="parking-title">Parking Lot — temas que no corresponde tratar hoy</div>
+        <div id="park-proj"></div>
+        <div id="park-proj-add" style="display:flex;gap:6px;margin-top:7px">
+          <input type="text" id="park-pi" placeholder="Agregar tema..." style="flex:1;font-size:12px;padding:5px 8px;border:1px solid #FDE68A;border-radius:5px;font-family:'Barlow',sans-serif;background:var(--wh)"/>
+          <button class="btn sm" style="background:var(--wh);border-color:var(--am);color:var(--am)" onclick="projAddParking()">+ Agregar</button>
+        </div>
+      </div>
+      <div id="cm-slot-slide1"></div>
+    </div>
+
+    <!-- TODAS: Slide 2 — Compromisos + Minuta emergente -->
+    <div class="pslide" id="ps-2">
+      <div class="pstitle"><div class="s2" style="background:var(--gr)"></div>Momento 3 · Compromisos y cierre</div>
+      <div class="m3g">
+        <div>
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--sl);margin-bottom:8px">Compromisos de hoy — confirmar responsable y fecha</div>
+          <div id="comp-list"></div>
+          <div style="margin-top:10px;padding:10px 12px;background:var(--re-lt);border-radius:6px;border:1px solid #FECACA">
+            <div style="font-size:12px;font-weight:700;color:var(--re)">Regla: sin fecha = no es compromiso</div>
+            <div style="font-size:12px;color:#991B1B;margin-top:2px">Toda tarea debe tener responsable + fecha antes de cerrar la reunión.</div>
+          </div>
+        </div>
+        <div class="me">
+          <div class="me-h"><span class="me-title">Minuta emergente</span><span class="me-badge" id="me-count">0 líneas</span></div>
+          <div class="me-body" id="me-content"></div>
+          <div style="padding:10px 14px;border-top:1px solid var(--bd);display:flex;gap:6px">
+            <button class="btn pri sm" onclick="saveMinuta()">Guardar y cerrar reunión</button>
+            <button class="btn sm" onclick="copyMinuta()">Copiar texto</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rulebar">
+      <span class="rule">Enviar notas a Felipe la noche anterior</span>
+      <span class="rule">Sin fecha = no es compromiso</span>
+      <span class="rule">Si se extiende → Parking Lot</span>
+      <span class="rule">Verde = en meta · Amarillo = alerta · Rojo = crítico</span>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- USERS SCREEN -->
+<div class="sc" id="sc-users">
+  <div class="uw">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:6px">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--ink)">Maestro de <span style="color:var(--co)">Usuarios</span></div>
+        <div style="font-size:12px;color:var(--sl);margin-top:2px">Solo el administrador puede crear, editar o eliminar usuarios</div>
+      </div>
+      <button class="btn pri" onclick="openUModal(null)">+ Nuevo usuario</button>
+    </div>
+    <div style="background:var(--am-lt);border:1px solid #FDE68A;border-radius:7px;padding:9px 14px;margin-bottom:16px;font-size:12px;color:var(--am)">
+      <strong>Importante:</strong> Los PINs en esta versión se guardan en localStorage. En producción con Supabase quedarán cifrados.
+    </div>
+    <div class="users-grid" id="users-grid"></div>
+  </div>
+</div>
+
+<!-- USER MODAL -->
+<div class="umodal-bg" id="umodal" onclick="if(event.target===this)closeUModal()">
+  <div class="umodal">
+    <div class="umodal-title" id="umodal-title">Nuevo usuario</div>
+    <div class="ufield"><label>Nombre completo</label><input class="uinp" type="text" id="u-name" placeholder="Ej: Felipe Valenzuela"/></div>
+    <div class="ufield"><label>Cargo</label><input class="uinp" type="text" id="u-cargo" placeholder="Ej: Gerente de Innovación"/></div>
+    <div class="ufield"><label>Área</label>
+      <select class="uinp" id="u-area">
+        <option value="admin">Administrador (acceso total)</option>
+        <option value="finanzas">Finanzas y Tesorería</option>
+        <option value="rrhh">Recursos Humanos</option>
+        <option value="legal">Legal</option>
+        <option value="prevencion">Prevención de Riesgos</option>
+        <option value="estudios">Estudios y Licitaciones</option>
+        <option value="obras">Obras Activas</option>
+        <option value="viewer">Solo visualización</option>
+      </select>
+    </div>
+    <div class="ufield"><label>PIN de acceso</label>
+      <div class="pin-show">
+        <input class="uinp" type="password" id="u-pin" placeholder="4–6 dígitos" maxlength="6"/>
+        <button class="pin-toggle" onclick="togglePinVis()">Mostrar</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#94A3B8;margin-bottom:4px">El PIN permite al usuario editar solo su área asignada.</div>
+    <div class="ufield"><label>Color de área (opcional)</label>
+      <input class="uinp" type="color" id="u-color" value="#0B5ED7" style="height:38px;padding:4px 8px;cursor:pointer"/></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+      <button class="btn" onclick="closeUModal()">Cancelar</button>
+      <button class="btn pri" onclick="saveUModal()">Guardar usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- TASK EDIT MODAL -->
+<div class="modal-bg" id="task-modal" onclick="if(event.target===this)closeTaskModal()">
+  <div class="modal-box">
+    <div class="modal-title">Editar tarea</div>
+    <div class="modal-field">
+      <label class="modal-label">Descripción</label>
+      <input class="modal-inp" type="text" id="m-text" placeholder="Descripción de la tarea"/>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Responsable</label>
+      <select class="modal-inp" id="m-resp-sel" onchange="if(this.value)document.getElementById('m-resp').value=this.value">
+        <option value="">— Seleccionar usuario —</option>
+      </select>
+      <input class="modal-inp" type="text" id="m-resp" placeholder="O escribe un nombre..." style="margin-top:5px"/>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Fecha compromiso</label>
+      <input class="modal-inp" type="date" id="m-fecha"/>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Estado</label>
+      <select class="modal-inp" id="m-estado">
+        <option value="pendiente">Pendiente</option>
+        <option value="en-proceso">En proceso</option>
+        <option value="completada">Completada</option>
+        <option value="bloqueada">Bloqueada</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeTaskModal()">Cancelar</button>
+      <button class="btn pri" onclick="saveTaskModal()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PINS={admin:'1234',finanzas:'2001',rrhh:'2002',legal:'2003',prevencion:'2004',estudios:'2005',obras:'2006',viewer:'0000'}
+const RNAMES={admin:'Administrador',finanzas:'Finanzas',rrhh:'RRHH',legal:'Legal',prevencion:'Prevención',estudios:'Estudios',obras:'Obras',viewer:'Solo lectura'}
+const CEDIT={admin:['finanzas','rrhh','legal','prevencion','estudios','obras'],finanzas:['finanzas'],rrhh:['rrhh'],legal:['legal'],prevencion:['prevencion'],estudios:['estudios'],obras:['obras'],viewer:[]}
+const MT=[5*60,10*60,5*60]
+const ML=['Momento 1 — Scoreboard','Momento 2 — Problemas y Decisiones','Momento 3 — Compromisos y Cierre']
+
+
+// ── HISTÓRICO — solo cuando hay datos reales ─────────────
+function buildHistBadge(k) {
+  if (!k.hist || k.hist.length < 1) return ''
+  return `<div style="margin-top:6px">
+    <span style="font-size:10px;font-weight:600;color:#94A3B8;border:1px solid var(--bd);padding:2px 8px;border-radius:20px;cursor:default">Histórico (${k.hist.length} período${k.hist.length>1?'s':''})</span>
+  </div>`
+}
+
+function buildLineChart(k, color, W, H) {
+  const vals = [...(k.hist||[]), k.valor].map(v => parseF(v))
+  const labels = [...(k.hist||[]), k.valor].map((v,i,arr) => i===arr.length-1?'Hoy':`-${arr.length-1-i}`)
+  if (vals.length < 2) return `<div style="font-size:12px;color:#94A3B8;padding:20px 0;text-align:center">Sin datos históricos aún.</div>`
+  const max = Math.max(...vals), min = Math.min(...vals)
+  const range = max - min || max || 1
+  const pad = {t:12,r:8,b:28,l:36}
+  const iW = W - pad.l - pad.r, iH = H - pad.t - pad.b
+  const pts = vals.map((v,i) => {
+    const x = pad.l + (i/(vals.length-1))*iW
+    const y = pad.t + (1-((v-min)/range))*iH
+    return `${x.toFixed(1)},${y.toFixed(1)}`
+  }).join(' ')
+  // Area fill
+  const first = vals[0], last = vals[vals.length-1]
+  const x0 = pad.l, xN = pad.l+iW, yBot = pad.t+iH
+  const areaPts = `${x0},${yBot} ${pts} ${xN},${yBot}`
+  // Y axis ticks (3 lines)
+  const yTicks = [0, 0.5, 1].map(t => {
+    const val = min + t * range
+    const y = pad.t + (1-t)*iH
+    const label = val >= 1000 ? `$${(val/1000).toFixed(0)}k` : val % 1 !== 0 ? val.toFixed(2) : val.toFixed(0)
+    return `<line x1="${pad.l}" y1="${y.toFixed(1)}" x2="${pad.l+iW}" y2="${y.toFixed(1)}" stroke="#E2E8F0" stroke-width="1"/>
+            <text x="${(pad.l-4).toFixed(0)}" y="${(y+4).toFixed(1)}" text-anchor="end" fill="#94A3B8" font-size="9" font-family="Barlow,sans-serif">${label}</text>`
+  }).join('')
+  // X axis labels
+  const xLabels = labels.map((lbl,i) => {
+    const x = pad.l + (i/(vals.length-1))*iW
+    return `<text x="${x.toFixed(1)}" y="${(pad.t+iH+16).toFixed(1)}" text-anchor="middle" fill="#94A3B8" font-size="9" font-family="Barlow,sans-serif">${lbl}</text>`
+  }).join('')
+  // Dots
+  const dots = vals.map((v,i) => {
+    const x = pad.l + (i/(vals.length-1))*iW
+    const y = pad.t + (1-((v-min)/range))*iH
+    const isLast = i===vals.length-1
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${isLast?4:3}" fill="${isLast?color:'#fff'}" stroke="${color}" stroke-width="1.5"/>`
+  }).join('')
+  return `<svg width="100%" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="ag${k.name.replace(/\W/g,'')}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity=".15"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${yTicks}
+    <polygon points="${areaPts}" fill="url(#ag${k.name.replace(/\W/g,'')})" />
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    ${dots}
+    ${xLabels}
+  </svg>`
+}
+
+// ── KPI STORYTELLING ENGINE ───────────────────────────────
+// Returns {pct, color, headline, story, barLeft, barRight, trend_text}
+function kpiStory(k) {
+  const v = parseF(k.valor), hist = k.hist || []
+  const tr = trend(k)
+  const tStr = tr==='↑' ? 'en alza' : tr==='↓' ? 'a la baja' : 'estable'
+  const periods = hist.length
+
+  // ── ZERO-TARGET: accidentes, juicios, incidentes ──────
+  if (k.tipo === 'zero') {
+    if (v === 0) {
+      const streak = hist.filter(h => parseF(h) === 0).length
+      return {
+        isZero: true, color: '#16A34A', ok: true,
+        headline: `Sin ${k.name.toLowerCase()} registrados`,
+        story: streak > 1
+          ? `${streak} período${streak>1?'s':''} consecutivos en cero.${k.comment ? ' ' + k.comment : ''}`
+          : `Meta cumplida este período.${k.comment ? ' ' + k.comment : ''}`,
+      }
+    } else {
+      const prev = hist.length ? parseF(hist[hist.length-1]) : null
+      const bajando = prev !== null && v < prev
+      return {
+        isZero: true, color: '#DC2626', ok: false,
+        headline: `${v} ${k.name.toLowerCase()} ${v===1?'registrado':'registrados'}`,
+        story: (bajando ? `Viene bajando (${prev} → ${k.valor}) — tendencia positiva.` : prev !== null && v > prev ? `Viene subiendo (${prev} → ${k.valor}) — requiere atención.` : `Requiere investigación y acción preventiva.`) + (k.comment ? ' ' + k.comment : ''),
+      }
+    }
+  }
+
+  // ── NORMAL KPI: compute % toward target ──────────────
+  const meta = parseF(k.meta)
+  let pct = 0, color = '#64748B'
+  let headline = '', story = '', barLeft = k.valor, barRight = `Meta: ${k.meta}`
+
+  // Determine direction and compute pct
+  const isLE = k.meta.includes('≤')
+  const isGE = k.meta.includes('≥') || k.meta.startsWith('>')
+  let achievement = 0
+
+  if (isLE && meta > 0) {
+    achievement = Math.min(100, Math.round((meta / Math.max(v, 0.001)) * 100))
+    pct = achievement
+  } else if (meta > 0) {
+    achievement = Math.min(100, Math.round((v / meta) * 100))
+    pct = achievement
+  } else {
+    pct = 60 // no numeric meta
+  }
+
+  // Color thresholds
+  if (pct >= 95) color = '#16A34A'
+  else if (pct >= 70) color = '#D97706'
+  else color = '#DC2626'
+
+  // Gap calculation for storytelling
+  const gap = meta > 0 ? Math.abs(v - meta) : 0
+  const gapPct = meta > 0 ? Math.round(Math.abs((v - meta) / meta) * 100) : 0
+
+  // Craft the headline based on KPI type
+  if (k.tipo === 'porcentaje') {
+    if (pct >= 95) headline = `En meta — ${k.valor} de ${k.meta}`
+    else if (isGE) headline = `${gapPct}% bajo la meta de ${k.meta}`
+    else headline = `Al ${pct}% del objetivo`
+  } else if (k.tipo === 'indice') {
+    if (v >= 1 && !isLE) headline = `Índice positivo — ${k.valor} sobre meta ${k.meta}`
+    else if (v >= meta && !isLE) headline = `En meta — ${k.valor}`
+    else {
+      const diff = Math.round(Math.abs(1 - v / (meta||1)) * 100)
+      headline = `${diff}% ${isLE ? 'sobre' : 'bajo'} la meta de ${k.meta}`
+    }
+  } else if (k.tipo === 'dinero') {
+    if (pct >= 95) headline = `En rango — ${k.valor}`
+    else if (isGE || k.meta.startsWith('>')) headline = `${k.valor} — ${gapPct}% bajo la meta`
+    else headline = `${k.valor} — ${gapPct}% sobre el límite`
+  } else {
+    if (pct >= 95) headline = `En meta — ${k.valor}`
+    else headline = `${k.valor} de ${k.meta} (${pct}%)`
+  }
+
+  // Story = numbers + trend context
+  const trendCtx = periods >= 2
+    ? `Lleva ${periods} período${periods>1?'s':''} ${tStr}.`
+    : ''
+  const commentCtx = k.comment ? k.comment : ''
+  story = [trendCtx, commentCtx].filter(Boolean).join(' ')
+  if (!story) story = `Valor actual: ${k.valor} · Meta: ${k.meta}`
+
+  barLeft = k.valor
+  barRight = `Meta: ${k.meta}`
+
+  return { isZero: false, pct, color, headline, story, barLeft, barRight }
+}
+
+// ── SUGGESTED KPIs ────────────────────────────────────────
+const SUGG = {
+  finanzas:[
+    {name:'Flujo de caja actual',valor:'$0 MM',meta:'> $0',tipo:'dinero',guide:'Saldo disponible. Positivo = empresa con liquidez para operar.'},
+    {name:'Ingresos por facturar',valor:'$0 MM',meta:'—',tipo:'dinero',guide:'Facturas emitidas pendientes de cobro.'},
+    {name:'Egresos por pagar',valor:'$0 MM',meta:'< $1.000 MM',tipo:'dinero',guide:'Deudas con proveedores. Monitorear capacidad de pago.'},
+    {name:'Egresos por facturar',valor:'$0 MM',meta:'—',tipo:'dinero',guide:'Servicios recibidos no facturados aún.'},
+  ],
+  rrhh:[
+    {name:'Trabajadores activos',valor:'0',meta:'50',tipo:'numero',guide:'Dotación vigente vs planificada.'},
+    {name:'Tasa de asistencia',valor:'0%',meta:'≥ 95%',tipo:'porcentaje',guide:'Bajo 95% indica ausentismo relevante.'},
+    {name:'Contratos por vencer (30 días)',valor:'0',meta:'0',tipo:'zero',guide:'Requieren renovación o término formal.'},
+    {name:'Finiquitos pendientes',valor:'0',meta:'0',tipo:'zero',guide:'Trabajadores desvinculados sin finiquito resuelto.'},
+  ],
+  legal:[
+    {name:'Juicios o demandas activas',valor:'0',meta:'0',tipo:'zero',guide:'Cualquier número sobre 0 requiere seguimiento activo.'},
+    {name:'Riesgo económico estimado',valor:'$0 MM',meta:'< $20 MM',tipo:'dinero',guide:'Monto total expuesto en causas legales activas.'},
+    {name:'Contratos vencidos sin renovar',valor:'0',meta:'0',tipo:'zero',guide:'Contratos activos sin renovación formal.'},
+  ],
+  prevencion:[
+    {name:'Tasa de accidentabilidad',valor:'0',meta:'≤ 1.0',tipo:'indice',guide:'(Accidentes × 200.000) / HH. Meta legal en Chile ≤ 1.0.'},
+    {name:'Accidentes con tiempo perdido',valor:'0',meta:'0',tipo:'zero',guide:'Meta siempre es cero. Requiere investigación inmediata.'},
+    {name:'Incidentes reportados',valor:'0',meta:'0',tipo:'zero',guide:'Eventos sin lesión pero con potencial de accidente.'},
+    {name:'Días perdidos acumulados',valor:'0',meta:'0',tipo:'zero',guide:'Días de licencia médica por accidentes en el período.'},
+    {name:'Charlas de seguridad',valor:'0',meta:'4',tipo:'numero',guide:'Mínimo 1 por semana. Requerido por ley.'},
+  ],
+  estudios:[
+    {name:'Cumplimiento meta anual',valor:'0%',meta:'100%',tipo:'porcentaje',guide:'% de la meta de ventas ya adjudicado.'},
+    {name:'Monto proyectos en estudio',valor:'$0 MM',meta:'$12.000 MM',tipo:'dinero',guide:'Pipeline activo de licitaciones en proceso.'},
+    {name:'Licitaciones adjudicadas (mes)',valor:'0',meta:'2',tipo:'numero',guide:'Velocidad de cierre comercial.'},
+  ],
+  obras:[
+    {name:'Avance físico real vs programado',valor:'0%',meta:'0%',tipo:'porcentaje',guide:'Si real < programado, hay retraso en ejecución.'},
+    {name:'SPI — Índice de planificación',valor:'0',meta:'≥ 1.0',tipo:'indice',guide:'Sobre 1 = adelantado. Bajo 1 = retrasado. 0.71 = 29% de retraso.'},
+    {name:'CPI — Índice de costo',valor:'0',meta:'≥ 1.0',tipo:'indice',guide:'Sobre 1 = bajo presupuesto. Bajo 1 = sobre costo.'},
+    {name:'Flujo del mes',valor:'$0 MM',meta:'> $100 MM',tipo:'dinero',guide:'Facturado menos gastado en el mes.'},
+    {name:'Accidentes en obra',valor:'0',meta:'0',tipo:'zero',guide:'Meta siempre es cero.'},
+  ],
+}
+
+
+// ── OBRAS DATA ────────────────────────────────────────────
+const OBRAS_DEF = [
+  {
+    id:'pet-ct',
+    // Estáticos
+    name:'PET CT Clínica Alemana', cliente:'Clínica Alemana', administrador:'Por definir',
+    fecha_inicio:'2026-01-26', fecha_fin_contrato:'2026-03-27',
+    contrato:358, estado:'activa',
+    // Dinámicos (registro semanal)
+    ndc_aprobadas:80, ndc_revision:0, facturado:125, presupuesto:273, comprometido:208, gastado:120,
+    avance_real:53, avance_prog:53, termino_est:'30 Abr 2026',
+    margen_estudio_pct:15,
+    nota:'Reprogramación validada por mandante. NDC en proceso de cobro.',
+    historial:[],
+  },
+  {
+    id:'corona',
+    // Estáticos
+    name:'Corona MAM', cliente:'Corona MAM SpA', administrador:'Por definir',
+    fecha_inicio:'2026-02-17', fecha_fin_contrato:'2026-06-17',
+    contrato:2316, estado:'activa',
+    // Dinámicos (registro semanal)
+    ndc_aprobadas:-11, ndc_revision:0, facturado:462, presupuesto:1832, comprometido:522, gastado:146,
+    avance_real:4, avance_prog:4, termino_est:'15 Jul 2026',
+    margen_estudio_pct:18,
+    nota:'Obra en fase inicial. Avance normal para semana 4.',
+    historial:[],
+  },
+]
+let obrasData = null
+
+function loadObras(){
+  const s = localStorage.getItem('mk-obras')
+  if(s) obrasData = JSON.parse(s)
+  else obrasData = JSON.parse(JSON.stringify(OBRAS_DEF))
+}
+function persistObras(){
+  localStorage.setItem('mk-obras', JSON.stringify(obrasData))
+}
+
+// ── OBRA CALCULATIONS ─────────────────────────────────────
+function calcObra(o){
+  const ndc_ap             = o.ndc_aprobadas || 0
+  const ndc_rev            = o.ndc_revision  || 0
+  const contrato_total     = o.contrato + ndc_ap
+  const potencial_total    = contrato_total + ndc_rev
+  const saldo_facturar     = contrato_total - o.facturado
+  const saldo_proveedores  = (o.comprometido || 0) - (o.gastado || 0)
+  const margen             = contrato_total - o.presupuesto
+  const margen_pct         = contrato_total > 0 ? (margen / contrato_total * 100) : 0
+  const margen_estudio_pct = o.margen_estudio_pct || 0
+  const margen_estudio     = o.contrato * (margen_estudio_pct / 100)
+  const desviacion_pct     = margen_pct - margen_estudio_pct
+  const flujo              = (o.facturado || 0) - (o.gastado || 0)
+  const spi = o.avance_prog > 0 ? (o.avance_real / o.avance_prog) : 1
+  const cpi = o.gastado     > 0 ? (o.facturado   / o.gastado)     : 1
+  const pct_facturado = contrato_total > 0 ? Math.round((o.facturado/contrato_total)*100) : 0
+  return {
+    contrato_total, potencial_total, ndc_ap, ndc_rev,
+    saldo_facturar, saldo_proveedores,
+    margen, margen_pct, margen_estudio, margen_estudio_pct, desviacion_pct,
+    flujo, spi, cpi, pct_facturado
+  }
+}
+
+function fmm(n){ // format $MM with 1 decimal if needed
+  if(Math.abs(n) >= 1000) return `$${(n/1000).toFixed(1)} MM`
+  return `$${n} MM`
+}
+
+const ADEFS=[
+  {id:'finanzas',name:'Finanzas y Tesorería',color:'#0B5ED7',freq:'Quincenal',
+   kpis:[
+     {name:'Flujo de caja actual',valor:'$142 MM',meta:'> $0',tipo:'dinero',status:'ok',hist:['$98MM','$115MM','$142MM'],comment:'',guide:'Saldo disponible. Positivo = liquidez para operar.'},
+     {name:'Ingresos por facturar',valor:'$2.087 MM',meta:'—',tipo:'dinero',status:'info',hist:['$1.800MM','$2.100MM','$2.087MM'],comment:'Facturación en curso, pendiente de cobro',guide:'Facturas pendientes de cobro. Refleja trabajo ejecutado no cobrado.'},
+     {name:'Egresos por pagar',valor:'$890 MM',meta:'< $1.000 MM',tipo:'dinero',status:'ok',hist:['$1.200MM','$950MM','$890MM'],comment:'',guide:'Deudas con proveedores pendientes.'},
+     {name:'Egresos por facturar',valor:'$320 MM',meta:'—',tipo:'dinero',status:'info',hist:['$280MM','$310MM','$320MM'],comment:'',guide:'Servicios recibidos no facturados aún.'},
+   ],
+   tareas:[{text:'Integrar API SII al Portal',resp:'Luis Macri',estado:'en-proceso',fecha:'2026-03-22',fromDec:false},{text:'Validar plataforma con Jaime Martínez',resp:'F. Valenzuela',estado:'pendiente',fecha:'',fromDec:false}],
+   decisiones:[{text:'Aprobar pago API SII para integración Portal',urgencia:'urgente',resuelta:false},{text:'Definir proceso tras salida de Aldo Jaramillo',urgencia:'reunion',resuelta:false}],
+   parking:[],notas:'',historial:[{fecha:'03 Mar 2026',texto:'Revisión Portal Documentos. Aprobado continuar desarrollo.'}]},
+  {id:'rrhh',name:'Recursos Humanos',color:'#7C3AED',freq:'Mensual',
+   kpis:[
+     {name:'Trabajadores activos',valor:'48',meta:'50',tipo:'numero',status:'warn',hist:['50','49','48'],comment:'2 plazas en proceso de reclutamiento',guide:'Dotación vigente vs planificada de 50 trabajadores.'},
+     {name:'Tasa de asistencia',valor:'94%',meta:'≥ 95%',tipo:'porcentaje',status:'warn',hist:['96%','95%','94%'],comment:'Ausentismo concentrado en obra PET CT',guide:'Bajo 95% tres semanas consecutivas requiere acción.'},
+   ],
+   tareas:[{text:'Optimizar flujos en Talana',resp:'F. Valenzuela',estado:'en-proceso',fecha:'2026-03-28',fromDec:false},{text:'Enviar tabla de sueldos a L. Godoy',resp:'F. Valenzuela',estado:'pendiente',fecha:'',fromDec:false}],
+   decisiones:[{text:'Validar tabla de sueldos normalizados',urgencia:'reunion',resuelta:false},{text:'Confirmar Talana reemplaza app de firmas',urgencia:'proxima',resuelta:false}],
+   parking:[],notas:'',historial:[{fecha:'17 Feb 2026',texto:'Diagnóstico Talana. 5 funciones subutilizadas.'}]},
+  {id:'legal',name:'Legal',color:'#D97706',freq:'Mensual',
+   kpis:[
+     {name:'Juicios o demandas activas',valor:'2',meta:'0',tipo:'zero',status:'bad',hist:['3','3','2'],comment:'Juicio laboral Corona MAM y demanda de proveedor',guide:'Cualquier número sobre 0 requiere seguimiento. Tendencia decreciente es positiva.'},
+     {name:'Riesgo económico estimado',valor:'$45 MM',meta:'< $20 MM',tipo:'dinero',status:'bad',hist:['$55MM','$50MM','$45MM'],comment:'Riesgo bajando — tendencia positiva',guide:'Monto total expuesto en causas legales activas.'},
+   ],
+   tareas:[{text:'Implementar firma electrónica SC',resp:'F. Valenzuela',estado:'en-proceso',fecha:'2026-03-25',fromDec:false},{text:'Validar prototipo DocSC',resp:'F. Valenzuela',estado:'pendiente',fecha:'',fromDec:false}],
+   decisiones:[{text:'Aprobar DocSC para producción',urgencia:'urgente',resuelta:false},{text:'Definir alcance IA Legal',urgencia:'proxima',resuelta:false}],
+   parking:[],notas:'',historial:[{fecha:'17 Feb 2026',texto:'Revisión contratos tipo. 3 cláusulas a actualizar.'}]},
+  {id:'prevencion',name:'Prevención de Riesgos',color:'#DC2626',freq:'Semanal',
+   kpis:[
+     {name:'Tasa de accidentabilidad',valor:'0.8',meta:'≤ 1.0',tipo:'indice',status:'ok',hist:['1.2','1.0','0.8'],comment:'',guide:'(Accidentes × 200.000) / HH trabajadas. Meta legal en Chile ≤ 1.0.'},
+     {name:'Accidentes con tiempo perdido',valor:'0',meta:'0',tipo:'zero',status:'ok',hist:['0','0','0'],comment:'',guide:'Meta siempre es cero. Cualquier accidente requiere investigación inmediata.'},
+     {name:'Incidentes reportados',valor:'3',meta:'0',tipo:'zero',status:'warn',hist:['1','2','3'],comment:'2 incidentes son de subcontrato Corona MAM — seguimiento en curso',guide:'Eventos sin lesión pero con potencial. Tendencia creciente requiere atención.'},
+     {name:'Días perdidos',valor:'0',meta:'0',tipo:'zero',status:'ok',hist:['2','0','0'],comment:'',guide:'Total días de licencia por accidentes en el período.'},
+   ],
+   tareas:[{text:'Testear app operativa en PET CT',resp:'Rafael Castillo',estado:'en-proceso',fecha:'2026-03-20',fromDec:false},{text:'Reunión jefe prevención sobre Kizeo',resp:'F. Valenzuela',estado:'pendiente',fecha:'',fromDec:false}],
+   decisiones:[{text:'¿Kizeo o sistema web CCD para digitalización?',urgencia:'urgente',resuelta:false},{text:'Aprobar piloto app operativa PET CT',urgencia:'reunion',resuelta:false}],
+   parking:['Evaluar charlas de seguridad vía app para subcontratos'],
+   notas:'',historial:[{fecha:'10 Mar 2026',texto:'Evaluación Kizeo completada.'},{fecha:'03 Mar 2026',texto:'Levantamiento procesos prevención en obras.'}]},
+  {id:'estudios',name:'Estudios y Licitaciones',color:'#64748B',freq:'Mensual',
+   kpis:[
+     {name:'Cumplimiento meta anual',valor:'28%',meta:'100%',tipo:'porcentaje',status:'warn',hist:['10%','18%','28%'],comment:'Ritmo de adjudicación debe acelerar en Q2',guide:'% de la meta anual de ventas ya adjudicado.'},
+     {name:'Monto proyectos en estudio',valor:'$8.200 MM',meta:'$12.000 MM',tipo:'dinero',status:'warn',hist:['$5.000MM','$6.800MM','$8.200MM'],comment:'',guide:'Pipeline activo de licitaciones en proceso.'},
+   ],
+   tareas:[{text:'Completar entrevista Gerente Comercial',resp:'F. Valenzuela',estado:'en-proceso',fecha:'2026-03-19',fromDec:false},{text:'Mapear proceso de cubicación',resp:'F. Valenzuela',estado:'pendiente',fecha:'',fromDec:false}],
+   decisiones:[{text:'Definir alcance sistema web licitaciones',urgencia:'proxima',resuelta:false}],
+   parking:[],notas:'',historial:[{fecha:'17 Feb 2026',texto:'Entrevistas Subgerente y Jefa Negocios. Pendiente Gerente Comercial.'}]},
+  {id:'obras',name:'Control Obras',color:'#16A34A',freq:'Semanal',hasObras:true,
+   kpis:[
+     {name:'Avance PET CT (real/prog)',valor:'53% / 53%',meta:'En línea',tipo:'porcentaje',status:'ok',hist:['30%','43%','53%'],comment:'Reprogramación en curso — mandante validó nuevo plazo',guide:'Avance físico real vs programado. Si real < programado hay retraso.'},
+     {name:'Avance Corona MAM (real/prog)',valor:'4% / 4%',meta:'En línea',tipo:'porcentaje',status:'ok',hist:['0%','2%','4%'],comment:'',guide:'Obra en fase inicial — avance normal para semana 4.'},
+     {name:'SPI PET CT',valor:'0.71',meta:'≥ 1.0',tipo:'indice',status:'bad',hist:['0.85','0.78','0.71'],comment:'Atraso por espera de definiciones del mandante — GG.GG en proceso de cobro',guide:'SPI < 1 = retraso. 0.71 significa que por cada peso de trabajo planificado, solo se ejecutaron 71 centavos.'},
+     {name:'Flujo mes consolidado',valor:'$140 MM',meta:'> $100 MM',tipo:'dinero',status:'ok',hist:['$95MM','$118MM','$140MM'],comment:'',guide:'Ingresos facturados menos costos gastados en el mes.'},
+   ],
+   tareas:[{text:'Implementar app Planificación Corona',resp:'Rafael Castillo',estado:'en-proceso',fecha:'2026-03-22',fromDec:false},{text:'Gestionar NDC PET CT',resp:'F. Valenzuela',estado:'en-proceso',fecha:'2026-03-19',fromDec:false}],
+   decisiones:[{text:'Aprobar presupuesto Control MO',urgencia:'urgente',resuelta:false},{text:'Definir administrador PET CT',urgencia:'reunion',resuelta:false}],
+   parking:[],notas:'',historial:[{fecha:'10 Mar 2026',texto:'Visita terreno PET CT. Implementación exitosa app Planificación.'}]},
+]
+
+let role=null,CA=null,pslide=0,mlines=[]
+let tsec=0,tmax=0,trun=false,tint=null
+let data={}
+
+function loadData(){
+  const s=localStorage.getItem('mk-c5')
+  if(s){const p=JSON.parse(s);ADEFS.forEach(a=>{data[a.id]=Object.assign({},JSON.parse(JSON.stringify(a)),p[a.id]||{})})}
+  else ADEFS.forEach(a=>{data[a.id]=JSON.parse(JSON.stringify(a))})
+  loadObras()
+}
+function persist(){
+  const o={};ADEFS.forEach(a=>{o[a.id]={kpis:data[a.id].kpis,tareas:data[a.id].tareas,decisiones:data[a.id].decisiones,parking:data[a.id].parking,notas:data[a.id].notas,historial:data[a.id].historial}})
+  localStorage.setItem('mk-c5',JSON.stringify(o))
+}
+
+function doLogin(){
+  const a=document.getElementById('l-area').value,p=document.getElementById('l-pin').value,e=document.getElementById('l-err')
+  if(!a){e.textContent='Selecciona un área.';e.style.display='block';return}
+  if(PINS[a]!==p){e.style.display='block';return}
+  e.style.display='none';role=a
+  document.getElementById('rpill').classList.remove('dn')
+  document.getElementById('rlabel').textContent=RNAMES[a]
+  if (a === 'admin') document.getElementById('btn-users').style.display='inline-flex'
+  else document.getElementById('btn-users').style.display='none'
+  goHome()
+}
+function logout(){if(!confirm('¿Cerrar sesión?'))return;role=null;document.getElementById('rpill').classList.add('dn');document.getElementById('btn-users').style.display='none';showSc('sc-login')}
+
+function renderHome(){
+  document.getElementById('hdate').textContent=fmtD(new Date())
+  const ed=CEDIT[role]||[]
+  document.getElementById('dg').innerHTML=ADEFS.map(a=>{
+    const d=data[a.id]
+    const urg=d.decisiones.filter(x=>x.urgencia==='urgente'&&!x.resuelta).length
+    const bad=d.kpis.filter(x=>x.status==='bad').length
+    const warn=d.kpis.filter(x=>x.status==='warn').length
+    const act=d.tareas.filter(x=>x.estado==='en-proceso').length
+    const nodt=d.tareas.filter(x=>x.estado!=='completada'&&!x.fecha).length
+    const ce=ed.includes(a.id)
+    return `<div class="dc">
+      <div class="dc-top" style="background:${a.color}"></div>
+      <div class="dc-body">
+        <div class="dn-name">${a.name}</div>
+        <div class="dn-freq">${a.freq}</div>
+        <div class="dn-pills">
+          <span class="pill pinfo">${d.kpis.length} KPIs</span>
+          ${bad?`<span class="pill pbad">${bad} crítico${bad>1?'s':''}</span>`:''}
+          ${warn?`<span class="pill pwarn">${warn} alerta${warn>1?'s':''}</span>`:''}
+          ${urg?`<span class="pill pbad">${urg} urgente${urg>1?'s':''}</span>`:''}
+          ${act?`<span class="pill pok">${act} tarea${act>1?'s':''} activa${act>1?'s':''}</span>`:''}
+          ${nodt?`<span class="pill pwarn">${nodt} sin fecha</span>`:''}
+        </div>
+        <div class="dn-acts">
+          ${ce?`<button class="btn sm pri" onclick="editArea('${a.id}')">Editar</button>`:`<span class="lock-msg">Solo lectura</span>`}
+          <button class="btn sm" onclick="projectArea('${a.id}')">Proyectar →</button>
+        </div>
+      </div>
+    </div>`
+  }).join('')
+}
+
+function editArea(id){
+  const ed=CEDIT[role]||[]
+  if(!ed.includes(id)){toast2('Sin acceso para editar esta área');return}
+  CA=id
+  const area=ADEFS.find(a=>a.id===id)
+  document.getElementById('et').textContent=area.name
+  document.getElementById('strip-k').style.background=area.color
+  setBc([{l:'Inicio',f:'goHome()'}],area.name)
+  // For obras: hide KPI card, show only tareas + decisiones + parking
+  const kpiCard = document.getElementById('card-kpis')
+  if(kpiCard) kpiCard.style.display = id==='obras' ? 'none' : ''
+  renderKpis(id);renderTasks(id);renderDecs(id);renderParking(id);renderHist(id)
+  if(id==='obras') renderObrasEdit()
+  showSc('sc-edit')
+}
+
+
+// ── OBRAS RENDER (edit) ───────────────────────────────────
+function renderObrasEdit(){
+  const panel = document.getElementById('obras-panel')
+  if(!panel) return
+  panel.style.display = 'block'
+
+  const estadoColors = {
+    'activa':        ['#DCFCE7','#16A34A'],
+    'cerrada con saldo': ['#FEF3C7','#D97706'],
+    'cerrada':       ['#F8FAFC','#64748B'],
+  }
+
+  const rows = obrasData.map((o, oi) => {
+    const c = calcObra(o)
+    const [ebg, efc] = estadoColors[o.estado] || estadoColors['activa']
+    const spiC = c.spi>=1?'#16A34A':c.spi>=0.85?'#D97706':'#DC2626'
+    const cpiC = c.cpi>=1?'#16A34A':c.cpi>=0.85?'#D97706':'#DC2626'
+    const saldoC = c.saldo_facturar>0?'#0B5ED7':'#DC2626'
+
+    return `<div class="obra-card">
+      <!-- HEADER -->
+      <div class="obra-header">
+        <div class="obra-header-left">
+          <span class="obra-name">${o.name}</span>
+          <select style="font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid ${efc};background:${ebg};color:${efc};font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif"
+            onchange="obrasData[${oi}].estado=this.value;renderObrasEdit()">
+            ${['activa','cerrada con saldo','cerrada'].map(s=>`<option value="${s}"${o.estado===s?' selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn sm gh" onclick="toggleObraSection('static-${oi}')">Datos proyecto</button>
+          <button class="btn sm" style="color:var(--re);border-color:#FECACA" onclick="if(confirm('¿Eliminar obra?')){obrasData.splice(${oi},1);renderObrasEdit()}">Eliminar</button>
+        </div>
+      </div>
+
+
+
+      <!-- STATIC DATA — collapsible -->
+      <div id="static-${oi}" style="display:none;border-bottom:1px solid var(--bd)">
+        <div style="padding:12px 14px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--co);margin-bottom:10px">Datos del proyecto</div>
+          <div class="obra-form" style="grid-template-columns:repeat(3,1fr)">
+            <div class="obra-field">
+              <label>Nombre obra</label>
+              <input value="${o.name}" onchange="obrasData[${oi}].name=this.value;renderObrasEdit()"/>
+            </div>
+            <div class="obra-field">
+              <label>Cliente / Mandante</label>
+              <input value="${o.cliente||''}" onchange="obrasData[${oi}].cliente=this.value"/>
+            </div>
+            <div class="obra-field">
+              <label>Administrador de contrato</label>
+              <input value="${o.administrador||''}" onchange="obrasData[${oi}].administrador=this.value"/>
+            </div>
+            <div class="obra-field">
+              <label>Fecha inicio</label>
+              <input type="date" value="${o.fecha_inicio||''}" onchange="obrasData[${oi}].fecha_inicio=this.value"/>
+            </div>
+            <div class="obra-field">
+              <label>Fecha fin contrato</label>
+              <input type="date" value="${o.fecha_fin_contrato||''}" onchange="obrasData[${oi}].fecha_fin_contrato=this.value"/>
+            </div>
+            <div class="obra-field">
+              <label>Contrato original $MM</label>
+              <input type="number" value="${o.contrato}" onchange="obrasData[${oi}].contrato=parseFloat(this.value)||0;renderObrasEdit();syncObrasKpis()"/>
+            </div>
+            <div class="obra-field">
+              <label>Margen de estudio %</label>
+              <input type="number" value="${o.margen_estudio_pct||0}" onchange="obrasData[${oi}].margen_estudio_pct=parseFloat(this.value)||0;renderObrasEdit()" placeholder="ej: 15" title="Margen original cotizado, sobre contrato original"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DYNAMIC DATA — always visible -->
+      <div class="obra-body">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--sl);margin-bottom:10px">Registro semanal</div>
+        <div class="obra-form">
+          <div class="obra-field">
+            <label>NDC aprobadas $MM</label>
+            <input type="number" value="${o.ndc_aprobadas||0}" onchange="obrasData[${oi}].ndc_aprobadas=parseFloat(this.value)||0;renderObrasEdit();syncObrasKpis()" title="Suma al contrato — se puede facturar"/>
+          </div>
+          <div class="obra-field" style="border-left:2px solid var(--am-lt);padding-left:8px">
+            <label style="color:var(--am)">NDC en revisión $MM</label>
+            <input type="number" value="${o.ndc_revision||0}" onchange="obrasData[${oi}].ndc_revision=parseFloat(this.value)||0;renderObrasEdit()" title="Solo referencia — no suma al contrato ni al saldo"/>
+          </div>
+          <div class="obra-field">
+            <label>Facturado acumulado $MM</label>
+            <input type="number" value="${o.facturado}" onchange="obrasData[${oi}].facturado=parseFloat(this.value)||0;renderObrasEdit();syncObrasKpis()"/>
+          </div>
+          <div class="obra-field">
+            <label>Contrato total $MM</label>
+            <input class="calc" value="${c.contrato_total}" readonly title="= Contrato original + NDC aprobadas"/>
+          </div>
+          <div class="obra-field">
+            <label>Saldo por facturar $MM</label>
+            <input class="${c.saldo_facturar>=0?'calc':'calc-bad'}" value="${c.saldo_facturar.toFixed(0)}" readonly title="= Contrato total − Facturado"/>
+          </div>
+          ${c.ndc_rev!==0?`<div class="obra-field" style="border-left:2px solid var(--am-lt);padding-left:8px">
+            <label style="color:var(--am)">Potencial saldo x facturar</label>
+            <input class="calc" value="${(c.potencial_total - o.facturado).toFixed(0)}" readonly title="= (Contrato + NDC rev.) − Facturado"/>
+          </div>
+          <div class="obra-field" style="border-left:2px solid var(--am-lt);padding-left:8px">
+            <label style="color:var(--am)">Margen potencial %</label>
+            <input class="calc" value="${c.potencial_total>0?(((c.potencial_total-o.presupuesto)/c.potencial_total)*100).toFixed(1)+'%':'—'}" readonly title="= (Contrato+NDC rev. − Presupuesto) / (Contrato+NDC rev.)"/>
+          </div>`:'<div></div><div></div>'}
+          <div class="obra-field">
+            <label>Presupuesto obra $MM</label>
+            <input type="number" value="${o.presupuesto}" onchange="obrasData[${oi}].presupuesto=parseFloat(this.value)||0;renderObrasEdit();syncObrasKpis()"/>
+          </div>
+          <div class="obra-field">
+            <label>Comprometido $MM</label>
+            <input type="number" value="${o.comprometido}" onchange="obrasData[${oi}].comprometido=parseFloat(this.value)||0;renderObrasEdit()"/>
+          </div>
+          <div class="obra-field">
+            <label>Gastado $MM</label>
+            <input type="number" value="${o.gastado}" onchange="obrasData[${oi}].gastado=parseFloat(this.value)||0;renderObrasEdit();syncObrasKpis()"/>
+          </div>
+          <div class="obra-field">
+            <label>Margen disponible $MM</label>
+            <input class="${c.margen>=0?'calc-ok':'calc-bad'}" value="${c.margen.toFixed(0)}" readonly title="= Contrato total − Presupuesto obra"/>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="obra-field">
+            <label>Avance real %</label>
+            <input type="number" value="${o.avance_real}" onchange="obrasData[${oi}].avance_real=parseFloat(this.value)||0;renderObrasEdit();syncObrasKpis()"/>
+          </div>
+          <div class="obra-field">
+            <label>Avance programado %</label>
+            <input type="number" value="${o.avance_prog}" onchange="obrasData[${oi}].avance_prog=parseFloat(this.value)||0;renderObrasEdit();syncObrasKpis()"/>
+          </div>
+          <div class="obra-field">
+            <label>Término estimado</label>
+            <input value="${o.termino_est||''}" onchange="obrasData[${oi}].termino_est=this.value"/>
+          </div>
+          <div class="obra-field">
+            <label>Nota de contexto</label>
+            <input value="${o.nota||''}" onchange="obrasData[${oi}].nota=this.value" placeholder="Contexto para comité..."/>
+          </div>
+        </div>
+        <!-- Historial badge -->
+        ${o.historial&&o.historial.length>0?`
+        <div style="margin-top:4px">
+          <button class="btn sm gh" onclick="toggleObraSection('hist-${oi}')" style="font-size:11px">
+            Histórico (${o.historial.length} registro${o.historial.length>1?'s':''})
+          </button>
+        </div>
+        <div id="hist-${oi}" style="display:none;margin-top:8px;border:1px solid var(--bd);border-radius:7px;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse;font-size:11px">
+            <thead><tr style="background:var(--sl-lt)">
+              <th style="padding:6px 10px;text-align:left;color:var(--sl);font-weight:700">Fecha</th>
+              <th style="padding:6px 10px;text-align:right;color:var(--sl);font-weight:700">Facturado</th>
+              <th style="padding:6px 10px;text-align:right;color:var(--sl);font-weight:700">Gastado</th>
+              <th style="padding:6px 10px;text-align:right;color:var(--sl);font-weight:700">Flujo</th>
+              <th style="padding:6px 10px;text-align:right;color:var(--sl);font-weight:700">Saldo x Fact.</th>
+              <th style="padding:6px 10px;text-align:right;color:var(--sl);font-weight:700">Saldo Prov.</th>
+              <th style="padding:6px 10px;text-align:right;color:var(--sl);font-weight:700">Margen %</th>
+              <th style="padding:6px 10px;text-align:right;color:var(--sl);font-weight:700">Avance</th>
+              <th style="padding:6px 10px;text-align:right;color:var(--sl);font-weight:700">SPI</th>
+              <th style="padding:6px 10px;text-align:right;color:var(--sl);font-weight:700">CPI</th>
+            </tr></thead>
+            <tbody>${o.historial.slice().reverse().map(h=>`
+              <tr style="border-top:1px solid var(--bd)">
+                <td style="padding:5px 10px;color:var(--sl);white-space:nowrap">${h.fecha}</td>
+                <td style="padding:5px 10px;text-align:right">${fmm(h.facturado)}</td>
+                <td style="padding:5px 10px;text-align:right">${fmm(h.gastado)}</td>
+                <td style="padding:5px 10px;text-align:right;color:${(h.flujo||0)>=0?'#16A34A':'#DC2626'};font-weight:600">${fmm(h.flujo||0)}</td>
+                <td style="padding:5px 10px;text-align:right;color:#0B5ED7;font-weight:600">${fmm(h.saldo_facturar)}</td>
+                <td style="padding:5px 10px;text-align:right;color:${(h.saldo_proveedores||0)>0?'#D97706':'#64748B'}">${fmm(h.saldo_proveedores||0)}</td>
+                <td style="padding:5px 10px;text-align:right;color:${(h.margen_pct||0)>=0?'#16A34A':'#DC2626'};font-weight:600">${(h.margen_pct||0).toFixed(1)}%</td>
+                <td style="padding:5px 10px;text-align:right">${h.avance_real}%</td>
+                <td style="padding:5px 10px;text-align:right;color:${h.spi>=1?'#16A34A':h.spi>=0.85?'#D97706':'#DC2626'};font-weight:600">${h.spi.toFixed(2)}</td>
+                <td style="padding:5px 10px;text-align:right;color:${h.cpi>=1?'#16A34A':h.cpi>=0.85?'#D97706':'#DC2626'};font-weight:600">${h.cpi.toFixed(2)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`:''}
+        <!-- Comment field — feeds minuta -->
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--sl);display:block;margin-bottom:5px">Comentario para minuta</label>
+          <input style="width:100%;font-size:12px;padding:6px 10px;border:1px solid var(--bd);border-radius:5px;font-family:'Barlow',sans-serif;color:var(--ink);background:var(--wh)"
+            value="${o.comentario_minuta||''}"
+            placeholder="Agrega contexto sobre esta obra para incluir en la minuta..."
+            onchange="obrasData[${oi}].comentario_minuta=this.value;addObraToME('${oi}')"/>
+          ${o.comentario_minuta?`<div style="font-size:11px;color:var(--co);font-style:italic;margin-top:3px">→ incluido en minuta</div>`:''}
+        </div>
+      </div>
+    </div>`
+  }).join('')
+
+  // Consolidado — solo obras activas y cerradas con saldo
+  const activas = obrasData.filter(o=>o.estado!=='cerrada')
+  const totContrato = activas.reduce((s,o)=>s+calcObra(o).contrato_total,0)
+  const totFact     = activas.reduce((s,o)=>s+o.facturado,0)
+  const totSaldo    = activas.reduce((s,o)=>s+calcObra(o).saldo_facturar,0)
+  const totMargen   = activas.reduce((s,o)=>s+calcObra(o).margen,0)
+
+  panel.innerHTML = `
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--sl);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+      <span>Obras — ${obrasData.length} registradas · ${activas.length} activas o con saldo</span>
+      <div style="display:flex;gap:7px">
+        <button class="btn sm" onclick="addObra()">+ Nueva obra</button>
+        <button class="btn pri sm" onclick="saveObras()">Guardar obras</button>
+      </div>
+    </div>
+    <div class="obras-consolidado" style="margin-bottom:14px">
+      <div class="con-item"><div class="con-label">Contratos totales</div><div class="con-val">${fmm(totContrato)}</div><div class="con-sub">${activas.length} obras activas/con saldo</div></div>
+      <div class="con-item"><div class="con-label">Facturado total</div><div class="con-val gold">${fmm(totFact)}</div><div class="con-sub">${totContrato>0?Math.round(totFact/totContrato*100):0}% del total</div></div>
+      <div class="con-item"><div class="con-label">Saldo por facturar</div><div class="con-val ${totSaldo>0?'':'red'}">${fmm(totSaldo)}</div><div class="con-sub">Pendiente de cobro</div></div>
+      <div class="con-item"><div class="con-label">Margen disponible</div><div class="con-val ${totMargen>=0?'green':'red'}">${fmm(totMargen)}</div><div class="con-sub">Contrato total − Presupuesto</div></div>
+    </div>
+    <div class="obras-wrap">${rows}</div>`
+}
+
+function toggleObraSection(id){
+  const el = document.getElementById(id)
+  if(el) el.style.display = el.style.display==='none'?'block':'none'
+}
+
+function addObra(){
+  const id = 'obra-' + Date.now()
+  obrasData.push({
+    id, name:'Nueva obra', cliente:'', administrador:'',
+    fecha_inicio:'', fecha_fin_contrato:'', contrato:0, estado:'activa',
+    ndc:0, facturado:0, presupuesto:0, comprometido:0, gastado:0,
+    avance_real:0, avance_prog:0, termino_est:'',
+    nota:'', historial:[],
+  })
+  renderObrasEdit()
+  toast2('Obra agregada — completa los datos y guarda')
+}
+
+function saveObras(){
+  // Snapshot histórico — guardar estado dinámico actual
+  const fecha = fmtD(new Date())
+  obrasData.forEach(o => {
+    if(!o.historial) o.historial = []
+    const c = calcObra(o)
+    // Avoid duplicate for same date
+    if(!o.historial.find(h=>h.fecha===fecha)){
+      o.historial.push({
+        fecha,
+        facturado:        o.facturado,
+        gastado:          o.gastado,
+        comprometido:     o.comprometido || 0,
+        avance_real:      o.avance_real,
+        avance_prog:      o.avance_prog,
+        ndc_aprobadas:    o.ndc_aprobadas || 0,
+        ndc_revision:     o.ndc_revision  || 0,
+        spi:              parseFloat(c.spi.toFixed(3)),
+        cpi:              parseFloat(c.cpi.toFixed(3)),
+        flujo:            c.flujo,
+        saldo_facturar:   c.saldo_facturar,
+        saldo_proveedores:c.saldo_proveedores,
+        margen:           c.margen,
+        margen_pct:       parseFloat(c.margen_pct.toFixed(2)),
+        potencial:        c.potencial_total,
+      })
+      if(o.historial.length > 52) o.historial.shift() // keep 1 year
+    }
+  })
+  persistObras()
+  syncObrasKpis()
+  renderObrasEdit()
+  toast2('Obras guardadas — snapshot histórico registrado')
+}
+
+// ── SYNC obras numbers → KPIs automáticamente ────────────
+function syncObrasKpis(){
+  if(!obrasData||!data['obras'])return
+  const kpis = data['obras'].kpis
+  obrasData.forEach(o => {
+    const c = calcObra(o)
+    const short = o.name.split(' ').slice(0,2).join(' ')
+    // SPI
+    let spiKpi = kpis.find(k=>k.name.toLowerCase().includes('spi')&&k.name.toLowerCase().includes(o.id==='pet-ct'?'pet':'corona'))
+    if(spiKpi){ spiKpi.valor = c.spi.toFixed(2); spiKpi.status = c.spi>=1?'ok':c.spi>=0.85?'warn':'bad' }
+    // Avance
+    let avKpi = kpis.find(k=>k.name.toLowerCase().includes('avance')&&k.name.toLowerCase().includes(o.id==='pet-ct'?'pet':'corona'))
+    if(avKpi){ avKpi.valor = `${o.avance_real}% / ${o.avance_prog}%`; avKpi.status = Math.abs(o.avance_real-o.avance_prog)<=2?'ok':o.avance_real<o.avance_prog?'warn':'ok' }
+  })
+  // Flujo consolidado = sum of (facturado - gastado) across obras
+  const flujoTotal = obrasData.reduce((s,o)=>s+(o.facturado-o.gastado),0)
+  let flujoKpi = kpis.find(k=>k.name.toLowerCase().includes('flujo'))
+  if(flujoKpi){ flujoKpi.valor = `$${flujoTotal} MM`; flujoKpi.status = flujoTotal>=100?'ok':flujoTotal>=50?'warn':'bad' }
+  renderKpis('obras')
+}
+
+
+
+// ── PROJ OBRAS: Tareas + Decisiones slide ────────────────
+function renderProjObrasTD(){
+  const d = data['obras']
+  const ce = (CEDIT[role]||[]).includes('obras')
+
+  const tc2={'en-proceso':['#0B5ED7','#EFF6FF'],'completada':['#16A34A','#DCFCE7'],'bloqueada':['#DC2626','#FEE2E2'],'pendiente':['#64748B','#F8FAFC']}
+  const tl2={'en-proceso':'En proceso','completada':'Completada','bloqueada':'Bloqueada','pendiente':'Pendiente'}
+  const el = document.getElementById('pt-content-obras')
+  if(el) el.innerHTML = d.tareas.map(t=>{
+    const [fc,bg]=tc2[t.estado]||tc2['pendiente']
+    return `<div class="ptask-item">
+      <div class="ptask-dot" style="background:${fc}"></div>
+      <div class="ptask-body">
+        <div class="ptask-text">${t.text}${t.fromDec?' <span style="font-size:10px;color:var(--co);font-style:italic">— de decisión</span>':''}</div>
+        <div class="ptask-resp">${t.resp||'Sin asignar'}</div>
+        ${t.fecha?`<div class="ptask-date">${fmtD(new Date(t.fecha+'T12:00:00'))}</div>`:'<div class="ptask-date" style="color:var(--re)">⚠ Sin fecha</div>'}
+      </div>
+      <span class="pest-badge" style="background:${bg};color:${fc}">${tl2[t.estado]}</span>
+    </div>`
+  }).join('') || '<div style="font-size:13px;color:#94A3B8;padding:6px 0">Sin tareas.</div>'
+
+  const uc={urgente:['#DC2626','#FEE2E2','Urgente'],reunion:['#D97706','#FEF3C7','Esta reunión'],proxima:['#64748B','#F8FAFC','Próxima']}
+  const dl = document.getElementById('pd-content-obras')
+  if(dl) dl.innerHTML = d.decisiones.map((dec,i)=>{
+    const [fc,bg,lbl]=uc[dec.urgencia]||uc['proxima']
+    return `<div class="pdec-item${dec.resuelta?' pdec-resolved':''}">
+      <div class="pdec-num">${i+1}</div>
+      <div class="pdec-body"><div class="pdec-text">${dec.text}</div></div>
+      <span class="pdec-badge" style="background:${bg};color:${fc}">${lbl}</span>
+      ${ce?`<button class="pdec-resolve" onclick="projResolveObras(${i})">${dec.resuelta?'✓':'Resolver'}</button>`:''}
+    </div>`
+  }).join('') || '<div style="font-size:13px;color:#94A3B8;padding:6px 0">Sin decisiones.</div>'
+
+  const dc = document.getElementById('dec-count-obras')
+  if(dc) dc.textContent = d.decisiones.filter(x=>!x.resuelta).length+' pendientes'
+
+  if(!ce){
+    const qa = document.getElementById('qr-task-obras'); if(qa)qa.style.display='none'
+    const qd = document.getElementById('qr-dec-obras'); if(qd)qd.style.display='none'
+  }
+}
+
+function projResolveObras(i){
+  data['obras'].decisiones[i].resuelta=true
+  data['obras'].tareas.push({text:data['obras'].decisiones[i].text,resp:'',estado:'pendiente',fecha:'',fromDec:true})
+  addToME('Decisión',data['obras'].decisiones[i].text,'decisión resuelta obras')
+  toast2('Decisión resuelta → tarea creada')
+  renderProjObrasTD()
+}
+function projAddTaskObras(){
+  const t=document.getElementById('qtt-obras').value.trim();if(!t)return
+  const f=document.getElementById('qtd-obras').value
+  data['obras'].tareas.push({text:t,resp:document.getElementById('qtr-obras').value,estado:'en-proceso',fecha:f,fromDec:false})
+  addToME('Tarea nueva',`${t} · ${document.getElementById('qtr-obras').value||'por asignar'}${f?' · '+fmtD(new Date(f+'T12:00:00')):''}`, 'agregada obras')
+  document.getElementById('qtt-obras').value='';document.getElementById('qtr-obras').value='';document.getElementById('qtd-obras').value=''
+  toast2('Tarea agregada');renderProjObrasTD()
+}
+function projAddDecObras(){
+  const t=document.getElementById('qdt-obras').value.trim();if(!t)return
+  data['obras'].decisiones.push({text:t,urgencia:document.getElementById('qdu-obras').value,resuelta:false})
+  document.getElementById('qdt-obras').value=''
+  toast2('Decisión agregada');renderProjObrasTD()
+}
+function addObraToME(oi){
+  const o = obrasData[oi]
+  if(!o||!o.comentario_minuta) return
+  addToME('Obra',`${o.name}: ${o.comentario_minuta}`,'vista obras')
+}
+
+// ── PROJ OBRAS ────────────────────────────────────────────
+function spiColor(v){return v>=1?'#16A34A':v>=0.85?'#D97706':'#DC2626'}
+function cpiColor(v){return v>=1?'#16A34A':v>=0.85?'#D97706':'#DC2626'}
+function metricCol(label,val,sub,color,barPct){
+  const bar = barPct!==undefined
+    ? `<div style="height:3px;background:rgba(0,0,0,.08);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:3px;width:${Math.min(100,Math.max(0,barPct)).toFixed(0)}%;background:${color};border-radius:2px"></div></div>`
+    : ''
+  return `<div style="display:flex;flex-direction:column;gap:1px;padding:0 6px;border-right:1px solid var(--bd);min-width:0">
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--sl);white-space:nowrap">${label}</div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:${color};line-height:1.1">${val}</div>
+    <div style="font-size:10px;color:var(--sl);line-height:1.3">${sub}</div>
+    ${bar}
+  </div>`
+}
+
+function renderProjObras(){
+  const el = document.getElementById('proj-obras-content')
+  if(!el) return
+
+  const activas  = obrasData.filter(o => o.estado === 'activa')
+  const conSaldo = obrasData.filter(o => o.estado === 'cerrada con saldo')
+
+  const activasHTML = activas.map(o => {
+    const c = calcObra(o)
+    const sC = spiColor(c.spi), cC = cpiColor(c.cpi)
+    const flujoC = c.flujo >= 0 ? '#16A34A' : '#DC2626'
+    const mC = c.margen_pct >= c.margen_estudio_pct ? '#16A34A' : '#DC2626'
+    const dC = c.desviacion_pct >= 0 ? '#16A34A' : '#DC2626'
+    return `<div style="background:var(--sl-lt);border-radius:8px;border:1px solid var(--bd);overflow:hidden;margin-bottom:8px">
+      <div style="padding:7px 12px;display:flex;align-items:center;gap:8px;background:var(--wh);border-bottom:1px solid var(--bd)">
+        <div style="width:9px;height:9px;border-radius:50%;background:${o.color||'#64748B'};flex-shrink:0"></div>
+        <span style="font-size:14px;font-weight:700;color:var(--ink);flex:1">${o.name}</span>
+        <span style="font-size:11px;color:var(--co);font-weight:600">Término est. ${o.termino_est||'—'}</span>
+        ${c.ndc_rev!==0?`<div style="display:flex;gap:6px;align-items:center">
+          <span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--am-lt);color:var(--am);font-weight:700">NDC en rev.: ${fmm(c.ndc_rev)}</span>
+          <span style="font-size:10px;color:var(--am)">→ Potencial saldo: ${fmm(c.potencial_total - o.facturado)} · Margen potencial: ${c.potencial_total>0?(((c.potencial_total-o.presupuesto)/c.potencial_total)*100).toFixed(1)+'%':'—'}</span>
+        </div>`:''}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);padding:10px 4px;gap:0">
+        ${metricCol('Flujo mes', fmm(c.flujo), 'Fact. − Gast.', flujoC)}
+        ${metricCol('Saldo x facturar', fmm(c.saldo_facturar), c.pct_facturado+'% facturado', '#0B5ED7')}
+        ${metricCol('Saldo proveedores', fmm(c.saldo_proveedores), 'Comp. − Gast.', c.saldo_proveedores>0?'#D97706':'#16A34A')}
+        ${metricCol('Margen $', fmm(c.margen), 'Contrato − Ppto', c.margen>=0?'#16A34A':'#DC2626')}
+        ${metricCol('Margen %', c.margen_pct.toFixed(1)+'%', 'Est. '+c.margen_estudio_pct+'% · <span style="color:'+dC+'">'+(c.desviacion_pct>=0?'+':'')+c.desviacion_pct.toFixed(1)+'pp</span>', mC)}
+        ${metricCol('SPI', c.spi.toFixed(2), c.spi>=1?'En línea':c.spi>=0.85?'Alerta':'Crítico', sC, c.spi*100)}
+        ${metricCol('CPI', c.cpi.toFixed(2), c.cpi>=1?'Productivo':c.cpi>=0.85?'Alerta':'Bajo', cC, Math.min(c.cpi*100,100))}
+      </div>
+      ${o.nota?`<div style="padding:3px 12px 4px;font-size:11px;color:var(--sl);font-style:italic">${o.nota}</div>`:''}
+      <div style="padding:6px 12px 10px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--bd);margin-top:4px">
+        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--co);white-space:nowrap;flex-shrink:0">→ Minuta</span>
+        <input type="text"
+          id="obra-comment-${o.id}"
+          style="flex:1;font-size:12px;padding:5px 10px;border:1px solid #BFDBFE;border-radius:5px;font-family:'Barlow',sans-serif;background:#F0F7FF;color:var(--ink)"
+          placeholder="Agrega comentario de esta obra para la minuta..."
+          value="${o.comentario_minuta||''}"
+          onchange="obrasData.find(x=>x.id==='${o.id}').comentario_minuta=this.value;addToME('Obra','${o.name}: '+this.value,'vista obras')"/>
+      </div>
+    </div>`
+  }).join('') || '<div style="font-size:13px;color:#94A3B8;padding:8px 0">Sin obras activas.</div>'
+
+  const saldoHTML = conSaldo.length ? `
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--sl);margin:10px 0 6px;display:flex;align-items:center;gap:8px">
+      <span>Cerradas con saldo pendiente</span>
+      <div style="flex:1;height:1px;background:var(--bd)"></div>
+    </div>
+    <div style="background:var(--sl-lt);border-radius:8px;border:1px solid var(--bd);overflow:hidden">
+      <div style="display:grid;grid-template-columns:2fr repeat(5,1fr);padding:6px 12px;border-bottom:1px solid var(--bd);background:var(--wh)">
+        ${['Obra','Contrato total','NDC aprobadas','Margen $','Saldo x facturar','Saldo proveedores'].map((h,i)=>
+          `<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--sl);${i>0?'text-align:right':''}">${h}</div>`
+        ).join('')}
+      </div>
+      ${conSaldo.map(o=>{
+        const c=calcObra(o)
+        return `<div style="display:grid;grid-template-columns:2fr repeat(5,1fr);padding:8px 12px;border-bottom:1px solid var(--bd);align-items:center">
+          <div style="display:flex;align-items:center;gap:7px">
+            <div style="width:7px;height:7px;border-radius:50%;background:var(--sl);flex-shrink:0"></div>
+            <span style="font-size:13px;font-weight:600;color:var(--ink)">${o.name}</span>
+            ${o.nota?`<span style="font-size:10px;color:var(--sl);font-style:italic">— ${o.nota}</span>`:''}
+          </div>
+          <div style="text-align:right;font-size:13px;font-weight:600;color:var(--ink)">${fmm(c.contrato_total)}</div>
+          <div style="text-align:right;font-size:13px;font-weight:600;color:${c.ndc_ap!==0?'#D97706':'#64748B'}">${c.ndc_ap!==0?fmm(c.ndc_ap):'—'}</div>
+          <div style="text-align:right;font-size:13px;font-weight:600;color:${c.margen>=0?'#16A34A':'#DC2626'}">${fmm(c.margen)}</div>
+          <div style="text-align:right;font-size:14px;font-weight:700;color:#0B5ED7">${fmm(c.saldo_facturar)}</div>
+          <div style="text-align:right;font-size:13px;font-weight:600;color:${c.saldo_proveedores>0?'#D97706':'#64748B'}">${fmm(c.saldo_proveedores)}</div>
+        </div>`
+      }).join('')}
+    </div>` : ''
+
+  const todas  = obrasData.filter(o=>o.estado!=='cerrada')
+  const totC   = todas.reduce((s,o)=>s+calcObra(o).contrato_total,0)
+  const totF   = todas.reduce((s,o)=>s+o.facturado,0)
+  const totSF  = todas.reduce((s,o)=>s+calcObra(o).saldo_facturar,0)
+  const totM   = todas.reduce((s,o)=>s+calcObra(o).margen,0)
+  const totSP  = todas.reduce((s,o)=>s+calcObra(o).saldo_proveedores,0)
+  const totMpct= totC>0?(totM/totC*100):0
+
+  el.innerHTML = activasHTML + saldoHTML + `
+    <div class="obras-consolidado" style="margin-top:12px">
+      <div class="con-item"><div class="con-label">Contratos totales</div><div class="con-val">${fmm(totC)}</div><div class="con-sub">${activas.length} activa${activas.length!==1?'s':''} · ${conSaldo.length} con saldo</div></div>
+      <div class="con-item"><div class="con-label">Saldo por facturar</div><div class="con-val gold">${fmm(totSF)}</div><div class="con-sub">${totC>0?Math.round(totF/totC*100):0}% facturado</div></div>
+      <div class="con-item"><div class="con-label">Saldo proveedores</div><div class="con-val ${totSP>0?'':'green'}">${fmm(totSP)}</div><div class="con-sub">Comprometido − Gastado</div></div>
+      <div class="con-item"><div class="con-label">Margen consolidado</div><div class="con-val ${totM>=0?'green':'red'}">${fmm(totM)}</div><div class="con-sub">${totMpct.toFixed(1)}% sobre contratos</div></div>
+    </div>`
+}
+
+
+// ── COMMENT MANAGER ──────────────────────────────────────
+// Each projection slide has a comment manager keyed by a string
+// Comments stored in mlines with a key for grouping
+function buildCommentManager(containerId, tag, origin, color){
+  const c = color || 'var(--co)'
+  const clt = color ? color+'22' : 'var(--co-lt)'
+  const brd = color ? color+'44' : '#BFDBFE'
+  return `<div style="margin-top:10px;padding:10px 12px;background:${clt};border:1px solid ${brd};border-radius:8px" id="cm-${containerId}">
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${c};margin-bottom:8px">→ Minuta</div>
+    <div id="cm-lines-${containerId}"></div>
+    <div style="display:flex;gap:6px;margin-top:6px">
+      <input type="text" id="cm-inp-${containerId}"
+        style="flex:1;font-size:12px;padding:5px 9px;border:1px solid ${brd};border-radius:5px;font-family:'Barlow',sans-serif;background:var(--wh);color:var(--ink)"
+        placeholder="Escribe un comentario para la minuta..."
+        onkeydown="if(event.key==='Enter'){event.preventDefault();cmSave('${containerId}','${tag}','${origin}','${c}')}"
+      />
+      <button class="btn pri sm" onclick="cmSave('${containerId}','${tag}','${origin}','${c}')">Guardar</button>
+    </div>
+  </div>`
+}
+
+function cmSave(cid, tag, origin, color){
+  const inp = document.getElementById('cm-inp-'+cid)
+  if(!inp||!inp.value.trim()) return
+  const text = inp.value.trim()
+  addToME(tag, text, origin)
+  inp.value = ''
+  cmRender(cid, tag, color)
+  toast2('Comentario guardado en minuta')
+}
+
+function cmDeleteIdx(cid, tag, tagIdx, color){
+  // Find the nth line with this tag
+  let count = -1
+  const globalIdx = mlines.findIndex(l=>{ if(l.tag===tag) count++; return l.tag===tag && count===tagIdx })
+  if(globalIdx>-1){ mlines.splice(globalIdx,1); cmRender(cid, tag, color) }
+}
+
+function cmRender(cid, tag, color){
+  const c = color || 'var(--co)'
+  const el = document.getElementById('cm-lines-'+cid)
+  if(!el) return
+  const lines = mlines.filter(l=>l.tag===tag)
+  el.innerHTML = lines.map((l,li)=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.06)">
+      <span style="flex:1;font-size:12px;color:var(--ink)">${l.text}</span>
+      <button class="btn sm" style="font-size:10px;padding:2px 8px;color:var(--re);border-color:#FECACA;background:var(--re-lt)"
+        data-cid="${cid}" data-tag="${tag}" data-color="${color||''}" data-idx="${li}"
+        onclick="cmDeleteIdx(this.dataset.cid,this.dataset.tag,parseInt(this.dataset.idx),this.dataset.color)">Eliminar</button>
+    </div>`).join('') || ''
+}
+
+// Initialize all comment managers when slide becomes visible
+function initCommentManagers(){
+  // Render existing mlines into each manager
+  const managers = [
+    {cid:'kpi-general', tag:'KPI'},
+    {cid:'slide1', tag:'Decisiones'},
+    {cid:'obras-fin', tag:'Obras Fin'},
+    {cid:'obras-td', tag:'Obras TD'},
+  ]
+  managers.forEach(m => cmRender(m.cid, m.tag))
+}
+
+// ── KPI RENDER (edit view) ────────────────────────────────
+function renderKpis(id){
+  const d=data[id]
+  document.getElementById('kl').innerHTML=d.kpis.map((k,i)=>{
+    const s=kpiStory(k)
+    const tr=trend(k),tc=tr==='↑'?'#16A34A':tr==='↓'?'#DC2626':'#94A3B8'
+    // Mini sparkline from hist
+    const hist=k.hist||[]
+    const maxH=Math.max(...hist.map(v=>parseF(v)),parseF(k.valor),0.001)
+    const sparks=hist.map(v=>{
+      const h=Math.max(3,Math.round((parseF(v)/maxH)*18))
+      return `<div class="kstory-sbar" style="height:${h}px;background:${s.color}60"></div>`
+    }).join('')
+    return `<div class="kcard" style="border-left-color:${s.color}" onclick="toggleKCard(event,'${id}',${i})">
+      <div class="kcard-row1">
+        <span class="kcard-name">${k.name}</span>
+        <span style="font-size:14px;font-weight:700;color:${tc}">${tr}</span>
+        <button class="xbtn" onclick="data['${id}'].kpis.splice(${i},1);renderKpis('${id}')">×</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+        <span style="font-size:11px;color:#94A3B8">Valor</span>
+        <input class="ki wide" value="${k.valor}" onchange="data['${id}'].kpis[${i}].valor=this.value;renderKpis('${id}')"/>
+        <span style="font-size:11px;color:#94A3B8">Meta</span>
+        <input class="ki wide" value="${k.meta}" onchange="data['${id}'].kpis[${i}].meta=this.value;renderKpis('${id}')"/>
+        <select class="ksel" onchange="data['${id}'].kpis[${i}].tipo=this.value;renderKpis('${id}')">
+          ${['porcentaje','numero','dinero','indice','zero'].map(t=>`<option value="${t}"${k.tipo===t?' selected':''}>${{porcentaje:'%',numero:'#',dinero:'$',indice:'índice',zero:'↓ meta 0'}[t]}</option>`).join('')}
+        </select>
+      </div>
+      <div class="kstory">
+        <div class="kstory-headline" style="color:${s.color}">${s.headline||''}</div>
+        ${s.story?`<div class="kstory-sub">${s.story}</div>`:''}
+        ${!s.isZero&&s.pct!==undefined?`
+          <div class="kstory-bar"><div class="kstory-fill" style="width:${s.pct}%;background:${s.color}"></div></div>
+          <div class="kstory-nums">
+            <span style="color:${s.color};font-weight:600;font-size:10px">${s.barLeft||''}</span>
+            <span style="color:#94A3B8;font-size:10px">${s.barRight||''}</span>
+          </div>`:''}
+        ${s.isZero?`<div class="${s.ok?'kzero-ok':'kzero-bad'}">
+          <span class="kzero-icon">${s.ok?'✓':'⚠'}</span>
+          <div><div class="${s.ok?'kzero-text-ok':'kzero-text-bad'}">${s.headline}</div><div class="kzero-sub" style="color:${s.ok?'#166534':'#991B1B'}">${s.story}</div></div>
+        </div>`:''}
+        ${hist.length>=2?buildHistBadge(k):''}
+      </div>
+      <div class="kcard-chart" id="kchart-${id}-${i}">
+        ${buildLineChart(k, s.color, 340, 130)}
+      </div>
+    </div>`
+  }).join('')||'<div style="font-size:12px;color:#94A3B8;padding:8px 0">Sin indicadores. Usa los sugeridos o agrega uno propio.</div>'
+}
+
+function toggleSugg(){
+  const box=document.getElementById('sugg-box')
+  if(box.style.display==='none'){
+    const suggs=SUGG[CA]||[]
+    box.innerHTML=suggs.length?`<div class="sugg-wrap">
+      <div class="sugg-title">KPIs sugeridos — ${ADEFS.find(a=>a.id===CA)?.name||''}</div>
+      <div class="sugg-grid">${suggs.map((s,i)=>`<div class="sugg-pill" onclick="addSuggKpi(${i})" title="${s.guide||''}">+ ${s.name}</div>`).join('')}</div>
+      <div style="border-top:1px solid #BFDBFE;padding-top:8px;margin-top:8px"><div style="font-size:11px;font-weight:600;color:var(--co);margin-bottom:5px">O agrega uno personalizado:</div></div>
+    </div>`:''
+    openF('kpi');box.style.display='block'
+  } else {box.style.display='none';closeF('kpi')}
+}
+function addSuggKpi(i){
+  const s=SUGG[CA][i];if(!s)return
+  if(data[CA].kpis.find(k=>k.name===s.name)){toast2('Este KPI ya existe');return}
+  data[CA].kpis.push({...s,status:'warn',hist:[],comment:''})
+  renderKpis(CA);toast2('KPI agregado: '+s.name)
+}
+
+function renderTasks(id){
+  const d=data[id]
+  const ec={'en-proceso':['#EFF6FF','#0B5ED7'],'completada':['#DCFCE7','#16A34A'],'bloqueada':['#FEE2E2','#DC2626'],'pendiente':['#F8FAFC','#64748B']}
+  const el={'en-proceso':'En proceso','completada':'Completada','bloqueada':'Bloqueada','pendiente':'Pendiente'}
+  document.getElementById('tl').innerHTML=d.tareas.map((t,i)=>{
+    const [bg,fc]=ec[t.estado]||ec['pendiente']
+    return `<div class="trow">
+      <div class="tinfo">
+        <div class="tt">${t.text}${t.fromDec?' <span class="tauto">— de decisión</span>':''}</div>
+        <div class="tresp">${t.resp||'—'}</div>
+        ${t.fecha?`<div class="tdate">${fmtD(new Date(t.fecha+'T12:00:00'))}</div>`:`<div class="tnodate">⚠ Sin fecha — agregar antes del comité</div>`}
+      </div>
+      <select class="test" style="background:${bg};color:${fc}" onchange="data['${id}'].tareas[${i}].estado=this.value;renderTasks('${id}')">
+        ${['pendiente','en-proceso','completada','bloqueada'].map(s=>`<option value="${s}"${t.estado===s?' selected':''}>${el[s]}</option>`).join('')}
+      </select>
+      <button class="btn sm gh" style="font-size:10px;padding:3px 8px" onclick="openTaskModal('${id}',${i})">Editar</button>
+      <button class="xbtn" onclick="data['${id}'].tareas.splice(${i},1);renderTasks('${id}')">×</button>
+    </div>`
+  }).join('')||'<div style="font-size:12px;color:#94A3B8;padding:5px 0">Sin tareas.</div>'
+}
+
+function renderDecs(id){
+  const d=data[id]
+  const uc={urgente:['#FEE2E2','#DC2626','Urgente'],reunion:['#FEF3C7','#D97706','Esta reunión'],proxima:['#F8FAFC','#64748B','Próxima']}
+  document.getElementById('dl').innerHTML=d.decisiones.map((dec,i)=>{
+    const [bg,fc,lbl]=uc[dec.urgencia]||uc['proxima']
+    return `<div class="drow">
+      <div class="dnum" style="${dec.resuelta?'background:var(--gr)':''}">${i+1}</div>
+      <div class="dc2">
+        <div class="dt" style="${dec.resuelta?'text-decoration:line-through;opacity:.5':''}">${dec.text}</div>
+        <div class="dm">
+          <span class="dbadge" style="background:${bg};color:${fc}">${lbl}</span>
+          <label class="dcheck"><input type="checkbox" ${dec.resuelta?'checked':''} onchange="resolveD('${id}',${i},this.checked)"> Resuelta → crear tarea</label>
+        </div>
+      </div>
+      <button class="btn sm gh" style="font-size:10px;padding:3px 8px" onclick="openDecEdit('${id}',${i})">Editar</button>
+      <button class="xbtn" onclick="data['${id}'].decisiones.splice(${i},1);renderDecs('${id}')">×</button>
+    </div>
+    <div class="drow-edit" id="dedit-${id}-${i}">
+      <input type="text" id="dedit-text-${id}-${i}" value="${dec.text}" placeholder="Texto de la decisión"/>
+      <select id="dedit-urg-${id}-${i}">
+        ${['urgente','reunion','proxima'].map(u=>`<option value="${u}"${dec.urgencia===u?' selected':''}>${{urgente:'Urgente',reunion:'Esta reunión',proxima:'Próxima reunión'}[u]}</option>`).join('')}
+      </select>
+      <div style="display:flex;gap:6px">
+        <button class="btn pri sm" onclick="saveDecEdit('${id}',${i})">Guardar</button>
+        <button class="btn sm" onclick="closeDecEdit('${id}',${i})">Cancelar</button>
+      </div>
+    </div>`
+  }).join('')||'<div style="font-size:12px;color:#94A3B8;padding:5px 0">Sin decisiones.</div>'
+}
+
+function renderParking(id){
+  document.getElementById('park-list').innerHTML=data[id].parking.map((p,i)=>
+    `<div class="park-item"><span style="color:var(--am)">▸</span><span style="flex:1">${p}</span><button class="xbtn" onclick="data['${CA}'].parking.splice(${i},1);renderParking('${CA}')">×</button></div>`
+  ).join('')||'<div style="font-size:11px;color:#94A3B8;padding:4px 0">Sin temas.</div>'
+}
+
+function renderHist(id){
+  document.getElementById('hl').innerHTML=data[id].historial.slice(0,4).map(h=>
+    `<div class="hitem"><span class="hdate">${h.fecha}</span><span style="color:var(--ink2);font-size:11px;line-height:1.4">${h.texto.substring(0,85)}${h.texto.length>85?'…':''}</span></div>`
+  ).join('')||'<div style="font-size:11px;color:#CBD5E1">Sin historial.</div>'
+}
+
+function resolveD(id,i,checked){
+  data[id].decisiones[i].resuelta=checked
+  if(checked){data[id].tareas.push({text:data[id].decisiones[i].text,resp:'',estado:'pendiente',fecha:'',fromDec:true});toast2('Decisión resuelta → tarea creada');renderTasks(id)}
+  renderDecs(id)
+}
+
+function addKpi(){
+  const n=document.getElementById('fkn').value.trim();if(!n)return
+  data[CA].kpis.push({name:n,valor:document.getElementById('fkv').value||'0',meta:document.getElementById('fkm').value||'—',tipo:document.getElementById('fkt').value,status:document.getElementById('fks').value,guide:document.getElementById('fkg').value,hist:[],comment:''})
+  renderKpis(CA);closeF('kpi');['fkn','fkv','fkm','fkg'].forEach(id=>document.getElementById(id).value='')
+  document.getElementById('sugg-box').style.display='none'
+}
+function addTask(){
+  const t=document.getElementById('ftt').value.trim();if(!t)return
+  data[CA].tareas.push({text:t,resp:document.getElementById('ftr').value,estado:document.getElementById('fte').value,fecha:document.getElementById('ftd').value,fromDec:false})
+  renderTasks(CA);closeF('task');['ftt','ftr','ftd'].forEach(id=>document.getElementById(id).value='')
+}
+function addDec(){
+  const t=document.getElementById('fdt').value.trim();if(!t)return
+  data[CA].decisiones.push({text:t,urgencia:document.getElementById('fdu').value,resuelta:false})
+  renderDecs(CA);closeF('dec');document.getElementById('fdt').value=''
+}
+function addParking(){
+  const t=document.getElementById('park-inp').value.trim();if(!t)return
+  data[CA].parking.push(t);renderParking(CA);document.getElementById('park-inp').value=''
+}
+function saveArea(){
+  data[CA].kpis.forEach(k=>{if(!k.hist)k.hist=[];k.hist.push(k.valor);if(k.hist.length>5)k.hist.shift()})
+  persist();toast2('Guardado')
+}
+
+// ── PROJECTION ────────────────────────────────────────────
+function projectArea(id){
+  CA=id;pslide=0;mlines=[]
+  const area=ADEFS.find(a=>a.id===id)
+  const d=data[id]
+  const ce=(CEDIT[role]||[]).includes(id)
+
+  document.getElementById('ptitle').textContent=area.name
+  document.getElementById('pmeta').textContent=`Comité · ${fmtD(new Date())} · MK Ingeniería`
+
+  // Obras: show extra slide
+  const psObras = document.getElementById('ps-obras')
+  if(id==='obras'){
+    psObras.style.display='block'
+    renderProjObras()
+    renderProjObrasTD()
+  } else {
+    psObras.style.display='none'
+  }
+  document.getElementById('pstrip-k').style.background=area.color
+  setBc([{l:'Inicio',f:'goHome()'},{l:area.name,f:`editArea('${id}')`}],'Proyectando')
+
+  // ── KPI PROJECTION — story-first layout ──────────────
+  document.getElementById('pk-content').innerHTML=d.kpis.map((k,i)=>{
+    const s=kpiStory(k)
+    const tr=trend(k),tc=tr==='↑'?'#16A34A':tr==='↓'?'#DC2626':'#94A3B8'
+    const hist=k.hist||[]
+    const maxH=Math.max(...hist.map(v=>parseF(v)),parseF(k.valor),0.001)
+    const sparks=hist.map(v=>{
+      const h=Math.max(3,Math.round((parseF(v)/maxH)*24))
+      return `<div class="pk-sbar" style="height:${h}px;background:${s.color}50"></div>`
+    }).join('')
+
+    return `<div class="pkcard" style="border-left-color:${s.color}">
+      <!-- Col 1: name -->
+      <div>
+        <div class="pkcard-name">${k.name}</div>
+        ${hist.length>=2?buildHistBadge(k):''}
+      </div>
+      <!-- Col 2: bar + headline -->
+      <div>
+        ${s.isZero?`
+          <div class="pk-zero-box">
+            <span style="font-size:16px">${s.ok?'✓':'⚠'}</span>
+            <div>
+              <div class="pk-zero-headline" style="color:${s.color}">${s.headline}</div>
+              <div class="pk-zero-sub" style="color:${s.ok?'#166534':'#991B1B'}">${s.story}</div>
+            </div>
+          </div>
+        `:`
+          <div class="pk-bar-bg"><div class="pk-bar-fill" style="width:${s.pct}%;background:${s.color}"></div></div>
+          <div class="pk-headline">${s.headline}</div>
+        `}
+      </div>
+      <!-- Col 3: value + comment -->
+      <div style="text-align:right;min-width:120px">
+        ${s.isZero?'':`
+          <div class="pk-number-row" style="justify-content:flex-end">
+            <span class="pk-big" style="color:${s.color}">${k.valor}</span>
+            <span class="pk-trend-big" style="color:${tc}">${tr}</span>
+          </div>
+          <div class="pk-meta-label">meta: ${k.meta}</div>
+        `}
+        ${ce?`<input style="margin-top:5px;width:100%;font-size:11px;padding:3px 7px;border:1px solid var(--bd);border-radius:4px;font-family:'Barlow',sans-serif;color:var(--ink);background:var(--wh);text-align:left" type="text" placeholder="Comentario para minuta..." value="${k.comment||''}" onkeydown="if(event.key==='Enter'){event.preventDefault();addKpiComment(${i},this.value);this.style.borderColor='var(--gr)';setTimeout(()=>this.style.borderColor='',1500)}" onblur="if(this.value)addKpiComment(${i},this.value)" />`
+           :k.comment?`<div style="margin-top:4px;font-size:11px;color:var(--sl);font-style:italic;text-align:left">${k.comment}</div>`:''}
+      </div>
+    </div>`
+  }).join('')||'<div style="color:#94A3B8">Sin indicadores definidos.</div>'
+
+  // Prev compromisos
+  const prev=d.tareas.filter(t=>t.estado!=='completada')
+  document.getElementById('prev-comp').innerHTML=prev.length
+    ?prev.map(t=>`<div class="prev-row">
+        <div style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:${t.estado==='en-proceso'?'#0B5ED7':t.estado==='bloqueada'?'#DC2626':'#94A3B8'}"></div>
+        <span style="flex:1;color:var(--ink);font-size:13px">${t.text}</span>
+        <span style="color:#94A3B8;font-size:12px">${t.resp}</span>
+        ${!t.fecha?`<span style="font-size:11px;color:var(--re);font-weight:700">sin fecha ⚠</span>`:`<span style="font-size:12px;color:var(--co);font-weight:600">${fmtD(new Date(t.fecha+'T12:00:00'))}</span>`}
+      </div>`).join('')
+    :'<div style="font-size:13px;color:#94A3B8">Sin compromisos pendientes de reunión anterior.</div>'
+
+  // Decisiones
+  const uc={urgente:['#DC2626','#FEE2E2','Urgente'],reunion:['#D97706','#FEF3C7','Esta reunión'],proxima:['#64748B','#F8FAFC','Próxima']}
+  document.getElementById('pd-content').innerHTML=d.decisiones.map((dec,i)=>{
+    const [fc,bg,lbl]=uc[dec.urgencia]||uc['proxima']
+    return `<div class="pdec-item${dec.resuelta?' pdec-resolved':''}">
+      <div class="pdec-num">${i+1}</div>
+      <div class="pdec-body"><div class="pdec-text">${dec.text}</div></div>
+      <span class="pdec-badge" style="background:${bg};color:${fc}">${lbl}</span>
+      ${ce?`<button class="pdec-resolve" onclick="projResolve(${i})">${dec.resuelta?'✓':'Resolver'}</button>`:''}
+    </div>`
+  }).join('')||'<div style="font-size:13px;color:#94A3B8;padding:6px 0">Sin decisiones pendientes.</div>'
+  document.getElementById('dec-count').textContent=d.decisiones.filter(x=>!x.resuelta).length+' pendientes'
+
+  // Tareas
+  const tc2={'en-proceso':['#0B5ED7','#EFF6FF'],'completada':['#16A34A','#DCFCE7'],'bloqueada':['#DC2626','#FEE2E2'],'pendiente':['#64748B','#F8FAFC']}
+  const tl2={'en-proceso':'En proceso','completada':'Completada','bloqueada':'Bloqueada','pendiente':'Pendiente'}
+  document.getElementById('pt-content').innerHTML=d.tareas.map(t=>{
+    const [fc,bg]=tc2[t.estado]||tc2['pendiente']
+    return `<div class="ptask-item">
+      <div class="ptask-dot" style="background:${fc}"></div>
+      <div class="ptask-body">
+        <div class="ptask-text">${t.text}${t.fromDec?' <span style="font-size:11px;color:var(--co);font-style:italic">— de decisión</span>':''}</div>
+        <div class="ptask-resp">${t.resp||'Sin asignar'}</div>
+        ${t.fecha?`<div class="ptask-date">${fmtD(new Date(t.fecha+'T12:00:00'))}</div>`:'<div class="ptask-date" style="color:var(--re)">⚠ Sin fecha</div>'}
+      </div>
+      <span class="pest-badge" style="background:${bg};color:${fc}">${tl2[t.estado]}</span>
+    </div>`
+  }).join('')||'<div style="font-size:13px;color:#94A3B8;padding:6px 0">Sin tareas.</div>'
+
+  // Parking
+  document.getElementById('park-proj').innerHTML=d.parking.map((p,i)=>
+    `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(217,119,6,.15);font-size:13px;color:var(--ink2)">
+      <span style="color:var(--am)">▸</span><span style="flex:1">${p}</span>
+      ${ce?`<button class="xbtn" onclick="data['${id}'].parking.splice(${i},1);projectArea('${id}');goPSlide(1)">×</button>`:''}
+    </div>`
+  ).join('')||'<div style="font-size:12px;color:#94A3B8">Sin temas en parking lot.</div>'
+
+  if(!ce){document.getElementById('qr-dec').style.display='none';document.getElementById('qr-task').style.display='none';document.getElementById('park-proj-add').style.display='none'}
+  else{document.getElementById('qr-dec').style.display='block';document.getElementById('qr-task').style.display='block';document.getElementById('park-proj-add').style.display='flex'}
+
+  renderComps();updateME()
+  pslide=0
+  setupTimer(0);updatePS()
+  // Inject comment managers into slots
+  const slotKpi = document.getElementById('cm-slot-kpi')
+  if(slotKpi) slotKpi.innerHTML = buildCommentManager('kpi-general','KPI','scoreboard general')
+  const slotS1 = document.getElementById('cm-slot-slide1')
+  if(slotS1) slotS1.innerHTML = buildCommentManager('slide1','Decisiones','decisiones y tareas')
+  const slotOF = document.getElementById('cm-slot-obras-fin')
+  if(slotOF) slotOF.innerHTML = buildCommentManager('obras-fin','Obras Fin','vista financiera obras','#16A34A')
+  const slotOT = document.getElementById('cm-slot-obras-td')
+  if(slotOT) slotOT.innerHTML = buildCommentManager('obras-td','Obras TD','tareas y decisiones obras','#16A34A')
+  initCommentManagers()
+  showSc('sc-proj')
+}
+
+function addKpiComment(i,val){
+  data[CA].kpis[i].comment=val
+  if(val.trim()) addToME('KPI',`${data[CA].kpis[i].name}: ${val}`,'comentario KPI')
+}
+function addToME(tag,text,origin){
+  if(!mlines.find(l=>l.text===text)) mlines.push({tag,text,origin})
+  updateME()
+}
+function updateME(){
+  const d=data[CA]
+  d.decisiones.filter(x=>x.resuelta).forEach(dec=>addToME('Decisión',dec.text,'decisión resuelta'))
+  d.tareas.filter(t=>t.fromDec).forEach(t=>addToME('Tarea',`${t.text} · ${t.resp||'por asignar'}${t.fecha?' · '+fmtD(new Date(t.fecha+'T12:00:00')):''}`, 'de decisión'))
+  const el=document.getElementById('me-content');if(!el)return
+  const tc={'KPI':['#EFF6FF','#0B5ED7'],'Decisión':['#FEE2E2','#DC2626'],'Tarea':['#DCFCE7','#16A34A'],'Parking':['#FEF3C7','#D97706'],'Tarea nueva':['#EFF6FF','#0B5ED7']}
+  el.innerHTML=mlines.length
+    ?mlines.map(l=>{const[bg,fc]=tc[l.tag]||['#F8FAFC','#64748B'];return`<div class="me-row"><span class="me-tag" style="background:${bg};color:${fc}">${l.tag}</span><span class="me-text">${l.text}</span><span class="me-origin">${l.origin}</span></div>`}).join('')
+    :'<div style="font-size:12px;color:#94A3B8;font-style:italic;padding:8px 0">La minuta se construye automáticamente. Los comentarios a KPIs, decisiones resueltas y tareas nuevas aparecerán aquí.</div>'
+  const cnt=document.getElementById('me-count');if(cnt)cnt.textContent=mlines.length+' línea'+(mlines.length!==1?'s':'')
+}
+
+function renderComps(){
+  document.getElementById('comp-list').innerHTML=data[CA].tareas.map((t,i)=>{
+    return `<div class="comp-item">
+      <div class="comp-check${t.estado==='completada'?' done':''}" onclick="toggleComp(${i})">${t.estado==='completada'?'<span style="color:#fff;font-size:11px;font-weight:800">✓</span>':''}</div>
+      <div>
+        <div class="comp-text">${t.text}</div>
+        <div class="comp-meta">${t.resp||'Sin asignar'} · ${t.fecha?fmtD(new Date(t.fecha+'T12:00:00')):'<span style="color:var(--re);font-weight:600">⚠ sin fecha — agregar antes de cerrar</span>'}</div>
+      </div>
+    </div>`
+  }).join('')||'<div style="font-size:13px;color:#94A3B8">Sin compromisos activos.</div>'
+}
+function toggleComp(i){data[CA].tareas[i].estado=data[CA].tareas[i].estado==='completada'?'en-proceso':'completada';renderComps()}
+
+function projResolve(i){
+  data[CA].decisiones[i].resuelta=true
+  data[CA].tareas.push({text:data[CA].decisiones[i].text,resp:'',estado:'pendiente',fecha:'',fromDec:true})
+  addToME('Decisión',data[CA].decisiones[i].text,'decisión resuelta')
+  toast2('Decisión resuelta → tarea creada');projectArea(CA);goPSlide(1)
+}
+function projAddDec(){
+  const t=document.getElementById('qdt').value.trim();if(!t)return
+  data[CA].decisiones.push({text:t,urgencia:document.getElementById('qdu').value,resuelta:false})
+  document.getElementById('qdt').value='';toast2('Decisión agregada');projectArea(CA);goPSlide(1)
+}
+function projAddTask(){
+  const t=document.getElementById('qtt').value.trim();if(!t)return
+  const f=document.getElementById('qtd').value
+  data[CA].tareas.push({text:t,resp:document.getElementById('qtr').value,estado:'en-proceso',fecha:f,fromDec:false})
+  addToME('Tarea nueva',`${t} · ${document.getElementById('qtr').value||'por asignar'}${f?' · '+fmtD(new Date(f+'T12:00:00')):''}`, 'agregada en reunión')
+  document.getElementById('qtt').value='';document.getElementById('qtr').value='';document.getElementById('qtd').value=''
+  toast2('Tarea agregada');projectArea(CA);goPSlide(1)
+}
+function projAddParking(){
+  const t=document.getElementById('park-pi').value.trim();if(!t)return
+  data[CA].parking.push(t);addToME('Parking',t,'parking lot')
+  document.getElementById('park-pi').value='';toast2('Tema al parking lot');projectArea(CA);goPSlide(1)
+}
+function saveMinuta(){
+  if(!mlines.length){toast2('Sin líneas en la minuta');return}
+  const txt=mlines.map(l=>`[${l.tag}] ${l.text}`).join('\n')
+  data[CA].historial.unshift({fecha:fmtD(new Date()),texto:txt.substring(0,200)})
+  data[CA].kpis.forEach(k=>{if(!k.hist)k.hist=[];k.hist.push(k.valor);if(k.hist.length>5)k.hist.shift()})
+  persist();toast2('Reunión cerrada y minuta guardada')
+}
+function copyMinuta(){
+  const txt=mlines.map(l=>`[${l.tag}] ${l.text}`).join('\n')
+  if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>toast2('Minuta copiada al portapapeles'))
+  else toast2('Copia el texto manualmente')
+}
+
+function setupTimer(s){clearInterval(tint);trun=false;tmax=MT[s]||300;tsec=tmax;document.getElementById('tlabel').textContent=ML[s]||'';document.getElementById('tbtn').textContent='Iniciar';updateTUI()}
+function toggleTimer(){
+  trun=!trun;document.getElementById('tbtn').textContent=trun?'Pausar':'Continuar'
+  if(trun){tint=setInterval(()=>{if(tsec>0){tsec--;updateTUI()}else{clearInterval(tint);trun=false;document.getElementById('tbtn').textContent='Iniciar';toast2('Tiempo agotado — siguiente momento')}},1000)}
+  else clearInterval(tint)
+}
+function resetTimer(){clearInterval(tint);trun=false;tsec=tmax;document.getElementById('tbtn').textContent='Iniciar';updateTUI()}
+function updateTUI(){
+  const m=Math.floor(tsec/60),s=tsec%60
+  const tv=document.getElementById('tval');tv.textContent=`${m}:${String(s).padStart(2,'0')}`;tv.className='tval'+(tsec<60?' urg':'')
+  const pct=tmax>0?(tsec/tmax)*100:0
+  const f=document.getElementById('tfill');f.style.width=pct+'%';f.style.background=tsec<60?'#DC2626':tsec<tmax*.3?'#D97706':'#E1BA10'
+}
+function updatePS(){
+  const isObras = CA==='obras'
+  const total = 3
+  // Hide ALL slides — remove shown class and set display:none
+  const allSlides = ['ps-obras','ps-obras-td','ps-0','ps-1','ps-2']
+  allSlides.forEach(id=>{
+    const el = document.getElementById(id)
+    if(el){
+      el.classList.remove('on')
+      el.classList.remove('pslide-shown')
+      el.style.cssText = 'display:none'
+    }
+  })
+  // Show only the active slide
+  const slideMap = isObras
+    ? ['ps-obras','ps-obras-td','ps-2']
+    : ['ps-0','ps-1','ps-2']
+  const activeId = slideMap[pslide]
+  if(activeId){
+    const el = document.getElementById(activeId)
+    if(el){
+      el.classList.add('on')
+      el.classList.add('pslide-shown')
+      el.style.cssText = 'display:block'
+    }
+  }
+  document.querySelectorAll('.pdot').forEach((d,i)=>d.classList.toggle('on',i===pslide))
+  document.getElementById('pctr').textContent=`${pslide+1}/${total}`
+  setupTimer(pslide)
+  if(pslide===2){renderComps();updateME()}
+}
+function pNext(){if(pslide<2){pslide++;updatePS()}}
+function pPrev(){if(pslide>0){pslide--;updatePS()}}
+function goPSlide(i){pslide=i;updatePS()}
+function goPSlideObras(i){pslide=i;updatePS()}
+
+function goHome(){
+  CA=null;clearInterval(tint);trun=false
+  // Restore KPI card visibility
+  const kpiCard = document.getElementById('card-kpis')
+  if(kpiCard) kpiCard.style.display=''
+  setBc([],'');renderHome();showSc('sc-home')
+}
+function showSc(id){document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on')}
+function setBc(crumbs,cur){
+  const el=document.getElementById('bc')
+  if(!crumbs.length&&!cur){el.innerHTML='';return}
+  el.innerHTML=crumbs.map(c=>`<span class="c" onclick="${c.f}">${c.l}</span><span class="s">/</span>`).join('')+(cur?`<span class="cur">${cur}</span>`:'')
+  if(cur==='Proyectando'){
+    const isObras = CA==='obras'
+    const dots = isObras
+      ? ['Vista Obras','Tareas y Decisiones','Minuta y Cierre']
+      : ['KPIs','Decisiones','Compromisos']
+    document.getElementById('pdots').innerHTML = dots.map((l,i)=>`<button class="pdot${i===0?' on':''}" title="${l}" onclick="goPSlideObras(${i})"></button>`).join('')
+  }
+}
+function openF(t){document.querySelectorAll('.aform').forEach(f=>f.classList.remove('op'));document.getElementById('f-'+t).classList.add('op')}
+function closeF(t){document.getElementById('f-'+t).classList.remove('op')}
+
+function fmtD(d){return d.toLocaleDateString('es-CL',{day:'2-digit',month:'short',year:'numeric'})}
+function parseF(v){return parseFloat(String(v).replace(/[^0-9.-]/g,''))||0}
+function trend(k){
+  if(!k.hist||k.hist.length<2)return '='
+  const a=parseF(k.hist[k.hist.length-1]),b=parseF(k.hist[k.hist.length-2])
+  return a>b*1.02?'↑':a<b*0.98?'↓':'='
+}
+function toast2(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2600)}
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('sc-proj').classList.contains('on')){
+    // Only arrow keys — spacebar removed to allow typing in comment fields
+    if(e.key==='ArrowRight'&&e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA')pNext()
+    if(e.key==='ArrowLeft'&&e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA')pPrev()
+    if(e.key==='Escape')goHome()
+  }else if(e.key==='Escape')goHome()
+})
+
+
+
+// ── KPI CARD EXPAND ──────────────────────────────────────
+function toggleKCard(e, id, i) {
+  // Don't expand when clicking inputs/buttons/selects
+  if (['INPUT','SELECT','BUTTON','LABEL'].includes(e.target.tagName)) return
+  const card = e.currentTarget
+  const wasExpanded = card.classList.contains('expanded')
+  // Collapse all first
+  document.querySelectorAll('.kcard.expanded').forEach(c => c.classList.remove('expanded'))
+  if (!wasExpanded) card.classList.add('expanded')
+}
+function togglePKCard(e, i) {
+  if (['INPUT','SELECT','BUTTON','LABEL'].includes(e.target.tagName)) return
+  const card = e.currentTarget
+  const wasExpanded = card.classList.contains('expanded')
+  document.querySelectorAll('.pkcard.expanded').forEach(c => c.classList.remove('expanded'))
+  if (!wasExpanded) card.classList.add('expanded')
+}
+
+// ── USERS MASTER ─────────────────────────────────────────
+const AREA_COLORS = {admin:'#0F172A',finanzas:'#0B5ED7',rrhh:'#7C3AED',legal:'#D97706',prevencion:'#DC2626',estudios:'#64748B',obras:'#16A34A',viewer:'#94A3B8'}
+const AREA_NAMES  = {admin:'Administrador',finanzas:'Finanzas y Tesorería',rrhh:'Recursos Humanos',legal:'Legal',prevencion:'Prevención de Riesgos',estudios:'Estudios y Licitaciones',obras:'Obras Activas',viewer:'Solo lectura'}
+
+function loadUsers() {
+  const saved = localStorage.getItem('mk-users')
+  if (saved) return JSON.parse(saved)
+  // Default users matching existing PINs
+  return [
+    {id:'u1',name:'Felipe Valenzuela',cargo:'Gerente de Innovación',area:'admin',pin:'1234',color:'#0F172A'},
+    {id:'u2',name:'Jefe Finanzas',cargo:'Responsable área',area:'finanzas',pin:'2001',color:'#0B5ED7'},
+    {id:'u3',name:'Jefe RRHH',cargo:'Responsable área',area:'rrhh',pin:'2002',color:'#7C3AED'},
+    {id:'u4',name:'Jefe Legal',cargo:'Responsable área',area:'legal',pin:'2003',color:'#D97706'},
+    {id:'u5',name:'Diego Villegas',cargo:'Jefe Prevención de Riesgos',area:'prevencion',pin:'2004',color:'#DC2626'},
+    {id:'u6',name:'Jefe Estudios',cargo:'Responsable área',area:'estudios',pin:'2005',color:'#64748B'},
+    {id:'u7',name:'Jefe Obras',cargo:'Responsable área',area:'obras',pin:'2006',color:'#16A34A'},
+    {id:'u8',name:'Visualizador',cargo:'Solo lectura',area:'viewer',pin:'0000',color:'#94A3B8'},
+  ]
+}
+function saveUsers(users) { localStorage.setItem('mk-users', JSON.stringify(users)) }
+function getUsers() { return loadUsers() }
+
+function showUsers() {
+  if (role !== 'admin') { toast2('Solo el administrador puede gestionar usuarios'); return }
+  setBc([],'Usuarios'); renderUsers(); showSc('sc-users')
+}
+
+function renderUsers() {
+  const users = getUsers()
+  document.getElementById('users-grid').innerHTML = users.map((u,i) => {
+    const ac = AREA_COLORS[u.area] || u.color || '#64748B'
+    const an = AREA_NAMES[u.area] || u.area
+    return `<div class="ucard">
+      <div class="ucard-top" style="background:${ac}"></div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div>
+          <div class="ucard-name">${u.name}</div>
+          <div class="ucard-cargo">${u.cargo}</div>
+        </div>
+        <div style="width:32px;height:32px;border-radius:50%;background:${ac};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;color:#fff">${u.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}</div>
+      </div>
+      <div class="ucard-pills">
+        <span class="pill pinfo">${an}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;color:#94A3B8">PIN:</span>
+        <span class="ucard-pin" onclick="togglePinCard(this,'${u.pin}')">••••</span>
+      </div>
+      <div class="ucard-actions">
+        <button class="btn sm" onclick="openUModal(${i})">Editar</button>
+        ${u.area==='admin'&&users.filter(x=>x.area==='admin').length===1?'':`<button class="btn sm danger" onclick="deleteUser(${i})">Eliminar</button>`}
+      </div>
+    </div>`
+  }).join('')
+}
+
+function togglePinCard(el, pin) {
+  el.textContent = el.textContent === '••••' ? pin : '••••'
+}
+
+let editUserIdx = null
+function openUModal(idx) {
+  editUserIdx = idx
+  const users = getUsers()
+  const u = idx !== null ? users[idx] : null
+  document.getElementById('umodal-title').textContent = u ? 'Editar usuario' : 'Nuevo usuario'
+  document.getElementById('u-name').value  = u?.name  || ''
+  document.getElementById('u-cargo').value = u?.cargo || ''
+  document.getElementById('u-area').value  = u?.area  || 'viewer'
+  document.getElementById('u-pin').value   = u?.pin   || ''
+  document.getElementById('u-color').value = u?.color || AREA_COLORS[u?.area||'viewer'] || '#64748B'
+  document.getElementById('umodal').classList.add('on')
+}
+function closeUModal() { document.getElementById('umodal').classList.remove('on'); editUserIdx=null }
+function togglePinVis() {
+  const inp = document.getElementById('u-pin')
+  const btn = inp.nextElementSibling
+  if (inp.type === 'password') { inp.type='text'; btn.textContent='Ocultar' }
+  else { inp.type='password'; btn.textContent='Mostrar' }
+}
+function saveUModal() {
+  const name  = document.getElementById('u-name').value.trim()
+  const cargo = document.getElementById('u-cargo').value.trim()
+  const area  = document.getElementById('u-area').value
+  const pin   = document.getElementById('u-pin').value.trim()
+  const color = document.getElementById('u-color').value
+  if (!name) { toast2('Ingresa un nombre'); return }
+  if (!pin || pin.length < 4) { toast2('PIN debe tener al menos 4 dígitos'); return }
+  const users = getUsers()
+  // Check PIN uniqueness (except self)
+  const dup = users.find((u,i) => u.pin===pin && i!==editUserIdx)
+  if (dup) { toast2(`PIN ya usado por ${dup.name}`); return }
+  const uobj = { id: editUserIdx!==null ? users[editUserIdx].id : 'u'+Date.now(), name, cargo, area, pin, color }
+  if (editUserIdx !== null) users[editUserIdx] = uobj
+  else users.push(uobj)
+  saveUsers(users)
+  // Update runtime PINS so new user can login immediately
+  PINS[area] = pin  // last one wins per area — for multi-user same area use Supabase
+  closeUModal()
+  renderUsers()
+  toast2(editUserIdx!==null ? 'Usuario actualizado' : 'Usuario creado')
+}
+function deleteUser(idx) {
+  const users = getUsers()
+  if (!confirm(`¿Eliminar a ${users[idx].name}?`)) return
+  users.splice(idx, 1)
+  saveUsers(users)
+  renderUsers()
+  toast2('Usuario eliminado')
+}
+
+// ── DECISION EDIT ─────────────────────────────────────────
+function openDecEdit(id, i) {
+  document.querySelectorAll('.drow-edit').forEach(el => el.classList.remove('op'))
+  const el = document.getElementById(`dedit-${id}-${i}`)
+  if (el) el.classList.add('op')
+}
+function closeDecEdit(id, i) {
+  const el = document.getElementById(`dedit-${id}-${i}`)
+  if (el) el.classList.remove('op')
+}
+function saveDecEdit(id, i) {
+  const text = document.getElementById(`dedit-text-${id}-${i}`).value.trim()
+  const urg  = document.getElementById(`dedit-urg-${id}-${i}`).value
+  if (!text) return
+  data[id].decisiones[i].text = text
+  data[id].decisiones[i].urgencia = urg
+  closeDecEdit(id, i)
+  renderDecs(id)
+  toast2('Decisión actualizada')
+}
+
+// ── TASK EDIT MODAL ───────────────────────────────────────
+let editTaskId = null, editTaskIdx = null
+function openTaskModal(id, i) {
+  editTaskId = id; editTaskIdx = i
+  const t = data[id].tareas[i]
+  document.getElementById('m-text').value   = t.text  || ''
+  document.getElementById('m-resp').value   = t.resp  || ''
+  document.getElementById('m-fecha').value  = t.fecha || ''
+  document.getElementById('m-estado').value = t.estado || 'pendiente'
+  // Populate user dropdown
+  const users = getUsers()
+  const sel = document.getElementById('m-resp-sel')
+  sel.innerHTML = '<option value="">— Seleccionar usuario —</option>' +
+    users.filter(u=>u.area!=='viewer').map(u=>`<option value="${u.name}"${t.resp===u.name?' selected':''}>${u.name} · ${AREA_NAMES[u.area]||u.area}</option>`).join('')
+  document.getElementById('task-modal').classList.add('on')
+}
+function closeTaskModal() {
+  document.getElementById('task-modal').classList.remove('on')
+  editTaskId = null; editTaskIdx = null
+}
+function saveTaskModal() {
+  if (editTaskId === null || editTaskIdx === null) return
+  const t = data[editTaskId].tareas[editTaskIdx]
+  t.text   = document.getElementById('m-text').value.trim()  || t.text
+  t.resp   = document.getElementById('m-resp').value.trim() || document.getElementById('m-resp-sel').value
+  t.fecha  = document.getElementById('m-fecha').value
+  t.estado = document.getElementById('m-estado').value
+  closeTaskModal()
+  renderTasks(editTaskId)
+  toast2('Tarea actualizada')
+}
+
+loadData()
+</script>
+</body>
+</html>
