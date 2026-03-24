@@ -992,6 +992,8 @@ function sbTipoMap(tipo,guia,nombre){
 }
 
 async function loadFromSupabase(){
+  // Strategy: only overwrite localStorage data if Supabase has ACTUAL data
+  // in that table. Empty Supabase tables = keep localStorage/defaults.
   const [pR,kR,khR,tR,eR,gR,lcR,ceR,piR,caR,haR,mR]=await Promise.all([
     sb.from('proyectos').select('*'),
     sb.from('kpis').select('*').order('area_id').order('orden'),
@@ -1009,91 +1011,100 @@ async function loadFromSupabase(){
   const err=[pR,kR,khR,tR,eR,gR,lcR,ceR,piR,caR,haR,mR].find(r=>r.error)
   if(err)throw new Error(err.error.message)
 
-  // Build UUID↔name maps
+  // Helper: only use Supabase data if the table has rows
+  const has=r=>r.data&&r.data.length>0
+
+  // Build UUID↔name maps (always, for ID resolution)
   projIdMap={};projNameMap={}
-  pR.data.forEach(p=>{projIdMap[p.id]=p.nombre;projNameMap[p.nombre]=p.id})
+  if(has(pR))pR.data.forEach(p=>{projIdMap[p.id]=p.nombre;projNameMap[p.nombre]=p.id})
 
-  // Proyectos
-  projects=pR.data.map(p=>({
-    id:p.id,name:p.nombre,estado:p.estado,color:projColor(p.estado),
-    mandante:p.mandante||'',administrador:p.administrador||'',
-    fechaInicio:p.fecha_inicio||'',fechaTermino:p.fecha_termino||'',
-    est:{montoLicit:Number(p.monto_licitacion)||0,margenEstPct:Number(p.margen_estudio_pct)||0,fechaOferta:p.fecha_oferta||'',obs:p.observacion||''},
-    fin:(Number(p.contrato)||Number(p.facturado)||Number(p.gastado))?{contrato:Number(p.contrato)||0,ndc:Number(p.ndc)||0,facturado:Number(p.facturado)||0,presupuesto:Number(p.presupuesto)||0,gastado:Number(p.gastado)||0,comprometido:Number(p.comprometido)||0,avanceReal:Number(p.avance_real)||0,avanceProg:Number(p.avance_prog)||0,spi:Number(p.spi)||0,cpi:Number(p.cpi)||0}:null,
-    gar:null
-  }))
+  // Proyectos — only if Supabase has projects
+  if(has(pR)){
+    projects=pR.data.map(p=>({
+      id:p.id,name:p.nombre,estado:p.estado,color:projColor(p.estado),
+      mandante:p.mandante||'',administrador:p.administrador||'',
+      fechaInicio:p.fecha_inicio||'',fechaTermino:p.fecha_termino||'',
+      est:{montoLicit:Number(p.monto_licitacion)||0,margenEstPct:Number(p.margen_estudio_pct)||0,fechaOferta:p.fecha_oferta||'',obs:p.observacion||''},
+      fin:(Number(p.contrato)||Number(p.facturado)||Number(p.gastado))?{contrato:Number(p.contrato)||0,ndc:Number(p.ndc)||0,facturado:Number(p.facturado)||0,presupuesto:Number(p.presupuesto)||0,gastado:Number(p.gastado)||0,comprometido:Number(p.comprometido)||0,avanceReal:Number(p.avance_real)||0,avanceProg:Number(p.avance_prog)||0,spi:Number(p.spi)||0,cpi:Number(p.cpi)||0}:null,
+      gar:null
+    }))
+  }
+  // else: keep projects from loadFromLocal()
 
-  // KPI hist map
-  const histMap={}
-  khR.data.forEach(h=>{if(!histMap[h.kpi_id])histMap[h.kpi_id]=[];if(h.valor)histMap[h.kpi_id].push(h.valor)})
+  // Area data (KPIs, tareas, comentarios, historial) — only override areas that have Supabase data
+  if(has(kR)||has(tR)||has(caR)||has(haR)){
+    const histMap={}
+    khR.data.forEach(h=>{if(!histMap[h.kpi_id])histMap[h.kpi_id]=[];if(h.valor)histMap[h.kpi_id].push(h.valor)})
 
-  // KPIs by area
-  const kpisByArea={}
-  kR.data.forEach(k=>{
-    if(!kpisByArea[k.area_id])kpisByArea[k.area_id]=[]
-    kpisByArea[k.area_id].push({_sbId:k.id,name:k.nombre,valor:k.valor||'0',meta:k.meta||'—',
-      tipo:sbTipoMap(k.tipo,k.guia,k.nombre),principal:!!k.es_principal,
-      guide:k.guia||'',comment:k.comentario||'',hist:histMap[k.id]||[]})
-  })
+    const kpisByArea={}
+    kR.data.forEach(k=>{
+      if(!kpisByArea[k.area_id])kpisByArea[k.area_id]=[]
+      kpisByArea[k.area_id].push({_sbId:k.id,name:k.nombre,valor:k.valor||'0',meta:k.meta||'—',
+        tipo:sbTipoMap(k.tipo,k.guia,k.nombre),principal:!!k.es_principal,
+        guide:k.guia||'',comment:k.comentario||'',hist:histMap[k.id]||[]})
+    })
 
-  // Tareas by area
-  const tareasByArea={}
-  tR.data.forEach(t=>{
-    if(!tareasByArea[t.area_id])tareasByArea[t.area_id]=[]
-    tareasByArea[t.area_id].push({_sbId:t.id,text:t.texto,resp:t.responsable||'',
-      estado:t.estado||'pendiente',fecha:t.fecha_compromiso||'',
-      proyecto:t.proyecto_id?(projIdMap[t.proyecto_id]||''):'',
-      createdAt:t.created_at?t.created_at.split('T')[0]:''})
-  })
+    const tareasByArea={}
+    tR.data.forEach(t=>{
+      if(!tareasByArea[t.area_id])tareasByArea[t.area_id]=[]
+      tareasByArea[t.area_id].push({_sbId:t.id,text:t.texto,resp:t.responsable||'',
+        estado:t.estado||'pendiente',fecha:t.fecha_compromiso||'',
+        proyecto:t.proyecto_id?(projIdMap[t.proyecto_id]||''):'',
+        createdAt:t.created_at?t.created_at.split('T')[0]:''})
+    })
 
-  // Comentarios by area
-  const comentsByArea={}
-  caR.data.forEach(c=>{if(!comentsByArea[c.area_id])comentsByArea[c.area_id]={};comentsByArea[c.area_id][c.clave]=c.valor||''})
+    const comentsByArea={}
+    caR.data.forEach(c=>{if(!comentsByArea[c.area_id])comentsByArea[c.area_id]={};comentsByArea[c.area_id][c.clave]=c.valor||''})
 
-  // Historial by area
-  const histByArea={}
-  haR.data.forEach(h=>{if(!histByArea[h.area_id])histByArea[h.area_id]=[];histByArea[h.area_id].push({fecha:h.fecha,texto:h.texto})})
+    const histByArea={}
+    haR.data.forEach(h=>{if(!histByArea[h.area_id])histByArea[h.area_id]=[];histByArea[h.area_id].push({fecha:h.fecha,texto:h.texto})})
 
-  // Build area data from ADEFS + Supabase
-  ADEFS.forEach(a=>{
-    data[a.id]=JSON.parse(JSON.stringify(a))
-    if(kpisByArea[a.id])data[a.id].kpis=kpisByArea[a.id]
-    if(tareasByArea[a.id])data[a.id].tareas=tareasByArea[a.id]
-    data[a.id].comentarios=comentsByArea[a.id]||{m1:'',m2:'',m3:''}
-    if(histByArea[a.id]&&histByArea[a.id].length)data[a.id].historial=histByArea[a.id]
-  })
-  Object.values(data).forEach(d=>{if(!d.comentarios)d.comentarios={m1:'',m2:'',m3:''}})
-
-  // Equipo
-  team=eR.data.map(e=>({id:e.id,nombre:e.nombre,cargo:e.cargo,
-    proyecto:e.proyecto_id?(projIdMap[e.proyecto_id]||''):'',
-    estado:e.estado||'activo',contacto:e.contacto||''}))
-
-  // Garantías
-  const gars=gR.data.map(g=>({id:g.id,
-    proyecto:g.proyecto_id?(projIdMap[g.proyecto_id]||''):'',
-    tipo:g.tipo,instrumento:g.instrumento,entidad:g.entidad,
-    monto:Number(g.monto)||0,fechaSolicitud:g.fecha_solicitud||'',
-    fechaInicio:g.fecha_inicio||'',fechaVencimiento:g.fecha_vencimiento||'',
-    estado:g.estado||'solicitada',obs:g.observacion||''}))
-
-  // Config estudios
-  const cfgMap={};ceR.data.forEach(c=>{cfgMap[c.clave]=c.valor})
-  estudiosData={
-    metaAnual:Number(cfgMap.metaAnual)||20000,
-    lineasCredito:lcR.data.map(l=>({id:l.id,entidad:l.entidad,tipo:l.tipo||'banco',monto:Number(l.monto)||0})),
-    garantias:gars,
-    planInversion:piR.data.map(p=>({id:p.id,cliente:p.cliente,monto:Number(p.monto)||0}))
+    // Only override per-area data if Supabase has data for that area
+    ADEFS.forEach(a=>{
+      if(!data[a.id])data[a.id]=JSON.parse(JSON.stringify(a))
+      if(kpisByArea[a.id]&&kpisByArea[a.id].length)data[a.id].kpis=kpisByArea[a.id]
+      if(tareasByArea[a.id]&&tareasByArea[a.id].length)data[a.id].tareas=tareasByArea[a.id]
+      if(comentsByArea[a.id])data[a.id].comentarios=comentsByArea[a.id]
+      if(histByArea[a.id]&&histByArea[a.id].length)data[a.id].historial=histByArea[a.id]
+    })
+    Object.values(data).forEach(d=>{if(!d.comentarios)d.comentarios={m1:'',m2:'',m3:''}})
   }
 
-  // Minutas
-  minutas=mR.data.map(m=>({_sbId:m.id,area:m.area_id,areaName:m.area_id,
-    fecha:m.fecha,lineas:m.lineas||[],textoCompleto:m.texto_completo||'',
-    enviada:m.enviada,comentarios:m.comentarios||{},
-    kpis:m.lineas?.kpis||[],tareas:m.lineas?.tareas||[]}))
+  // Equipo — only if Supabase has team data
+  if(has(eR)){
+    team=eR.data.map(e=>({id:e.id,nombre:e.nombre,cargo:e.cargo,
+      proyecto:e.proyecto_id?(projIdMap[e.proyecto_id]||''):'',
+      estado:e.estado||'activo',contacto:e.contacto||''}))
+  }
 
-  // Users: keep localStorage users (Supabase doesn't store users yet)
-  // Only reset to DEF_USERS if no users exist in localStorage
+  // Garantías y líneas — only if Supabase has data
+  if(has(gR)||has(lcR)||has(piR)){
+    const gars=has(gR)?gR.data.map(g=>({id:g.id,
+      proyecto:g.proyecto_id?(projIdMap[g.proyecto_id]||''):'',
+      tipo:g.tipo,instrumento:g.instrumento,entidad:g.entidad,
+      monto:Number(g.monto)||0,fechaSolicitud:g.fecha_solicitud||'',
+      fechaInicio:g.fecha_inicio||'',fechaVencimiento:g.fecha_vencimiento||'',
+      estado:g.estado||'solicitada',obs:g.observacion||''})):estudiosData.garantias
+
+    const cfgMap={};ceR.data.forEach(c=>{cfgMap[c.clave]=c.valor})
+
+    estudiosData={
+      metaAnual:Number(cfgMap.metaAnual)||estudiosData.metaAnual||20000,
+      lineasCredito:has(lcR)?lcR.data.map(l=>({id:l.id,entidad:l.entidad,tipo:l.tipo||'banco',monto:Number(l.monto)||0})):estudiosData.lineasCredito,
+      garantias:gars,
+      planInversion:has(piR)?piR.data.map(p=>({id:p.id,cliente:p.cliente,monto:Number(p.monto)||0})):estudiosData.planInversion
+    }
+  }
+
+  // Minutas — only if Supabase has minutas
+  if(has(mR)){
+    minutas=mR.data.map(m=>({_sbId:m.id,area:m.area_id,areaName:m.area_id,
+      fecha:m.fecha,lineas:m.lineas||[],textoCompleto:m.texto_completo||'',
+      enviada:m.enviada,comentarios:m.comentarios||{},
+      kpis:m.lineas?.kpis||[],tareas:m.lineas?.tareas||[]}))
+  }
+
+  // Users: always keep localStorage (Supabase doesn't store users)
   const localUsers=localStorage.getItem('mk-users')
   if(localUsers){users=JSON.parse(localUsers)}
   else{users=JSON.parse(JSON.stringify(DEF_USERS))}
