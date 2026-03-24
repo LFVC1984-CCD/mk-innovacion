@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal de Comités v9 — MK Ingeniería</title>
+<title>Portal de Comités v10 — MK Ingeniería</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
@@ -344,6 +344,43 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
 .hist-item:last-child{border-bottom:none}
 .hist-date{color:#94A3B8;font-weight:600}
 
+/* ── COMITÉ AMPLIADO ── */
+.amp-hero{background:linear-gradient(135deg,var(--co) 0%,#1E40AF 100%);border-radius:12px;padding:20px 24px;margin-bottom:18px;color:#fff;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(11,94,215,.25);cursor:pointer;transition:box-shadow .2s}
+.amp-hero:hover{box-shadow:0 6px 28px rgba(11,94,215,.35)}
+.amp-hero-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800}
+.amp-hero-sub{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px}
+.amp-hero-badge{background:var(--go);color:#1A1200;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px}
+.amp-w{padding:22px;max-width:1100px;margin:0 auto}
+.amp-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.amp-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--ink)}
+.amp-title span{color:var(--co)}
+.amp-sel{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.amp-sel label{display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--bd);border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s}
+.amp-sel label.checked{border-color:var(--co);background:var(--co-lt)}
+.amp-area{background:var(--wh);border:1px solid var(--bd);border-radius:10px;margin-bottom:14px;overflow:hidden}
+.amp-area-head{padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd);cursor:pointer}
+.amp-area-head:hover{background:var(--sl-lt)}
+.amp-area-name{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.amp-area-strip{width:4px;height:20px;border-radius:2px;flex-shrink:0}
+.amp-area-body{padding:14px 16px}
+.amp-kpi-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--sl-lt);font-size:12px}
+.amp-kpi-row:last-child{border-bottom:none}
+.amp-kpi-name{flex:1;color:var(--ink2)}
+.amp-kpi-val{font-weight:700;min-width:80px}
+.amp-kpi-sem{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.amp-task-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--sl-lt);font-size:12px}
+.amp-task-row:last-child{border-bottom:none}
+.amp-comment{width:100%;font-size:12px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;font-family:'Barlow',sans-serif;color:var(--ink);background:var(--wh);resize:vertical;min-height:50px}
+.amp-comment:focus{outline:none;border-color:var(--co)}
+.amp-add-task{background:#F0F7FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 12px;margin-top:8px}
+.amp-add-task input,.amp-add-task select{font-size:12px;padding:5px 8px;border:1px solid var(--bd);border-radius:5px;font-family:'Barlow',sans-serif;color:var(--ink);background:var(--wh)}
+.amp-add-task input:focus,.amp-add-task select:focus{outline:none;border-color:var(--co)}
+.amp-hist-card{background:var(--wh);border:1px solid var(--bd);border-radius:10px;padding:16px 18px;margin-bottom:12px;border-left:4px solid var(--co)}
+.amp-hist-date{font-size:11px;color:var(--sl);font-weight:600}
+.amp-hist-title{font-size:15px;font-weight:700;color:var(--ink);margin:4px 0}
+.amp-hist-areas{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.amp-hist-tasks{font-size:12px;color:var(--ink2)}
+
 .toast{position:fixed;bottom:18px;right:18px;background:var(--gr);color:#fff;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);transition:all .3s;z-index:999;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .toast.on{opacity:1;transform:translateY(0)}
 @media(max-width:900px){.dg,.pkgrid{grid-template-columns:repeat(2,1fr)}.egrid{grid-template-columns:1fr}.proj-grid{grid-template-columns:repeat(2,1fr)}.obra-grid{grid-template-columns:repeat(2,1fr)}.obra-dash{grid-template-columns:1fr}.team-grid{grid-template-columns:repeat(2,1fr)}}
@@ -363,6 +400,7 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
     <button class="btn sm gh" id="btn-team" style="display:none" onclick="showTeam()">Equipos</button>
     <button class="btn sm gh" id="btn-gar" style="display:none" onclick="showGarantias()">Garantías</button>
     <button class="btn sm gh" id="btn-users" style="display:none" onclick="showUsers()">Usuarios</button>
+    <button class="btn sm gh" id="btn-chpin" style="display:none" onclick="openPinModal()">Cambiar PIN</button>
     <div class="rpill dn" id="rpill" onclick="logout()"><div class="dot"></div><span id="rlabel">—</span></div>
   </div>
 </div>
@@ -371,22 +409,12 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
 <div class="sc on" id="sc-login">
   <div class="lw"><div class="lc">
     <div class="lt">MK Ingeniería</div>
-    <div class="ls">Portal de Comités v9 — ingresa tu área y PIN</div>
-    <label class="lbl">Área</label>
-    <select class="li" id="l-area">
-      <option value="">— Selecciona —</option>
-      <option value="admin">Administrador</option>
-      <option value="finanzas">Finanzas y Tesorería</option>
-      <option value="rrhh">Recursos Humanos</option>
-      <option value="legal">Legal</option>
-      <option value="prevencion">Prevención de Riesgos</option>
-      <option value="estudios">Estudios y Licitaciones</option>
-      <option value="obras">Obras Activas</option>
-      <option value="viewer">Solo visualización</option>
-    </select>
+    <div class="ls">Portal de Comités v10 — ingresa tu correo y PIN</div>
+    <label class="lbl">Correo</label>
+    <input class="li" type="email" id="l-email" placeholder="tu@mkingenieria.cl" autocomplete="email"/>
     <label class="lbl">PIN</label>
-    <input class="li" type="password" id="l-pin" placeholder="••••" maxlength="6" onkeydown="if(event.key==='Enter')doLogin()"/>
-    <div class="lerr" id="l-err">PIN incorrecto.</div>
+    <input class="li" type="password" id="l-pin" placeholder="••••" maxlength="8" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <div class="lerr" id="l-err">Correo o PIN incorrecto.</div>
     <button class="btn pri" style="width:100%;padding:9px;font-size:14px" onclick="doLogin()">Ingresar →</button>
     <div style="font-size:11px;color:#94A3B8;margin-top:12px;text-align:center">Contacta a Felipe Valenzuela si no tienes acceso.</div>
   </div></div>
@@ -398,8 +426,13 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
     <div class="hh">
       <div><div class="ht">Comités <span>MK Ingeniería</span></div><div style="font-size:12px;color:var(--sl)" id="hdate"></div></div>
       <div style="display:flex;gap:8px">
+        <button class="btn" onclick="showAmpHistorial()">Historial Ampliado</button>
         <button class="btn" onclick="showHistory()">Historial minutas</button>
       </div>
+    </div>
+    <div class="amp-hero" id="amp-hero" onclick="openAmpliado()">
+      <div><div class="amp-hero-title">Comité Ampliado</div><div class="amp-hero-sub">Sesión ejecutiva — revisa todas las áreas, genera acuerdos y exporta el acta</div></div>
+      <div class="amp-hero-badge">Iniciar sesión →</div>
     </div>
     <div class="slbl">Áreas</div>
     <div class="dg" id="dg"></div>
@@ -632,6 +665,44 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
   </div>
 </div>
 
+<!-- COMITÉ AMPLIADO -->
+<div class="sc" id="sc-ampliado">
+  <div class="amp-w">
+    <div class="amp-header">
+      <div>
+        <div class="amp-title">Comité <span>Ampliado</span></div>
+        <div style="font-size:12px;color:var(--sl)" id="amp-date"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="goHome()">← Volver</button>
+        <button class="btn" onclick="exportAmpliadoPDF()">Exportar PDF</button>
+        <button class="btn gol" onclick="closeAmpliado()">Cerrar sesión y guardar</button>
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:var(--sl);margin-bottom:6px">Selecciona los comités a revisar:</div>
+    <div class="amp-sel" id="amp-sel"></div>
+    <div id="amp-areas"></div>
+    <div style="margin-top:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px">Comentario general de la sesión</div>
+      <textarea class="amp-comment" id="amp-general-comment" placeholder="Notas generales del comité ampliado..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORIAL COMITÉ AMPLIADO -->
+<div class="sc" id="sc-amp-hist">
+  <div style="padding:22px;max-width:1000px;margin:0 auto">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--ink)">Historial <span style="color:var(--co)">Comité Ampliado</span></div>
+        <div style="font-size:12px;color:var(--sl)">Sesiones cerradas con acuerdos y minutas</div>
+      </div>
+      <button class="btn" onclick="goHome()">← Volver</button>
+    </div>
+    <div id="amp-hist-list"></div>
+  </div>
+</div>
+
 <!-- PROJECT MODAL -->
 <div class="modal-bg" id="proj-modal" onclick="if(event.target===this)this.classList.remove('on')">
   <div class="modal-box" style="max-width:580px;max-height:90vh;overflow-y:auto">
@@ -674,15 +745,34 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
 
 <!-- USER MODAL -->
 <div class="modal-bg" id="u-modal" onclick="if(event.target===this)this.classList.remove('on')">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:560px;max-height:90vh;overflow-y:auto">
     <div class="modal-title" id="um-title">Nuevo usuario</div>
     <div class="mfield"><label>Nombre completo</label><input class="minp" type="text" id="u-name"/></div>
+    <div class="mfield"><label>Correo (login)</label><input class="minp" type="email" id="u-email" placeholder="nombre@mkingenieria.cl"/></div>
     <div class="mfield"><label>Cargo</label><input class="minp" type="text" id="u-cargo"/></div>
-    <div class="mfield"><label>Áreas de acceso</label>
-      <div id="u-areas-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px"></div>
+    <div class="mfield"><label>Rol</label>
+      <div id="u-roles-grid" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"></div>
     </div>
-    <div class="mfield"><label>PIN</label><input class="minp" type="text" id="u-pin" placeholder="4–6 dígitos" maxlength="6"/></div>
+    <div class="mfield"><label>Permisos por área</label>
+      <div style="font-size:10px;color:var(--sl);margin-bottom:6px">Editar = puede modificar KPIs y tareas · Ver = solo lectura</div>
+      <table style="width:100%;font-size:12px;border-collapse:collapse" id="u-perms-table">
+        <thead><tr style="border-bottom:1px solid var(--bd)"><th style="text-align:left;padding:4px">Área</th><th style="text-align:center;padding:4px;width:60px">Editar</th><th style="text-align:center;padding:4px;width:60px">Ver</th></tr></thead>
+        <tbody id="u-perms-body"></tbody>
+      </table>
+    </div>
+    <div class="mfield"><label>PIN</label><input class="minp" type="text" id="u-pin" placeholder="4–8 dígitos" maxlength="8"/></div>
     <div class="mbtns"><button class="btn" onclick="closeUModal()">Cancelar</button><button class="btn pri" onclick="saveUModal()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- CHANGE PIN MODAL -->
+<div class="modal-bg" id="pin-modal" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal-box" style="max-width:340px">
+    <div class="modal-title">Cambiar PIN</div>
+    <div class="mfield"><label>PIN actual</label><input class="minp" type="password" id="cp-old" maxlength="8"/></div>
+    <div class="mfield"><label>Nuevo PIN</label><input class="minp" type="password" id="cp-new" maxlength="8"/></div>
+    <div class="mfield"><label>Confirmar nuevo PIN</label><input class="minp" type="password" id="cp-conf" maxlength="8"/></div>
+    <div class="mbtns"><button class="btn" onclick="closePinModal()">Cancelar</button><button class="btn pri" onclick="savePinChange()">Guardar</button></div>
   </div>
 </div>
 
@@ -705,12 +795,12 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
 
 <script>
 // ══════════════════════════════════════════════════════════
-//  MK COMITÉS v9 — Core Engine
+//  MK COMITÉS v10 — Core Engine
 // ══════════════════════════════════════════════════════════
 
-const PINS={admin:'1234',finanzas:'2001',rrhh:'2002',legal:'2003',prevencion:'2004',estudios:'2005',obras:'2006',viewer:'0000'}
-const RNAMES={admin:'Administrador',finanzas:'Finanzas',rrhh:'RRHH',legal:'Legal',prevencion:'Prevención',estudios:'Estudios',obras:'Obras',viewer:'Solo lectura'}
-const CEDIT={admin:['finanzas','rrhh','legal','prevencion','estudios','obras'],finanzas:['finanzas'],rrhh:['rrhh'],legal:['legal'],prevencion:['prevencion'],estudios:['estudios'],obras:['obras'],viewer:[]}
+const RNAMES={admin:'Administrador',finanzas:'Finanzas',rrhh:'RRHH',legal:'Legal',prevencion:'Prevención',estudios:'Estudios',obras:'Obras',eti:'ETI',viewer:'Solo lectura'}
+const ALL_ROLES=['admin','finanzas','rrhh','legal','prevencion','estudios','obras','eti','viewer']
+const AREA_IDS=['finanzas','rrhh','legal','prevencion','estudios','obras','eti']
 
 // ── DEFAULT DATA ──────────────────────────────────────────
 const DEF_PROJECTS=[
@@ -755,17 +845,7 @@ const DEF_PROJECTS=[
 ]
 
 const DEF_USERS=[
-  {id:'u1',name:'Felipe Valenzuela',cargo:'Gerente de Innovación',areas:['admin','finanzas','rrhh','legal','prevencion','estudios','obras'],pin:'1234'},
-  {id:'u2',name:'Jefe Finanzas',cargo:'Responsable área',areas:['finanzas'],pin:'2001'},
-  {id:'u3',name:'Jefe RRHH',cargo:'Responsable área',areas:['rrhh'],pin:'2002'},
-  {id:'u4',name:'Jefe Legal',cargo:'Responsable área',areas:['legal'],pin:'2003'},
-  {id:'u5',name:'Diego Villegas',cargo:'Jefe Prevención',areas:['prevencion','obras'],pin:'2004'},
-  {id:'u6',name:'Valeria Letelier',cargo:'Subgerente Comercial',areas:['estudios','obras'],pin:'2005'},
-  {id:'u7',name:'Jefe Obras',cargo:'Responsable área',areas:['obras'],pin:'2006'},
-  {id:'u8',name:'Luis Macri',cargo:'Dev Principal',areas:['admin'],pin:'1234'},
-  {id:'u9',name:'Rafael Castillo',cargo:'Dev Power Apps',areas:['admin','obras','prevencion'],pin:'1234'},
-  {id:'u10',name:'Karla Ponce',cargo:'Jefa de Negocios',areas:['estudios'],pin:'2005'},
-  {id:'u11',name:'Luis Godoy',cargo:'Gerente Comercial y Operaciones',areas:['estudios','obras','rrhh'],pin:'2006'},
+  {id:'u1',name:'Felipe Valenzuela',email:'fvalenzuela@mkingenieria.cl',cargo:'Gerente de Innovación',areas:['admin'],editar:['finanzas','rrhh','legal','prevencion','estudios','obras','eti'],ver:['finanzas','rrhh','legal','prevencion','estudios','obras','eti'],pin:'007007'},
 ]
 
 // ── ESTUDIOS-SPECIFIC DATA ────────────────────────────────
@@ -867,6 +947,22 @@ const ADEFS=[
      {text:'Gestionar NDC PET CT',resp:'Felipe Valenzuela',estado:'en-proceso',fecha:'2026-03-19',proyecto:'PET CT Clínica Alemana',createdAt:'2026-03-01'},
    ],
    comentarios:{m1:'',m2:'',m3:''},historial:[{fecha:'10 Mar 2026',texto:'Visita terreno PET CT. App Planificación OK.'}]},
+  {id:'eti',name:'Eficiencia, Tecnología e Innovación',color:'#0891B2',freq:'Quincenal',
+   kpis:[
+     {name:'Presupuesto asignado',valor:'$85 MM',meta:'$120 MM',tipo:'dinero',principal:true,hist:['$60MM','$72MM','$85MM'],comment:'',guide:'Presupuesto anual ejecutado vs aprobado.'},
+     {name:'Ejecución presupuestaria',valor:'71%',meta:'≥ 80%',tipo:'porcentaje',principal:false,hist:['50%','60%','71%'],comment:'',guide:'% del presupuesto ejecutado al periodo.'},
+     {name:'Herramientas activas',valor:'6',meta:'8',tipo:'numero',principal:false,hist:['4','5','6'],comment:'Portal Docs, DocSC, Planificación, Prevención, CMO, Talana',guide:'Sistemas en producción o piloto.'},
+     {name:'Adopción herramientas',valor:'68%',meta:'≥ 80%',tipo:'porcentaje',principal:false,hist:['45%','58%','68%'],comment:'Medido por uso semanal activo',guide:'% de usuarios que usan las herramientas al menos 1x/semana.'},
+     {name:'Proyectos en desarrollo',valor:'3',meta:'—',tipo:'numero',principal:false,hist:['2','3','3'],comment:'Portal Docs, DocSC, App Planificación',guide:'Iniciativas tech en curso.'},
+     {name:'Incidencias reportadas',valor:'2',meta:'0',tipo:'zero',principal:false,hist:['5','3','2'],comment:'1 Portal Docs, 1 Talana',guide:'Bugs o problemas reportados en el mes.'},
+   ],
+   tareas:[
+     {text:'Monitorear adopción Portal Documentos',resp:'Felipe Valenzuela',estado:'en-proceso',fecha:'2026-04-01',proyecto:'Portal de Documentos',createdAt:'2026-03-24'},
+     {text:'Evaluar licencias y costos herramientas 2026',resp:'Felipe Valenzuela',estado:'pendiente',fecha:'2026-04-15',proyecto:'',createdAt:'2026-03-24'},
+     {text:'Integrar métricas de uso en dashboard',resp:'Luis Macri',estado:'pendiente',fecha:'2026-04-30',proyecto:'Portal de Documentos',createdAt:'2026-03-24'},
+     {text:'Capacitación equipo obras en App Planificación',resp:'Rafael Castillo',estado:'en-proceso',fecha:'2026-04-10',proyecto:'DocSC',createdAt:'2026-03-24'},
+   ],
+   comentarios:{m1:'',m2:'',m3:''},historial:[{fecha:'24 Mar 2026',texto:'Creación del comité ETI. Revisión inicial de presupuesto y herramientas.'}]},
 ]
 
 // ── PROJECT COLOR (needed early by Supabase loader) ──────
@@ -989,9 +1085,9 @@ async function loadFromSupabase(){
     enviada:m.enviada,comentarios:m.comentarios||{},
     kpis:m.lineas?.kpis||[],tareas:m.lineas?.tareas||[]}))
 
-  // Users: keep DEF_USERS (perfiles table is sparse, app uses PIN login)
+  // Users: keep DEF_USERS (perfiles table is sparse, app uses email+PIN login)
   users=JSON.parse(JSON.stringify(DEF_USERS))
-  users.forEach(u=>{if(!u.areas){u.areas=u.area?[u.area]:['viewer'];delete u.area}})
+  migrateUsers()
 }
 
 async function persistToSupabase(){
@@ -1094,6 +1190,14 @@ let role=null, CA=null, pslide=0, loggedUser=null
 let data={}, projects=[], users=[], minutas=[], team=[], estudiosData={}
 let projFilter='todos'
 
+function migrateUsers(){
+  users.forEach(u=>{
+    if(!u.areas){u.areas=u.area?[u.area]:['viewer'];delete u.area}
+    if(!u.email)u.email=''
+    if(!u.editar)u.editar=u.areas.includes('admin')?AREA_IDS.slice():u.areas.filter(a=>a!=='admin'&&a!=='viewer')
+    if(!u.ver)u.ver=u.editar.slice()
+  })
+}
 function loadFromLocal(){
   const s=localStorage.getItem('mk-c9')
   if(s){const p=JSON.parse(s);ADEFS.forEach(a=>{data[a.id]=Object.assign({},JSON.parse(JSON.stringify(a)),p[a.id]||{})})}
@@ -1104,7 +1208,7 @@ function loadFromLocal(){
   projects.forEach(p=>{if(p.estado==='activo')p.estado='adjudicado';p.color=projColor(p.estado)})
   const us=localStorage.getItem('mk-users')
   users=us?JSON.parse(us):JSON.parse(JSON.stringify(DEF_USERS))
-  users.forEach(u=>{if(!u.areas){u.areas=u.area?[u.area]:['viewer'];delete u.area}})
+  migrateUsers()
   const ms=localStorage.getItem('mk-minutas')
   minutas=ms?JSON.parse(ms):[]
   const ts=localStorage.getItem('mk-team')
@@ -1124,6 +1228,7 @@ function persistToLocal(){
 async function loadAll(){
   // Sync: localStorage/defaults (instant)
   loadFromLocal()
+  loadAmpHistorial()
   // Async: Supabase (upgrade if available)
   if(sb){
     try{await loadFromSupabase();sbOnline=true;persistToLocal();console.log('✓ Datos cargados desde Supabase')}
@@ -1184,35 +1289,53 @@ function buildLineChart(k,color,W,H){
 }
 
 // ── LOGIN ─────────────────────────────────────────────────
+function isAdmin(u){return u&&(u.areas||[]).includes('admin')}
+function canEdit(u,areaId){return isAdmin(u)||(u.editar||[]).includes(areaId)}
+function canView(u,areaId){return isAdmin(u)||(u.editar||[]).includes(areaId)||(u.ver||[]).includes(areaId)}
+
 function doLogin(){
-  const a=document.getElementById('l-area').value,p=document.getElementById('l-pin').value,e=document.getElementById('l-err')
-  if(!a){e.textContent='Selecciona un área.';e.style.display='block';return}
-  // Check: user with this pin whose areas include selected area
-  const user=users.find(u=>(u.areas||[]).includes(a)&&u.pin===p)
-  if(!user&&PINS[a]!==p){e.style.display='block';return}
-  e.style.display='none';role=a;loggedUser=user||null
+  const em=(document.getElementById('l-email').value||'').trim().toLowerCase()
+  const p=document.getElementById('l-pin').value,e=document.getElementById('l-err')
+  if(!em){e.textContent='Ingresa tu correo.';e.style.display='block';return}
+  if(!p){e.textContent='Ingresa tu PIN.';e.style.display='block';return}
+  const user=users.find(u=>(u.email||'').toLowerCase()===em&&u.pin===p)
+  if(!user){e.style.display='block';return}
+  e.style.display='none';loggedUser=user;role=isAdmin(user)?'admin':(user.editar&&user.editar[0])||(user.ver&&user.ver[0])||'viewer'
   document.getElementById('rpill').classList.remove('dn')
-  document.getElementById('rlabel').textContent=user?user.name:RNAMES[a]
-  const isAdmin=user?(user.areas||[]).includes('admin'):(a==='admin')
-  document.getElementById('btn-users').style.display=isAdmin?'inline-flex':'none'
+  document.getElementById('rlabel').textContent=user.name
+  document.getElementById('btn-users').style.display=isAdmin(user)?'inline-flex':'none'
   document.getElementById('btn-proj').style.display='inline-flex'
   document.getElementById('btn-team').style.display='inline-flex'
   document.getElementById('btn-gar').style.display='inline-flex'
+  document.getElementById('btn-chpin').style.display='inline-flex'
   goHome()
 }
-function logout(){if(!confirm('¿Cerrar sesión?'))return;role=null;loggedUser=null;document.getElementById('rpill').classList.add('dn');document.getElementById('btn-users').style.display='none';document.getElementById('btn-proj').style.display='none';document.getElementById('btn-team').style.display='none';document.getElementById('btn-gar').style.display='none';showSc('sc-login')}
+function logout(){if(!confirm('¿Cerrar sesión?'))return;role=null;loggedUser=null;document.getElementById('rpill').classList.add('dn');document.getElementById('btn-users').style.display='none';document.getElementById('btn-proj').style.display='none';document.getElementById('btn-team').style.display='none';document.getElementById('btn-gar').style.display='none';document.getElementById('btn-chpin').style.display='none';showSc('sc-login')}
 
 // ── HOME ──────────────────────────────────────────────────
 function renderHome(){
   document.getElementById('hdate').textContent=fmtD(new Date())
-  const ed=CEDIT[role]||[]
+  // Comité Ampliado hero: viewers see history only, editors can create sessions
+  const ampHero=document.getElementById('amp-hero')
+  const isViewer=loggedUser&&(loggedUser.areas||[]).includes('viewer')&&!isAdmin(loggedUser)
+  if(isViewer){
+    ampHero.onclick=()=>showAmpHistorial()
+    ampHero.querySelector('.amp-hero-badge').textContent='Ver historial →'
+    ampHero.querySelector('.amp-hero-sub').textContent='Consulta las actas y acuerdos de sesiones anteriores'
+  }else{
+    ampHero.onclick=()=>openAmpliado()
+    ampHero.querySelector('.amp-hero-badge').textContent='Iniciar sesión →'
+    ampHero.querySelector('.amp-hero-sub').textContent='Sesión ejecutiva — revisa todas las áreas, genera acuerdos y exporta el acta'
+  }
   document.getElementById('dg').innerHTML=ADEFS.map(a=>{
     const d=data[a.id]
+    const ce=canEdit(loggedUser,a.id)
+    const cv=canView(loggedUser,a.id)
+    if(!ce&&!cv)return''
     const bad=d.kpis.filter(x=>{const s=kpiStory(x);return(s.isZero&&!s.ok)||(s.pct!==undefined&&s.pct<70)}).length
     const warn=d.kpis.filter(x=>{const s=kpiStory(x);return!s.isZero&&s.pct>=70&&s.pct<95}).length
     const act=d.tareas.filter(x=>x.estado==='en-proceso').length
     const nodt=d.tareas.filter(x=>x.estado!=='completada'&&!x.fecha).length
-    const ce=ed.includes(a.id)
     return`<div class="dc"><div class="dc-top" style="background:${a.color}"></div><div class="dc-body">
       <div class="dn-name">${a.name}</div><div class="dn-freq">${a.freq}</div>
       <div class="dn-pills">
@@ -1232,8 +1355,7 @@ function renderHome(){
 
 // ── EDIT AREA ─────────────────────────────────────────────
 function editArea(id){
-  const ed=CEDIT[role]||[]
-  if(!ed.includes(id)){toast2('Sin acceso');return}
+  if(!canEdit(loggedUser,id)){toast2('Sin acceso de edición');return}
   CA=id
   const area=ADEFS.find(a=>a.id===id)
   document.getElementById('et').textContent=area.name
@@ -1874,7 +1996,7 @@ function generatePDF(){
   for(let i=1;i<=pages;i++){
     doc.setPage(i)
     doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(148,163,184)
-    doc.text(`Portal de Comités MK v9 · Generado ${fmtD(new Date())}`,margin,doc.internal.pageSize.getHeight()-10)
+    doc.text(`Portal de Comités MK v10 · Generado ${fmtD(new Date())}`,margin,doc.internal.pageSize.getHeight()-10)
     doc.text(`Página ${i}/${pages}`,W-margin,doc.internal.pageSize.getHeight()-10,{align:'right'})
   }
 
@@ -1902,6 +2024,337 @@ function saveMinuta(){
   const resumen=d.kpis.map(k=>`${k.name}: ${k.valor}`).join(' | ')
   d.historial.unshift({fecha:fmtD(new Date()),texto:`Minuta: ${resumen.substring(0,150)}`})
   persist();toast2('Reunión cerrada y guardada ✓')
+}
+
+// ── COMITÉ AMPLIADO ──────────────────────────────────────
+let ampSesion={areas:[],tareas:[],comentarios:{},general:''}
+let ampHistorial=[]
+
+function loadAmpHistorial(){
+  const s=localStorage.getItem('mk-amp-hist')
+  ampHistorial=s?JSON.parse(s):[]
+}
+function saveAmpHistorial(){
+  localStorage.setItem('mk-amp-hist',JSON.stringify(ampHistorial))
+}
+
+function openAmpliado(){
+  ampSesion={areas:[],tareas:[],comentarios:{},general:''}
+  document.getElementById('amp-date').textContent=fmtD(new Date())
+  document.getElementById('amp-general-comment').value=''
+  // Render area selectors
+  const selDiv=document.getElementById('amp-sel')
+  selDiv.innerHTML=ADEFS.map(a=>{
+    return`<label class="amp-sel-label" data-area="${a.id}" onclick="toggleAmpArea('${a.id}',this)">
+      <input type="checkbox" value="${a.id}" style="accent-color:${a.color}"/>
+      <span style="color:${a.color}">${a.name}</span>
+    </label>`
+  }).join('')
+  document.getElementById('amp-areas').innerHTML=''
+  setBc([{l:'Inicio',f:'goHome()'}],'Comité Ampliado')
+  showSc('sc-ampliado')
+}
+
+function toggleAmpArea(areaId,label){
+  const cb=label.querySelector('input')
+  if(cb.checked){
+    if(!ampSesion.areas.includes(areaId))ampSesion.areas.push(areaId)
+    label.classList.add('checked')
+  }else{
+    ampSesion.areas=ampSesion.areas.filter(a=>a!==areaId)
+    delete ampSesion.comentarios[areaId]
+  }
+  renderAmpAreas()
+}
+
+function renderAmpAreas(){
+  const container=document.getElementById('amp-areas')
+  container.innerHTML=ampSesion.areas.map(areaId=>{
+    const area=ADEFS.find(a=>a.id===areaId)
+    const d=data[areaId]
+    if(!d)return''
+    // KPIs summary
+    const kpisHtml=d.kpis.map(k=>{
+      const s=kpiStory(k)
+      const semColor=(s.isZero?(s.ok?'var(--gr)':'var(--re)'):(s.pct>=95?'var(--gr)':s.pct>=70?'var(--am)':'var(--re)'))
+      return`<div class="amp-kpi-row">
+        <div class="amp-kpi-sem" style="background:${semColor}"></div>
+        <div class="amp-kpi-name">${k.name}</div>
+        <div class="amp-kpi-val">${k.valor}</div>
+        <div style="font-size:11px;color:var(--sl)">${k.meta}</div>
+      </div>`
+    }).join('')
+    // Existing area tasks (active)
+    const activeTasks=d.tareas.filter(t=>t.estado!=='completada')
+    const tasksHtml=activeTasks.map(t=>{
+      const stColor={pendiente:'var(--am)','en-proceso':'var(--co)',bloqueada:'var(--re)'}
+      return`<div class="amp-task-row">
+        <div style="width:6px;height:6px;border-radius:50%;background:${stColor[t.estado]||'var(--sl)'};margin-top:5px;flex-shrink:0"></div>
+        <div style="flex:1"><div style="color:var(--ink)">${t.text}</div><div style="font-size:10px;color:#94A3B8">${t.resp||'—'}${t.fecha?' · '+t.fecha:''}</div></div>
+      </div>`
+    }).join('')||'<div style="font-size:11px;color:#94A3B8;padding:4px 0">Sin tareas activas</div>'
+    // New tasks from ampliado for this area
+    const newTasks=ampSesion.tareas.filter(t=>t.areaId===areaId)
+    const newTasksHtml=newTasks.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--bd)">
+      <div style="font-size:10px;font-weight:700;color:var(--co);margin-bottom:4px">NUEVOS ACUERDOS ESTA SESIÓN</div>
+      ${newTasks.map((t,i)=>`<div class="amp-task-row">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--go);margin-top:5px;flex-shrink:0"></div>
+        <div style="flex:1"><div style="color:var(--ink)">${t.text}</div><div style="font-size:10px;color:#94A3B8">${t.resp||'—'}${t.fecha?' · '+t.fecha:''}</div></div>
+        <button class="xbtn" onclick="removeAmpTask(${i},'${areaId}')">×</button>
+      </div>`).join('')}
+    </div>`:''
+
+    return`<div class="amp-area" id="amp-area-${areaId}">
+      <div class="amp-area-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div class="amp-area-name"><div class="amp-area-strip" style="background:${area.color}"></div>${area.name}</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="pill pinfo">${d.kpis.length} KPIs</span>
+          <span class="pill pwarn">${activeTasks.length} activas</span>
+          ${newTasks.length?`<span class="pill" style="background:#FEF3C7;color:#92400E">${newTasks.length} nuevas</span>`:''}
+          <span style="font-size:14px;color:var(--sl)">▾</span>
+        </div>
+      </div>
+      <div class="amp-area-body">
+        <div style="font-size:10px;font-weight:700;color:var(--sl);margin-bottom:4px;text-transform:uppercase">Indicadores</div>
+        ${kpisHtml}
+        <div style="font-size:10px;font-weight:700;color:var(--sl);margin:10px 0 4px;text-transform:uppercase">Tareas activas</div>
+        ${tasksHtml}
+        ${newTasksHtml}
+        <div class="amp-add-task">
+          <div style="font-size:10px;font-weight:700;color:var(--co);margin-bottom:6px">+ Nuevo acuerdo para ${area.name}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <input type="text" id="amp-nt-${areaId}" placeholder="Descripción del acuerdo..." style="flex:2;min-width:200px"/>
+            <select id="amp-nr-${areaId}" style="flex:1;min-width:120px">
+              <option value="">— Responsable —</option>
+              ${users.filter(u=>!(u.areas||[]).includes('viewer')).map(u=>`<option value="${u.name}">${u.name}</option>`).join('')}
+            </select>
+            <input type="date" id="amp-nd-${areaId}" style="width:130px"/>
+            <button class="btn sm pri" onclick="addAmpTask('${areaId}')">Agregar</button>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <div style="font-size:10px;font-weight:700;color:var(--sl);margin-bottom:4px">COMENTARIO DEL ÁREA</div>
+          <textarea class="amp-comment" placeholder="Comentario para ${area.name}..." oninput="ampSesion.comentarios['${areaId}']=this.value">${ampSesion.comentarios[areaId]||''}</textarea>
+        </div>
+      </div>
+    </div>`
+  }).join('')
+}
+
+function addAmpTask(areaId){
+  const text=document.getElementById('amp-nt-'+areaId).value.trim()
+  if(!text){toast2('Ingresa descripción');return}
+  const resp=document.getElementById('amp-nr-'+areaId).value
+  const fecha=document.getElementById('amp-nd-'+areaId).value
+  ampSesion.tareas.push({areaId,text,resp,fecha,estado:'pendiente',createdAt:new Date().toISOString().split('T')[0]})
+  renderAmpAreas()
+  toast2('Acuerdo agregado')
+}
+
+function removeAmpTask(globalIdx,areaId){
+  // Find the actual index in ampSesion.tareas for this area
+  let count=-1
+  const realIdx=ampSesion.tareas.findIndex(t=>{if(t.areaId===areaId)count++;return count===globalIdx})
+  if(realIdx!==-1)ampSesion.tareas.splice(realIdx,1)
+  renderAmpAreas()
+}
+
+function closeAmpliado(){
+  if(!ampSesion.areas.length){toast2('Selecciona al menos un comité');return}
+  if(!confirm('¿Cerrar sesión del Comité Ampliado? Se guardarán los acuerdos y se asignarán las tareas.'))return
+  const general=document.getElementById('amp-general-comment').value.trim()
+  // Push tasks to respective areas
+  ampSesion.tareas.forEach(t=>{
+    const d=data[t.areaId]
+    if(d){
+      d.tareas.push({text:t.text,resp:t.resp,estado:'pendiente',fecha:t.fecha,proyecto:'',createdAt:t.createdAt})
+    }
+  })
+  // Save historial
+  const sesion={
+    id:'amp'+Date.now(),
+    fecha:fmtD(new Date()),
+    fechaISO:new Date().toISOString(),
+    areas:ampSesion.areas.map(id=>{
+      const area=ADEFS.find(a=>a.id===id)
+      const d=data[id]
+      return{
+        id,name:area?.name||id,color:area?.color||'#64748B',
+        kpis:d?d.kpis.map(k=>({name:k.name,valor:k.valor,meta:k.meta})):[],
+        tareasNuevas:ampSesion.tareas.filter(t=>t.areaId===id).map(t=>({text:t.text,resp:t.resp,fecha:t.fecha})),
+        comentario:ampSesion.comentarios[id]||''
+      }
+    }),
+    general,
+    createdBy:loggedUser?.name||'—',
+    totalTareas:ampSesion.tareas.length
+  }
+  ampHistorial.unshift(sesion)
+  saveAmpHistorial()
+  // Add to each area's historial
+  ampSesion.areas.forEach(areaId=>{
+    const d=data[areaId]
+    if(d){
+      const nt=ampSesion.tareas.filter(t=>t.areaId===areaId).length
+      d.historial.unshift({fecha:fmtD(new Date()),texto:`Comité Ampliado: ${nt} acuerdo${nt!==1?'s':''} asignados`})
+    }
+  })
+  persist()
+  toast2(`Sesión cerrada — ${ampSesion.tareas.length} acuerdos asignados ✓`)
+  goHome()
+}
+
+function showAmpHistorial(){
+  setBc([{l:'Inicio',f:'goHome()'}],'Historial Comité Ampliado')
+  loadAmpHistorial()
+  const list=document.getElementById('amp-hist-list')
+  list.innerHTML=ampHistorial.length?ampHistorial.map(s=>{
+    const areaPills=s.areas.map(a=>`<span class="pill pinfo" style="background:${a.color}20;color:${a.color}">${a.name}</span>`).join('')
+    const tasksList=s.areas.flatMap(a=>a.tareasNuevas.map(t=>({...t,areaName:a.name,areaColor:a.color})))
+    const tasksHtml=tasksList.length?tasksList.map(t=>`<div class="amp-task-row">
+      <span class="pill" style="background:${t.areaColor}20;color:${t.areaColor};font-size:9px">${t.areaName}</span>
+      <div style="flex:1">${t.text}</div>
+      <div style="font-size:10px;color:#94A3B8">${t.resp||'—'}${t.fecha?' · '+t.fecha:''}</div>
+    </div>`).join(''):'<div style="font-size:11px;color:#94A3B8">Sin acuerdos registrados</div>'
+    const commentsHtml=s.areas.filter(a=>a.comentario).map(a=>`<div style="font-size:11px;margin-top:4px"><span style="color:${a.color};font-weight:600">${a.name}:</span> ${a.comentario}</div>`).join('')
+    return`<div class="amp-hist-card">
+      <div class="amp-hist-date">${s.fecha} · ${s.createdBy}</div>
+      <div class="amp-hist-title">Comité Ampliado — ${s.totalTareas} acuerdo${s.totalTareas!==1?'s':''}</div>
+      <div class="amp-hist-areas">${areaPills}</div>
+      <div style="font-size:10px;font-weight:700;color:var(--sl);margin-bottom:4px">ACUERDOS</div>
+      <div class="amp-hist-tasks">${tasksHtml}</div>
+      ${commentsHtml?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bd)"><div style="font-size:10px;font-weight:700;color:var(--sl);margin-bottom:4px">COMENTARIOS</div>${commentsHtml}</div>`:''}
+      ${s.general?`<div style="margin-top:6px;font-size:11px;color:var(--ink2)"><strong>General:</strong> ${s.general}</div>`:''}
+      <div style="margin-top:8px"><button class="btn sm" onclick="exportAmpHistPDF('${s.id}')">Exportar PDF</button></div>
+    </div>`
+  }).join(''):'<div style="color:#94A3B8;padding:20px;text-align:center">Sin sesiones de Comité Ampliado registradas.</div>'
+  showSc('sc-amp-hist')
+}
+
+function exportAmpliadoPDF(){
+  if(!ampSesion.areas.length){toast2('Selecciona al menos un comité');return}
+  const{jsPDF}=window.jspdf;const doc=new jsPDF('p','mm','letter')
+  const W=doc.internal.pageSize.getWidth(),margin=15
+  let y=20
+  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.setTextColor(11,94,215)
+  doc.text('COMITÉ AMPLIADO — MK INGENIERÍA',margin,y);y+=8
+  doc.setFontSize(10);doc.setTextColor(100,116,139)
+  doc.text(fmtD(new Date())+' · '+(loggedUser?.name||''),margin,y);y+=12
+
+  ampSesion.areas.forEach(areaId=>{
+    const area=ADEFS.find(a=>a.id===areaId),d=data[areaId]
+    if(!d)return
+    if(y>250){doc.addPage();y=20}
+    // Area header
+    doc.setFillColor(parseInt(area.color.slice(1,3),16),parseInt(area.color.slice(3,5),16),parseInt(area.color.slice(5,7),16))
+    doc.rect(margin,y-4,W-margin*2,8,'F')
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(255,255,255)
+    doc.text(area.name.toUpperCase(),margin+3,y+1);y+=10
+    // KPIs table
+    doc.setFontSize(9);doc.setTextColor(30,41,59)
+    d.kpis.forEach(k=>{
+      if(y>270){doc.addPage();y=20}
+      doc.setFont('helvetica','normal');doc.text(k.name,margin+2,y)
+      doc.setFont('helvetica','bold');doc.text(k.valor,margin+90,y)
+      doc.setFont('helvetica','normal');doc.setTextColor(100,116,139);doc.text('Meta: '+k.meta,margin+130,y)
+      doc.setTextColor(30,41,59);y+=5
+    })
+    y+=3
+    // New tasks
+    const newTasks=ampSesion.tareas.filter(t=>t.areaId===areaId)
+    if(newTasks.length){
+      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(11,94,215)
+      doc.text('NUEVOS ACUERDOS',margin+2,y);y+=5
+      doc.setFont('helvetica','normal');doc.setTextColor(30,41,59)
+      newTasks.forEach(t=>{
+        if(y>270){doc.addPage();y=20}
+        doc.text('• '+t.text+(t.resp?' → '+t.resp:'')+(t.fecha?' ('+t.fecha+')':''),margin+4,y);y+=4.5
+      })
+      y+=3
+    }
+    // Comment
+    const comment=ampSesion.comentarios[areaId]
+    if(comment){
+      doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(100,116,139)
+      const lines=doc.splitTextToSize(comment,W-margin*2-8)
+      doc.text(lines,margin+2,y);y+=lines.length*3.5+4
+    }
+    y+=4
+  })
+  // General comment
+  const general=document.getElementById('amp-general-comment').value.trim()
+  if(general){
+    if(y>250){doc.addPage();y=20}
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(30,41,59)
+    doc.text('COMENTARIO GENERAL',margin,y);y+=6
+    doc.setFont('helvetica','normal');doc.setFontSize(9)
+    const lines=doc.splitTextToSize(general,W-margin*2)
+    doc.text(lines,margin,y)
+  }
+  // Footer
+  const pages=doc.internal.getNumberOfPages()
+  for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(150);doc.text(`Portal de Comités MK v10 · Comité Ampliado · ${fmtD(new Date())}`,margin,doc.internal.pageSize.getHeight()-10)}
+  doc.save(`Comite_Ampliado_${new Date().toISOString().split('T')[0]}.pdf`)
+  toast2('PDF generado ✓')
+}
+
+function exportAmpHistPDF(sesionId){
+  const s=ampHistorial.find(x=>x.id===sesionId)
+  if(!s){toast2('Sesión no encontrada');return}
+  const{jsPDF}=window.jspdf;const doc=new jsPDF('p','mm','letter')
+  const W=doc.internal.pageSize.getWidth(),margin=15
+  let y=20
+  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.setTextColor(11,94,215)
+  doc.text('COMITÉ AMPLIADO — MK INGENIERÍA',margin,y);y+=8
+  doc.setFontSize(10);doc.setTextColor(100,116,139)
+  doc.text(s.fecha+' · '+s.createdBy,margin,y);y+=12
+
+  s.areas.forEach(a=>{
+    if(y>250){doc.addPage();y=20}
+    const rgb=parseInt(a.color.slice(1,3),16)+','+parseInt(a.color.slice(3,5),16)+','+parseInt(a.color.slice(5,7),16)
+    doc.setFillColor(parseInt(a.color.slice(1,3),16),parseInt(a.color.slice(3,5),16),parseInt(a.color.slice(5,7),16))
+    doc.rect(margin,y-4,W-margin*2,8,'F')
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(255,255,255)
+    doc.text(a.name.toUpperCase(),margin+3,y+1);y+=10
+    // KPIs
+    doc.setFontSize(9);doc.setTextColor(30,41,59)
+    a.kpis.forEach(k=>{
+      if(y>270){doc.addPage();y=20}
+      doc.setFont('helvetica','normal');doc.text(k.name,margin+2,y)
+      doc.setFont('helvetica','bold');doc.text(k.valor,margin+90,y)
+      doc.setFont('helvetica','normal');doc.setTextColor(100,116,139);doc.text('Meta: '+k.meta,margin+130,y)
+      doc.setTextColor(30,41,59);y+=5
+    })
+    y+=3
+    if(a.tareasNuevas.length){
+      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(11,94,215)
+      doc.text('ACUERDOS',margin+2,y);y+=5
+      doc.setFont('helvetica','normal');doc.setTextColor(30,41,59)
+      a.tareasNuevas.forEach(t=>{
+        if(y>270){doc.addPage();y=20}
+        doc.text('• '+t.text+(t.resp?' → '+t.resp:'')+(t.fecha?' ('+t.fecha+')':''),margin+4,y);y+=4.5
+      })
+      y+=3
+    }
+    if(a.comentario){
+      doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(100,116,139)
+      const lines=doc.splitTextToSize(a.comentario,W-margin*2-8)
+      doc.text(lines,margin+2,y);y+=lines.length*3.5+4
+    }
+    y+=4
+  })
+  if(s.general){
+    if(y>250){doc.addPage();y=20}
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(30,41,59)
+    doc.text('COMENTARIO GENERAL',margin,y);y+=6
+    doc.setFont('helvetica','normal');doc.setFontSize(9)
+    const lines=doc.splitTextToSize(s.general,W-margin*2)
+    doc.text(lines,margin,y)
+  }
+  const pages=doc.internal.getNumberOfPages()
+  for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(150);doc.text(`Portal de Comités MK v10 · Comité Ampliado · ${s.fecha}`,margin,doc.internal.pageSize.getHeight()-10)}
+  doc.save(`Comite_Ampliado_${s.fechaISO?.split('T')[0]||'hist'}.pdf`)
+  toast2('PDF generado ✓')
 }
 
 // ── TIMER ─────────────────────────────────────────────────
@@ -2078,26 +2531,27 @@ function updFin(pi,field,val){
 // ── USERS MASTER ──────────────────────────────────────────
 let editUIdx=null
 function showUsers(){
-  const isAdmin=loggedUser?(loggedUser.areas||[]).includes('admin'):(role==='admin')
-  if(!isAdmin){toast2('Solo administrador');return}
+  if(!isAdmin(loggedUser)){toast2('Solo administrador');return}
   setBc([{l:'Inicio',f:'goHome()'}],'Usuarios');renderUsers();showSc('sc-users')
 }
-const ANAMES={admin:'Admin',finanzas:'Finanzas',rrhh:'RRHH',legal:'Legal',prevencion:'Prevención',estudios:'Estudios',obras:'Obras',viewer:'Solo lectura'}
-const ACOLS={admin:'#0F172A',finanzas:'#0B5ED7',rrhh:'#7C3AED',legal:'#D97706',prevencion:'#DC2626',estudios:'#64748B',obras:'#16A34A',viewer:'#94A3B8'}
-const ALL_AREAS=['admin','finanzas','rrhh','legal','prevencion','estudios','obras','viewer']
+const ANAMES={admin:'Admin',finanzas:'Finanzas',rrhh:'RRHH',legal:'Legal',prevencion:'Prevención',estudios:'Estudios',obras:'Obras',eti:'ETI',viewer:'Solo lectura'}
+const ACOLS={admin:'#0F172A',finanzas:'#0B5ED7',rrhh:'#7C3AED',legal:'#D97706',prevencion:'#DC2626',estudios:'#64748B',obras:'#16A34A',eti:'#0891B2',viewer:'#94A3B8'}
 
 function renderUsers(){
   document.getElementById('users-grid').innerHTML=users.map((u,i)=>{
     const uareas=u.areas||[]
     const mainColor=ACOLS[uareas[0]]||'#64748B'
-    const pills=uareas.map(a=>`<span class="pill pinfo" style="background:${ACOLS[a]}20;color:${ACOLS[a]}">${ANAMES[a]||a}</span>`).join('')
+    const rolePills=uareas.map(a=>`<span class="pill pinfo" style="background:${ACOLS[a]}20;color:${ACOLS[a]}">${ANAMES[a]||a}</span>`).join('')
+    const editPills=(u.editar||[]).map(a=>`<span class="pill pok" style="font-size:9px">✎ ${ANAMES[a]||a}</span>`).join('')
+    const viewPills=(u.ver||[]).filter(a=>!(u.editar||[]).includes(a)).map(a=>`<span class="pill pinfo" style="font-size:9px">👁 ${ANAMES[a]||a}</span>`).join('')
     return`<div class="ucard"><div class="ucard-top" style="background:${mainColor}"></div>
-      <div class="ucard-name">${u.name}</div><div class="ucard-cargo">${u.cargo}</div>
-      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">${pills}</div>
-      <div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:#94A3B8">PIN:</span><span class="ucard-pin" onclick="this.textContent=this.textContent==='••••'?'${u.pin}':'••••'">••••</span></div>
+      <div class="ucard-name">${u.name}</div><div class="ucard-cargo">${u.cargo||''}</div>
+      <div style="font-size:11px;color:var(--sl);margin:2px 0">${u.email||''}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px">${rolePills}</div>
+      ${editPills||viewPills?`<div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px">${editPills}${viewPills}</div>`:''}
       <div style="display:flex;gap:6px;margin-top:8px">
         <button class="btn sm" onclick="openUModal(${i})">Editar</button>
-        <button class="btn sm danger" onclick="if(confirm('¿Eliminar?')){users.splice(${i},1);persist();renderUsers()}">×</button>
+        <button class="btn sm danger" onclick="if(confirm('¿Eliminar usuario?')){users.splice(${i},1);persist();renderUsers()}">×</button>
       </div>
     </div>`
   }).join('')
@@ -2106,31 +2560,61 @@ function openUModal(idx){
   editUIdx=idx;const u=idx!==null?users[idx]:null
   document.getElementById('um-title').textContent=u?'Editar usuario':'Nuevo usuario'
   document.getElementById('u-name').value=u?.name||''
+  document.getElementById('u-email').value=u?.email||''
   document.getElementById('u-cargo').value=u?.cargo||''
   document.getElementById('u-pin').value=u?.pin||''
-  // Render area checkboxes
+  // Roles (admin, viewer)
   const uareas=u?.areas||[]
-  document.getElementById('u-areas-grid').innerHTML=ALL_AREAS.map(a=>{
+  document.getElementById('u-roles-grid').innerHTML=['admin','viewer'].map(a=>{
     const checked=uareas.includes(a)?'checked':''
-    return`<label style="display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:12px;background:${uareas.includes(a)?ACOLS[a]+'15':'var(--wh)'}">
-      <input type="checkbox" class="ua-check" value="${a}" ${checked} style="accent-color:${ACOLS[a]}"/>
+    return`<label style="display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:12px">
+      <input type="checkbox" class="ur-check" value="${a}" ${checked} style="accent-color:${ACOLS[a]}"/>
       <span style="color:${ACOLS[a]};font-weight:600">${ANAMES[a]}</span>
     </label>`
+  }).join('')
+  // Permisos editar/ver por área
+  const ued=u?.editar||[],uver=u?.ver||[]
+  document.getElementById('u-perms-body').innerHTML=AREA_IDS.map(a=>{
+    return`<tr style="border-bottom:1px solid var(--sl-lt)">
+      <td style="padding:5px 4px"><span style="color:${ACOLS[a]};font-weight:600">${ANAMES[a]}</span></td>
+      <td style="text-align:center;padding:5px"><input type="checkbox" class="ue-check" value="${a}" ${ued.includes(a)?'checked':''} style="accent-color:${ACOLS[a]}" onchange="if(this.checked)this.closest('tr').querySelector('.uv-check').checked=true"/></td>
+      <td style="text-align:center;padding:5px"><input type="checkbox" class="uv-check" value="${a}" ${uver.includes(a)?'checked':''} style="accent-color:${ACOLS[a]}"/></td>
+    </tr>`
   }).join('')
   document.getElementById('u-modal').classList.add('on')
 }
 function closeUModal(){document.getElementById('u-modal').classList.remove('on')}
 function saveUModal(){
-  const name=document.getElementById('u-name').value.trim(),pin=document.getElementById('u-pin').value.trim()
+  const name=document.getElementById('u-name').value.trim()
+  const email=document.getElementById('u-email').value.trim().toLowerCase()
+  const pin=document.getElementById('u-pin').value.trim()
   if(!name){toast2('Ingresa nombre');return}
+  if(!email||!email.includes('@')){toast2('Ingresa un correo válido');return}
   if(!pin||pin.length<4){toast2('PIN mínimo 4 dígitos');return}
-  const areas=[...document.querySelectorAll('.ua-check:checked')].map(c=>c.value)
-  if(!areas.length){toast2('Selecciona al menos un área');return}
-  const obj={id:editUIdx!==null?users[editUIdx].id:'u'+Date.now(),name,cargo:document.getElementById('u-cargo').value.trim(),areas,pin}
+  // Check email uniqueness
+  const dup=users.findIndex(u=>u.email&&u.email.toLowerCase()===email)
+  if(dup!==-1&&dup!==editUIdx){toast2('Correo ya registrado');return}
+  const areas=[...document.querySelectorAll('.ur-check:checked')].map(c=>c.value)
+  const editar=[...document.querySelectorAll('.ue-check:checked')].map(c=>c.value)
+  const ver=[...document.querySelectorAll('.uv-check:checked')].map(c=>c.value)
+  const obj={id:editUIdx!==null?users[editUIdx].id:'u'+Date.now(),name,email,cargo:document.getElementById('u-cargo').value.trim(),areas,editar,ver,pin}
   if(editUIdx!==null)users[editUIdx]=obj;else users.push(obj)
-  // Update PINS for each area
-  areas.forEach(a=>{PINS[a]=pin})
   persist();closeUModal();renderUsers();toast2(editUIdx!==null?'Usuario actualizado':'Usuario creado')
+}
+
+// ── CHANGE PIN ───────────────────────────────────────────
+function openPinModal(){document.getElementById('cp-old').value='';document.getElementById('cp-new').value='';document.getElementById('cp-conf').value='';document.getElementById('pin-modal').classList.add('on')}
+function closePinModal(){document.getElementById('pin-modal').classList.remove('on')}
+function savePinChange(){
+  const old=document.getElementById('cp-old').value,nw=document.getElementById('cp-new').value,cf=document.getElementById('cp-conf').value
+  if(!loggedUser){toast2('Sin sesión');return}
+  if(old!==loggedUser.pin){toast2('PIN actual incorrecto');return}
+  if(!nw||nw.length<4){toast2('Nuevo PIN mínimo 4 dígitos');return}
+  if(nw!==cf){toast2('Los PINs no coinciden');return}
+  loggedUser.pin=nw
+  const idx=users.findIndex(u=>u.id===loggedUser.id)
+  if(idx!==-1)users[idx].pin=nw
+  persist();closePinModal();toast2('PIN actualizado')
 }
 
 // ── TEAM / EQUIPOS MASTER ─────────────────────────────────
