@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -868,42 +869,250 @@ const ADEFS=[
    comentarios:{m1:'',m2:'',m3:''},historial:[{fecha:'10 Mar 2026',texto:'Visita terreno PET CT. App Planificación OK.'}]},
 ]
 
+// ── PROJECT COLOR (needed early by Supabase loader) ──────
+const PROJ_ESTADO_COLOR={adjudicado:'#16A34A',en_estudio:'#0B5ED7',en_evaluacion:'#64748B',en_aclaracion:'#D97706',sin_informacion:'#94A3B8',no_adjudicado:'#DC2626',excusa:'#64748B',cerrado_saldo:'#D97706',cerrado:'#DC2626'}
+function projColor(estado){return PROJ_ESTADO_COLOR[estado]||'#64748B'}
+
+// ── SUPABASE ─────────────────────────────────────────────
+const SB_URL='https://mgemludeasndspzorhbc.supabase.co'
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nZW1sdWRlYXNuZHNwem9yaGJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTk0NTUsImV4cCI6MjA4OTM3NTQ1NX0.ZnOhHVgeGcN1IdhXdFRwTnruXnlNgbQNkEX1cwLKDdg'
+let sb=null,sbOnline=false
+let projIdMap={},projNameMap={}
+try{sb=window.supabase.createClient(SB_URL,SB_KEY)}catch(e){console.warn('Supabase CDN no disponible')}
+
+function sbTipoMap(tipo,guia,nombre){
+  if(tipo==='zero')return 'zero'
+  if(tipo==='porcentaje'||(guia&&guia.includes('%')))return 'porcentaje'
+  if(tipo==='dinero'||(guia&&/MM|CLP|\$/i.test(guia)))return 'dinero'
+  if(tipo==='indice'||/SPI|CPI/i.test(nombre))return 'indice'
+  return 'numero'
+}
+
+async function loadFromSupabase(){
+  const [pR,kR,khR,tR,eR,gR,lcR,ceR,piR,caR,haR,mR]=await Promise.all([
+    sb.from('proyectos').select('*'),
+    sb.from('kpis').select('*').order('area_id').order('orden'),
+    sb.from('kpi_historial').select('*').order('fecha'),
+    sb.from('tareas').select('*'),
+    sb.from('equipo').select('*'),
+    sb.from('garantias').select('*'),
+    sb.from('lineas_credito').select('*'),
+    sb.from('config_estudios').select('*'),
+    sb.from('plan_inversion').select('*'),
+    sb.from('comentarios_area').select('*'),
+    sb.from('historial_area').select('*').order('created_at',{ascending:false}),
+    sb.from('minutas').select('*').order('fecha',{ascending:false}),
+  ])
+  const err=[pR,kR,khR,tR,eR,gR,lcR,ceR,piR,caR,haR,mR].find(r=>r.error)
+  if(err)throw new Error(err.error.message)
+
+  // Build UUID↔name maps
+  projIdMap={};projNameMap={}
+  pR.data.forEach(p=>{projIdMap[p.id]=p.nombre;projNameMap[p.nombre]=p.id})
+
+  // Proyectos
+  projects=pR.data.map(p=>({
+    id:p.id,name:p.nombre,estado:p.estado,color:projColor(p.estado),
+    mandante:p.mandante||'',administrador:p.administrador||'',
+    fechaInicio:p.fecha_inicio||'',fechaTermino:p.fecha_termino||'',
+    est:{montoLicit:Number(p.monto_licitacion)||0,margenEstPct:Number(p.margen_estudio_pct)||0,fechaOferta:p.fecha_oferta||'',obs:p.observacion||''},
+    fin:(Number(p.contrato)||Number(p.facturado)||Number(p.gastado))?{contrato:Number(p.contrato)||0,ndc:Number(p.ndc)||0,facturado:Number(p.facturado)||0,presupuesto:Number(p.presupuesto)||0,gastado:Number(p.gastado)||0,comprometido:Number(p.comprometido)||0,avanceReal:Number(p.avance_real)||0,avanceProg:Number(p.avance_prog)||0,spi:Number(p.spi)||0,cpi:Number(p.cpi)||0}:null,
+    gar:null
+  }))
+
+  // KPI hist map
+  const histMap={}
+  khR.data.forEach(h=>{if(!histMap[h.kpi_id])histMap[h.kpi_id]=[];if(h.valor)histMap[h.kpi_id].push(h.valor)})
+
+  // KPIs by area
+  const kpisByArea={}
+  kR.data.forEach(k=>{
+    if(!kpisByArea[k.area_id])kpisByArea[k.area_id]=[]
+    kpisByArea[k.area_id].push({_sbId:k.id,name:k.nombre,valor:k.valor||'0',meta:k.meta||'—',
+      tipo:sbTipoMap(k.tipo,k.guia,k.nombre),principal:!!k.es_principal,
+      guide:k.guia||'',comment:k.comentario||'',hist:histMap[k.id]||[]})
+  })
+
+  // Tareas by area
+  const tareasByArea={}
+  tR.data.forEach(t=>{
+    if(!tareasByArea[t.area_id])tareasByArea[t.area_id]=[]
+    tareasByArea[t.area_id].push({_sbId:t.id,text:t.texto,resp:t.responsable||'',
+      estado:t.estado||'pendiente',fecha:t.fecha_compromiso||'',
+      proyecto:t.proyecto_id?(projIdMap[t.proyecto_id]||''):'',
+      createdAt:t.created_at?t.created_at.split('T')[0]:''})
+  })
+
+  // Comentarios by area
+  const comentsByArea={}
+  caR.data.forEach(c=>{if(!comentsByArea[c.area_id])comentsByArea[c.area_id]={};comentsByArea[c.area_id][c.clave]=c.valor||''})
+
+  // Historial by area
+  const histByArea={}
+  haR.data.forEach(h=>{if(!histByArea[h.area_id])histByArea[h.area_id]=[];histByArea[h.area_id].push({fecha:h.fecha,texto:h.texto})})
+
+  // Build area data from ADEFS + Supabase
+  ADEFS.forEach(a=>{
+    data[a.id]=JSON.parse(JSON.stringify(a))
+    if(kpisByArea[a.id])data[a.id].kpis=kpisByArea[a.id]
+    if(tareasByArea[a.id])data[a.id].tareas=tareasByArea[a.id]
+    data[a.id].comentarios=comentsByArea[a.id]||{m1:'',m2:'',m3:''}
+    if(histByArea[a.id]&&histByArea[a.id].length)data[a.id].historial=histByArea[a.id]
+  })
+  Object.values(data).forEach(d=>{if(!d.comentarios)d.comentarios={m1:'',m2:'',m3:''}})
+
+  // Equipo
+  team=eR.data.map(e=>({id:e.id,nombre:e.nombre,cargo:e.cargo,
+    proyecto:e.proyecto_id?(projIdMap[e.proyecto_id]||''):'',
+    estado:e.estado||'activo',contacto:e.contacto||''}))
+
+  // Garantías
+  const gars=gR.data.map(g=>({id:g.id,
+    proyecto:g.proyecto_id?(projIdMap[g.proyecto_id]||''):'',
+    tipo:g.tipo,instrumento:g.instrumento,entidad:g.entidad,
+    monto:Number(g.monto)||0,fechaSolicitud:g.fecha_solicitud||'',
+    fechaInicio:g.fecha_inicio||'',fechaVencimiento:g.fecha_vencimiento||'',
+    estado:g.estado||'solicitada',obs:g.observacion||''}))
+
+  // Config estudios
+  const cfgMap={};ceR.data.forEach(c=>{cfgMap[c.clave]=c.valor})
+  estudiosData={
+    metaAnual:Number(cfgMap.metaAnual)||20000,
+    lineasCredito:lcR.data.map(l=>({id:l.id,entidad:l.entidad,tipo:l.tipo||'banco',monto:Number(l.monto)||0})),
+    garantias:gars,
+    planInversion:piR.data.map(p=>({id:p.id,cliente:p.cliente,monto:Number(p.monto)||0}))
+  }
+
+  // Minutas
+  minutas=mR.data.map(m=>({_sbId:m.id,area:m.area_id,areaName:m.area_id,
+    fecha:m.fecha,lineas:m.lineas||[],textoCompleto:m.texto_completo||'',
+    enviada:m.enviada,comentarios:m.comentarios||{},
+    kpis:m.lineas?.kpis||[],tareas:m.lineas?.tareas||[]}))
+
+  // Users: keep DEF_USERS (perfiles table is sparse, app uses PIN login)
+  users=JSON.parse(JSON.stringify(DEF_USERS))
+  users.forEach(u=>{if(!u.areas){u.areas=u.area?[u.area]:['viewer'];delete u.area}})
+}
+
+async function persistToSupabase(){
+  // ── Proyectos ──
+  const projRows=projects.filter(p=>p.id&&p.id.length>10).map(p=>({
+    id:p.id,nombre:p.name,estado:p.estado,mandante:p.mandante||'',administrador:p.administrador||'',
+    fecha_inicio:p.fechaInicio||null,fecha_termino:p.fechaTermino||null,
+    monto_licitacion:p.est?.montoLicit||0,margen_estudio_pct:p.est?.margenEstPct||0,
+    fecha_oferta:p.est?.fechaOferta||null,observacion:p.est?.obs||'',
+    contrato:p.fin?.contrato||0,ndc:p.fin?.ndc||0,facturado:p.fin?.facturado||0,
+    presupuesto:p.fin?.presupuesto||0,gastado:p.fin?.gastado||0,comprometido:p.fin?.comprometido||0,
+    avance_real:p.fin?.avanceReal||0,avance_prog:p.fin?.avanceProg||0,
+    spi:p.fin?.spi||0,cpi:p.fin?.cpi||0,updated_at:new Date().toISOString()
+  }))
+  if(projRows.length)await sb.from('proyectos').upsert(projRows,{onConflict:'id'})
+
+  // New projects (local IDs like 'p1')
+  const newP=projects.filter(p=>!p.id||p.id.length<=10)
+  for(const p of newP){
+    const row={nombre:p.name,estado:p.estado,mandante:p.mandante||'',administrador:p.administrador||'',
+      fecha_inicio:p.fechaInicio||null,fecha_termino:p.fechaTermino||null,
+      monto_licitacion:p.est?.montoLicit||0,margen_estudio_pct:p.est?.margenEstPct||0,
+      contrato:p.fin?.contrato||0,ndc:p.fin?.ndc||0,facturado:p.fin?.facturado||0,
+      presupuesto:p.fin?.presupuesto||0,gastado:p.fin?.gastado||0,comprometido:p.fin?.comprometido||0,
+      avance_real:p.fin?.avanceReal||0,avance_prog:p.fin?.avanceProg||0,spi:p.fin?.spi||0,cpi:p.fin?.cpi||0}
+    const{data:ins}=await sb.from('proyectos').insert(row).select('id,nombre').single()
+    if(ins){p.id=ins.id;projIdMap[ins.id]=ins.nombre;projNameMap[ins.nombre]=ins.id}
+  }
+
+  // ── KPIs por área ──
+  for(const adef of ADEFS){
+    const d=data[adef.id];if(!d)continue
+    for(let i=0;i<d.kpis.length;i++){
+      const k=d.kpis[i]
+      const row={area_id:adef.id,nombre:k.name,valor:k.valor,meta:k.meta,tipo:k.tipo,
+        guia:k.guide||'',comentario:k.comment||'',es_principal:!!k.principal,orden:i}
+      if(k._sbId){await sb.from('kpis').update(row).eq('id',k._sbId)}
+      else{const{data:ins}=await sb.from('kpis').insert(row).select('id').single();if(ins)k._sbId=ins.id}
+    }
+    // Tareas
+    for(const t of d.tareas){
+      const projUuid=t.proyecto?projNameMap[t.proyecto]||null:null
+      const row={area_id:adef.id,texto:t.text,responsable:t.resp||'',estado:t.estado,
+        fecha_compromiso:t.fecha||null,proyecto_id:projUuid}
+      if(t._sbId){await sb.from('tareas').update(row).eq('id',t._sbId)}
+      else{const{data:ins}=await sb.from('tareas').insert(row).select('id').single();if(ins)t._sbId=ins.id}
+    }
+    // Comentarios
+    for(const[clave,valor] of Object.entries(d.comentarios||{})){
+      if(valor===undefined)continue
+      await sb.from('comentarios_area').upsert({area_id:adef.id,clave,valor:valor||'',updated_at:new Date().toISOString()},{onConflict:'area_id,clave'})
+    }
+    // Historial
+    for(const h of (d.historial||[])){
+      if(h._sbId)continue // already saved
+      const{data:ins}=await sb.from('historial_area').insert({area_id:adef.id,fecha:h.fecha||new Date().toISOString().split('T')[0],texto:h.texto}).select('id').single()
+      if(ins)h._sbId=ins.id
+    }
+  }
+
+  // ── Equipo ──
+  for(const t of team){
+    const projUuid=t.proyecto?projNameMap[t.proyecto]||null:null
+    const row={nombre:t.nombre,cargo:t.cargo,proyecto_id:projUuid,estado:t.estado,contacto:t.contacto||''}
+    if(t.id&&String(t.id).length>10){await sb.from('equipo').update(row).eq('id',t.id)}
+    else{const{data:ins}=await sb.from('equipo').insert(row).select('id').single();if(ins)t.id=ins.id}
+  }
+
+  // ── Garantías ──
+  for(const g of (estudiosData.garantias||[])){
+    const projUuid=g.proyecto?projNameMap[g.proyecto]||null:null
+    const row={proyecto_id:projUuid,tipo:g.tipo,instrumento:g.instrumento,entidad:g.entidad,
+      monto:g.monto,fecha_solicitud:g.fechaSolicitud||null,fecha_inicio:g.fechaInicio||null,
+      fecha_vencimiento:g.fechaVencimiento||null,estado:g.estado,observacion:g.obs||'',
+      updated_at:new Date().toISOString()}
+    if(g.id&&String(g.id).length>10){await sb.from('garantias').update(row).eq('id',g.id)}
+    else{const{data:ins}=await sb.from('garantias').insert(row).select('id').single();if(ins)g.id=ins.id}
+  }
+
+  // ── Líneas de crédito ──
+  for(const l of (estudiosData.lineasCredito||[])){
+    const row={entidad:l.entidad,tipo:l.tipo||'banco',monto:l.monto}
+    if(l.id&&String(l.id).length>10){await sb.from('lineas_credito').update(row).eq('id',l.id)}
+    else{const{data:ins}=await sb.from('lineas_credito').insert(row).select('id').single();if(ins)l.id=ins.id}
+  }
+
+  // ── Config estudios ──
+  await sb.from('config_estudios').upsert({clave:'metaAnual',valor:String(estudiosData.metaAnual||20000)},{onConflict:'clave'})
+
+  // ── Plan inversión ──
+  for(const p of (estudiosData.planInversion||[])){
+    const row={cliente:p.cliente,monto:p.monto}
+    if(p.id&&String(p.id).length>10){await sb.from('plan_inversion').update(row).eq('id',p.id)}
+    else{const{data:ins}=await sb.from('plan_inversion').insert(row).select('id').single();if(ins)p.id=ins.id}
+  }
+}
+
 // ── STATE ─────────────────────────────────────────────────
 let role=null, CA=null, pslide=0, loggedUser=null
 let data={}, projects=[], users=[], minutas=[], team=[], estudiosData={}
 let projFilter='todos'
 
-function loadAll(){
-  // Area data
+function loadFromLocal(){
   const s=localStorage.getItem('mk-c9')
   if(s){const p=JSON.parse(s);ADEFS.forEach(a=>{data[a.id]=Object.assign({},JSON.parse(JSON.stringify(a)),p[a.id]||{})})}
   else ADEFS.forEach(a=>{data[a.id]=JSON.parse(JSON.stringify(a))})
-  // Ensure comentarios exist
   Object.values(data).forEach(d=>{if(!d.comentarios)d.comentarios={m1:'',m2:'',m3:''}})
-  // Projects
   const ps=localStorage.getItem('mk-projects')
   projects=ps?JSON.parse(ps):JSON.parse(JSON.stringify(DEF_PROJECTS))
-  // Migrate colors to estado-based + activo→adjudicado
-  projects.forEach(p=>{
-    if(p.estado==='activo')p.estado='adjudicado'
-    p.color=projColor(p.estado)
-  })
-  // Users
+  projects.forEach(p=>{if(p.estado==='activo')p.estado='adjudicado';p.color=projColor(p.estado)})
   const us=localStorage.getItem('mk-users')
   users=us?JSON.parse(us):JSON.parse(JSON.stringify(DEF_USERS))
-  // Migrate: area (string) → areas (array)
   users.forEach(u=>{if(!u.areas){u.areas=u.area?[u.area]:['viewer'];delete u.area}})
-  // Minutas
   const ms=localStorage.getItem('mk-minutas')
   minutas=ms?JSON.parse(ms):[]
-  // Team
   const ts=localStorage.getItem('mk-team')
   team=ts?JSON.parse(ts):JSON.parse(JSON.stringify(DEF_TEAM))
-  // Estudios data
   const es=localStorage.getItem('mk-estudios')
   estudiosData=es?JSON.parse(es):JSON.parse(JSON.stringify(DEF_ESTUDIOS))
 }
-function persist(){
+function persistToLocal(){
   const o={};ADEFS.forEach(a=>{const d=data[a.id];o[a.id]={kpis:d.kpis,tareas:d.tareas,comentarios:d.comentarios,historial:d.historial}})
   localStorage.setItem('mk-c9',JSON.stringify(o))
   localStorage.setItem('mk-projects',JSON.stringify(projects))
@@ -911,6 +1120,21 @@ function persist(){
   localStorage.setItem('mk-minutas',JSON.stringify(minutas))
   localStorage.setItem('mk-team',JSON.stringify(team))
   localStorage.setItem('mk-estudios',JSON.stringify(estudiosData))
+}
+async function loadAll(){
+  // Sync: localStorage/defaults (instant)
+  loadFromLocal()
+  // Async: Supabase (upgrade if available)
+  if(sb){
+    try{await loadFromSupabase();sbOnline=true;persistToLocal();console.log('✓ Datos cargados desde Supabase')}
+    catch(e){console.warn('Supabase no disponible, usando localStorage:',e.message)}
+  }
+}
+function persist(){
+  // Sync: localStorage (siempre)
+  persistToLocal()
+  // Async: Supabase (background, fire-and-forget)
+  if(sb&&sbOnline)persistToSupabase().then(()=>console.log('✓ Supabase sincronizado')).catch(e=>console.warn('Error sync Supabase:',e.message))
 }
 
 // ── UTILS ─────────────────────────────────────────────────
@@ -1748,8 +1972,6 @@ function openProjModal(idx){
   document.getElementById('proj-modal').classList.add('on')
 }
 function closeProjModal(){document.getElementById('proj-modal').classList.remove('on')}
-const PROJ_ESTADO_COLOR={adjudicado:'#16A34A',en_estudio:'#0B5ED7',en_evaluacion:'#64748B',en_aclaracion:'#D97706',sin_informacion:'#94A3B8',no_adjudicado:'#DC2626',excusa:'#64748B',cerrado_saldo:'#D97706',cerrado:'#DC2626'}
-function projColor(estado){return PROJ_ESTADO_COLOR[estado]||'#64748B'}
 function updProjColorPreview(){
   const est=document.getElementById('pm-estado').value
   document.getElementById('pm-color-preview').style.background=projColor(est)
@@ -2164,7 +2386,7 @@ document.addEventListener('keydown',e=>{
 })
 
 // ── INIT ──────────────────────────────────────────────────
-loadAll()
+loadAll().then(()=>console.log('App lista — Supabase:',sbOnline?'✓':'offline'))
 </script>
 </body>
 </html>
