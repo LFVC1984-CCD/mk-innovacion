@@ -1085,8 +1085,11 @@ async function loadFromSupabase(){
     enviada:m.enviada,comentarios:m.comentarios||{},
     kpis:m.lineas?.kpis||[],tareas:m.lineas?.tareas||[]}))
 
-  // Users: keep DEF_USERS (perfiles table is sparse, app uses email+PIN login)
-  users=JSON.parse(JSON.stringify(DEF_USERS))
+  // Users: keep localStorage users (Supabase doesn't store users yet)
+  // Only reset to DEF_USERS if no users exist in localStorage
+  const localUsers=localStorage.getItem('mk-users')
+  if(localUsers){users=JSON.parse(localUsers)}
+  else{users=JSON.parse(JSON.stringify(DEF_USERS))}
   migrateUsers()
 }
 
