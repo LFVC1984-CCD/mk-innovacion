@@ -316,7 +316,7 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
 .gar-card.gar-vigente{border-left-color:var(--gr)}.gar-card.gar-por_vencer{border-left-color:var(--am)}.gar-card.gar-vencida{border-left-color:var(--re)}.gar-card.gar-solicitada{border-left-color:var(--co)}.gar-card.gar-en_renovacion{border-left-color:#7C3AED}.gar-card.gar-devuelta{border-left-color:#94A3B8}
 .gar-name{font-weight:600;color:var(--ink)}.gar-name small{font-weight:400;color:var(--sl);display:block;font-size:10px}
 .gar-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;text-align:center}
-.gar-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.gar-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
 .gar-sum-card{background:var(--sl-lt);border-radius:8px;border:1px solid var(--bd);padding:12px 16px;text-align:center}
 .gar-sum-val{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;line-height:1}
 .gar-sum-lbl{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--sl);margin-top:4px}
@@ -383,7 +383,7 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
 
 .toast{position:fixed;bottom:18px;right:18px;background:var(--gr);color:#fff;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);transition:all .3s;z-index:999;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .toast.on{opacity:1;transform:translateY(0)}
-@media(max-width:900px){.dg,.pkgrid{grid-template-columns:repeat(2,1fr)}.egrid{grid-template-columns:1fr}.proj-grid{grid-template-columns:repeat(2,1fr)}.obra-grid{grid-template-columns:repeat(2,1fr)}.obra-dash{grid-template-columns:1fr}.team-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.dg,.pkgrid{grid-template-columns:repeat(2,1fr)}.egrid{grid-template-columns:1fr}.proj-grid{grid-template-columns:repeat(2,1fr)}.obra-grid{grid-template-columns:repeat(2,1fr)}.obra-dash{grid-template-columns:1fr}.team-grid{grid-template-columns:repeat(2,1fr)}.gar-summary{grid-template-columns:repeat(3,1fr)}.amp-hero{flex-direction:column;gap:10px;text-align:center}}
 @media(max-width:600px){.dg,.users-grid{grid-template-columns:1fr}.pkgrid{grid-template-columns:repeat(2,1fr)}.proj-grid{grid-template-columns:1fr}.obra-grid{grid-template-columns:repeat(2,1fr)}.od-kpis{grid-template-columns:repeat(3,1fr)}.team-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -602,6 +602,13 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--sl);margin-bottom:6px">Líneas de Crédito — Bancos y Aseguradoras</div>
     <div id="lineas-list" style="margin-bottom:16px"></div>
     <div class="filters" id="gar-filters"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin:8px 0 10px">
+      <span style="font-size:10px;font-weight:700;color:var(--sl)">ORDENAR POR:</span>
+      <button class="btn sm" id="gar-sort-entidad" onclick="garSort='entidad';renderGarantias()">Institución</button>
+      <button class="btn sm" id="gar-sort-monto" onclick="garSort='monto';renderGarantias()">Monto</button>
+      <button class="btn sm" id="gar-sort-saldo" onclick="garSort='saldo';renderGarantias()">Saldo</button>
+      <button class="btn sm" id="gar-sort-venc" onclick="garSort='vencimiento';renderGarantias()">Vencimiento</button>
+    </div>
     <div class="gar-grid" id="gar-grid"></div>
   </div>
 </div>
@@ -2719,26 +2726,46 @@ function autoCheckVencimientos(){
   })
 }
 
+let garSort='entidad'
+
 function renderGarantias(){
   autoCheckVencimientos()
   const gars=estudiosData.garantias||[]
   const lineas=estudiosData.lineasCredito||[]
 
-  // Summary
-  const vigentes=gars.filter(g=>g.estado==='vigente')
-  const porVencer=gars.filter(g=>g.estado==='por_vencer')
-  const vencidas=gars.filter(g=>g.estado==='vencida')
-  const totalVigente=gars.filter(g=>['vigente','por_vencer','en_renovacion'].includes(g.estado)).reduce((s,g)=>s+g.monto,0)
-  document.getElementById('gar-summary').innerHTML=`
-    <div class="gar-sum-card"><div class="gar-sum-val" style="color:var(--co)">$${totalVigente} MM</div><div class="gar-sum-lbl">Total comprometido</div></div>
-    <div class="gar-sum-card"><div class="gar-sum-val" style="color:var(--gr)">${vigentes.length}</div><div class="gar-sum-lbl">Vigentes</div></div>
-    <div class="gar-sum-card"><div class="gar-sum-val" style="color:var(--am)">${porVencer.length}</div><div class="gar-sum-lbl">Por vencer (30 días)</div></div>
-    <div class="gar-sum-card"><div class="gar-sum-val" style="color:var(--re)">${vencidas.length}</div><div class="gar-sum-lbl">Vencidas</div></div>`
-
-  // Lineas
+  // ── Summary: Líneas de crédito consolidadas ──
+  const totalAprobado=lineas.reduce((s,l)=>s+l.monto,0)
   const consumoPorEntidad={}
   gars.filter(g=>['vigente','por_vencer','en_renovacion','solicitada'].includes(g.estado)).forEach(g=>{consumoPorEntidad[g.entidad]=(consumoPorEntidad[g.entidad]||0)+g.monto})
-  document.getElementById('lineas-list').innerHTML=lineas.map((l,i)=>{
+  const totalComprometido=Object.values(consumoPorEntidad).reduce((s,v)=>s+v,0)
+  const saldo=totalAprobado-totalComprometido
+  const hoy=new Date()
+  const en30=new Date(hoy.getTime()+30*24*60*60*1000)
+  const montoPorVencer=gars.filter(g=>['vigente','por_vencer'].includes(g.estado)&&g.fechaVencimiento&&new Date(g.fechaVencimiento+'T12:00:00')<=en30&&new Date(g.fechaVencimiento+'T12:00:00')>=hoy).reduce((s,g)=>s+g.monto,0)
+  const montoVencido=gars.filter(g=>g.estado==='vencida').reduce((s,g)=>s+g.monto,0)
+
+  document.getElementById('gar-summary').innerHTML=`
+    <div class="gar-sum-card" style="border-left:4px solid var(--co)"><div class="gar-sum-val" style="color:var(--co)">$${totalAprobado} MM</div><div class="gar-sum-lbl">Total aprobado</div></div>
+    <div class="gar-sum-card" style="border-left:4px solid var(--am)"><div class="gar-sum-val" style="color:var(--am)">$${totalComprometido} MM</div><div class="gar-sum-lbl">Comprometido</div></div>
+    <div class="gar-sum-card" style="border-left:4px solid ${saldo>=0?'var(--gr)':'var(--re)'}"><div class="gar-sum-val" style="color:${saldo>=0?'var(--gr)':'var(--re)'}">$${saldo} MM</div><div class="gar-sum-lbl">Saldo disponible</div></div>
+    <div class="gar-sum-card" style="border-left:4px solid var(--am)"><div class="gar-sum-val" style="color:var(--am)">$${montoPorVencer} MM</div><div class="gar-sum-lbl">Por vencer (30d)</div></div>
+    <div class="gar-sum-card" style="border-left:4px solid var(--re)"><div class="gar-sum-val" style="color:var(--re)">$${montoVencido} MM</div><div class="gar-sum-lbl">Vencido</div></div>`
+
+  // ── Lineas detail ──
+  // Sort lineas
+  const sortedLineas=[...lineas]
+  if(garSort==='entidad')sortedLineas.sort((a,b)=>a.entidad.localeCompare(b.entidad))
+  else if(garSort==='monto')sortedLineas.sort((a,b)=>b.monto-a.monto)
+  else if(garSort==='saldo'){
+    sortedLineas.sort((a,b)=>{
+      const da=a.monto-(consumoPorEntidad[a.entidad]||0)
+      const db=b.monto-(consumoPorEntidad[b.entidad]||0)
+      return da-db
+    })
+  }
+
+  document.getElementById('lineas-list').innerHTML=sortedLineas.map((l)=>{
+    const i=lineas.indexOf(l)
     const consumo=consumoPorEntidad[l.entidad]||0;const disp=l.monto-consumo;const pct=l.monto>0?Math.round((consumo/l.monto)*100):0
     return`<div class="linea-row">
       <span style="width:120px;font-weight:600">${l.entidad}</span>
@@ -2752,7 +2779,13 @@ function renderGarantias(){
     </div>`
   }).join('')||'<div style="color:#94A3B8;font-size:12px">Sin líneas definidas.</div>'
 
-  // Filters
+  // ── Sort buttons active state ──
+  ;['entidad','monto','saldo','venc'].forEach(s=>{
+    const el=document.getElementById('gar-sort-'+s)
+    if(el){el.style.background=garSort===(s==='venc'?'vencimiento':s)?'var(--co)':'';el.style.color=garSort===(s==='venc'?'vencimiento':s)?'#fff':'';el.style.borderColor=garSort===(s==='venc'?'vencimiento':s)?'var(--co)':''}
+  })
+
+  // ── Filters ──
   const counts={todos:gars.length}
   Object.keys(GAR_ESTADOS).forEach(e=>{counts[e]=gars.filter(g=>g.estado===e).length})
   const fLabels={todos:'Todos',...Object.fromEntries(Object.entries(GAR_ESTADOS).map(([k,v])=>[k,v[1]]))}
@@ -2760,8 +2793,17 @@ function renderGarantias(){
     `<button class="fbtn${garFilter===f?' active':''}" onclick="garFilter='${f}';renderGarantias()">${fLabels[f]}<span class="fcount">${counts[f]||0}</span></button>`
   ).join('')
 
-  // Cards
-  const filtered=garFilter==='todos'?gars:gars.filter(g=>g.estado===garFilter)
+  // ── Guarantee cards (sorted) ──
+  let filtered=garFilter==='todos'?[...gars]:[...gars.filter(g=>g.estado===garFilter)]
+  if(garSort==='entidad')filtered.sort((a,b)=>(a.entidad||'').localeCompare(b.entidad||''))
+  else if(garSort==='monto')filtered.sort((a,b)=>b.monto-a.monto)
+  else if(garSort==='saldo')filtered.sort((a,b)=>a.monto-b.monto)
+  else if(garSort==='vencimiento')filtered.sort((a,b)=>{
+    const da=a.fechaVencimiento?new Date(a.fechaVencimiento):new Date('2099-01-01')
+    const db=b.fechaVencimiento?new Date(b.fechaVencimiento):new Date('2099-01-01')
+    return da-db
+  })
+
   document.getElementById('gar-grid').innerHTML=filtered.map((g,idx)=>{
     const gi=gars.indexOf(g)
     const [ec,el]=GAR_ESTADOS[g.estado]||['#64748B','—']
