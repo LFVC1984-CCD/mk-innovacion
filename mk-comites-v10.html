@@ -1058,7 +1058,7 @@ function sbTipoMap(tipo,guia,nombre){
 async function loadFromSupabase(){
   // Strategy: only overwrite localStorage data if Supabase has ACTUAL data
   // in that table. Empty Supabase tables = keep localStorage/defaults.
-  const [pR,kR,khR,tR,eR,gR,lcR,ceR,piR,caR,haR,mR,entR]=await Promise.all([
+  const [pR,kR,khR,tR,eR,gR,lcR,ceR,piR,caR,haR,mR,entR,usrR]=await Promise.all([
     sb.from('proyectos').select('*'),
     sb.from('kpis').select('*').order('area_id').order('orden'),
     sb.from('kpi_historial').select('*').order('fecha'),
@@ -1072,8 +1072,9 @@ async function loadFromSupabase(){
     sb.from('historial_area').select('*').order('created_at',{ascending:false}),
     sb.from('minutas').select('*').order('fecha',{ascending:false}),
     sb.from('entidades').select('*').order('nombre'),
+    sb.from('usuarios_portal').select('*').order('nombre'),
   ])
-  const err=[pR,kR,khR,tR,eR,gR,lcR,ceR,piR,caR,haR,mR,entR].find(r=>r.error)
+  const err=[pR,kR,khR,tR,eR,gR,lcR,ceR,piR,caR,haR,mR,entR,usrR].find(r=>r.error)
   if(err)throw new Error(err.error.message)
 
   // Helper: only use Supabase data if the table has rows
@@ -1174,15 +1175,32 @@ async function loadFromSupabase(){
   // Entidades maestro
   if(entR.data&&entR.data.length)entidadesMaestro=entR.data.map(e=>({id:e.id,nombre:e.nombre,tipo:e.tipo,contacto:e.contacto||'',obs:e.observacion||''}))
 
-  // Users: always keep localStorage (Supabase doesn't store users)
-  const localUsers=localStorage.getItem('mk-users')
-  if(localUsers){users=JSON.parse(localUsers)}
-  else{users=JSON.parse(JSON.stringify(DEF_USERS))}
+  // Users: from Supabase if available, else localStorage
+  if(usrR.data&&usrR.data.length){
+    users=usrR.data.map(u=>({_sbId:u.id,name:u.nombre,email:u.email||'',cargo:u.cargo||'',pin:u.pin||'0000',areas:u.areas||['viewer'],editar:u.editar||[],ver:u.ver||[]}))
+    console.log('✓ Usuarios cargados desde Supabase:',users.length)
+  }else{
+    // Fallback: localStorage o defaults
+    const localUsers=localStorage.getItem('mk-users')
+    if(localUsers){users=JSON.parse(localUsers)}
+    else{users=JSON.parse(JSON.stringify(DEF_USERS))}
+    // Migrar localStorage users a Supabase (primera vez)
+    if(users.length&&sb){
+      console.log('↑ Migrando',users.length,'usuarios a Supabase...')
+      for(const u of users){
+        try{
+          const{data:ins}=await sb.from('usuarios_portal').insert({nombre:u.name,email:u.email||'',cargo:u.cargo||'',pin:u.pin||'0000',areas:u.areas||['viewer'],editar:u.editar||[],ver:u.ver||[]}).select('id').single()
+          if(ins)u._sbId=ins.id
+        }catch(e){console.warn('Error migrando usuario:',e.message)}
+      }
+      console.log('✓ Usuarios migrados a Supabase')
+    }
+  }
   migrateUsers()
 }
 
 // ── Tracking de IDs eliminados para sync con Supabase ──
-const _deletedIds={kpis:[],tareas:[],proyectos:[],equipo:[],garantias:[],lineas_credito:[],plan_inversion:[],entidades:[]}
+const _deletedIds={kpis:[],tareas:[],proyectos:[],equipo:[],garantias:[],lineas_credito:[],plan_inversion:[],entidades:[],usuarios_portal:[]}
 // UUID de Supabase: 36 chars con guiones (ej: 550e8400-e29b-41d4-a716-446655440000)
 function isUUID(id){return id&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id))}
 function trackDelete(table,id){if(isUUID(id))_deletedIds[table].push(id)}
@@ -1288,6 +1306,13 @@ async function persistToSupabase(){
     const row={entidad:l.entidad,tipo:l.tipoEntidad||l.tipo||'banco',tipo_entidad:l.tipoEntidad||l.tipo||'banco',instrumento:l.instrumento||'boleta_garantia',monto:l.monto}
     if(isUUID(l.id)){await sb.from('lineas_credito').update(row).eq('id',l.id)}
     else{const{data:ins}=await sb.from('lineas_credito').insert(row).select('id').single();if(ins)l.id=ins.id}
+  }
+
+  // ── Usuarios portal ──
+  for(const u of users){
+    const row={nombre:u.name,email:u.email||'',cargo:u.cargo||'',pin:u.pin||'0000',areas:u.areas||['viewer'],editar:u.editar||[],ver:u.ver||[]}
+    if(isUUID(u._sbId)){await sb.from('usuarios_portal').update(row).eq('id',u._sbId)}
+    else{const{data:ins}=await sb.from('usuarios_portal').insert(row).select('id').single();if(ins)u._sbId=ins.id}
   }
 
   // ── Entidades maestro ──
@@ -2757,7 +2782,7 @@ function renderUsers(){
       ${editPills||viewPills?`<div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px">${editPills}${viewPills}</div>`:''}
       <div style="display:flex;gap:6px;margin-top:8px">
         <button class="btn sm" onclick="openUModal(${i})">Editar</button>
-        <button class="btn sm danger" onclick="if(confirm('¿Eliminar usuario?')){users.splice(${i},1);persist();renderUsers()}">×</button>
+        <button class="btn sm danger" onclick="if(confirm('¿Eliminar usuario?')){trackDelete('usuarios_portal',users[${i}]._sbId);users.splice(${i},1);persist();renderUsers()}">×</button>
       </div>
     </div>`
   }).join('')
@@ -3230,10 +3255,10 @@ document.addEventListener('keydown',e=>{
 
 // ── INIT ──────────────────────────────────────────────────
 loadAll().then(()=>{
-  console.log('App lista v11.3 — Supabase:',sbOnline?'✓':'offline')
+  console.log('App lista v11.4 — Supabase:',sbOnline?'✓':'offline')
   const vd=document.createElement('div')
   vd.style.cssText='position:fixed;bottom:4px;left:4px;font-size:9px;color:#94A3B8;z-index:9999;pointer-events:none'
-  vd.textContent='v11.3 · SB:'+(sbOnline?'✓':'✗')
+  vd.textContent='v11.4 · SB:'+(sbOnline?'✓':'✗')
   document.body.appendChild(vd)
 })
 </script>
