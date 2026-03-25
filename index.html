@@ -1114,7 +1114,9 @@ async function loadFromSupabase(){
 
 // ── Tracking de IDs eliminados para sync con Supabase ──
 const _deletedIds={kpis:[],tareas:[],proyectos:[],equipo:[],garantias:[],lineas_credito:[],plan_inversion:[]}
-function trackDelete(table,id){if(id&&String(id).length>10)_deletedIds[table].push(id)}
+// UUID de Supabase: 36 chars con guiones (ej: 550e8400-e29b-41d4-a716-446655440000)
+function isUUID(id){return id&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id))}
+function trackDelete(table,id){if(isUUID(id))_deletedIds[table].push(id)}
 
 async function persistToSupabase(){
   // ── Procesar eliminaciones pendientes ──
@@ -1127,7 +1129,8 @@ async function persistToSupabase(){
   }
 
   // ── Proyectos ──
-  const projRows=projects.filter(p=>p.id&&p.id.length>10).map(p=>({
+  const projExisting=projects.filter(p=>isUUID(p.id))
+  const projRows=projExisting.map(p=>({
     id:p.id,nombre:p.name,estado:p.estado,mandante:p.mandante||'',administrador:p.administrador||'',
     fecha_inicio:p.fechaInicio||null,fecha_termino:p.fechaTermino||null,
     monto_licitacion:p.est?.montoLicit||0,margen_estudio_pct:p.est?.margenEstPct||0,
@@ -1139,8 +1142,8 @@ async function persistToSupabase(){
   }))
   if(projRows.length)await sb.from('proyectos').upsert(projRows,{onConflict:'id'})
 
-  // New projects (local IDs like 'p1')
-  const newP=projects.filter(p=>!p.id||p.id.length<=10)
+  // New projects (local IDs — no UUID)
+  const newP=projects.filter(p=>!isUUID(p.id))
   for(const p of newP){
     const row={nombre:p.name,estado:p.estado,mandante:p.mandante||'',administrador:p.administrador||'',
       fecha_inicio:p.fechaInicio||null,fecha_termino:p.fechaTermino||null,
@@ -1187,7 +1190,7 @@ async function persistToSupabase(){
   for(const t of team){
     const projUuid=t.proyecto?projNameMap[t.proyecto]||null:null
     const row={nombre:t.nombre,cargo:t.cargo,proyecto_id:projUuid,estado:t.estado,contacto:t.contacto||''}
-    if(t.id&&String(t.id).length>10){await sb.from('equipo').update(row).eq('id',t.id)}
+    if(isUUID(t.id)){await sb.from('equipo').update(row).eq('id',t.id)}
     else{const{data:ins}=await sb.from('equipo').insert(row).select('id').single();if(ins)t.id=ins.id}
   }
 
@@ -1198,14 +1201,14 @@ async function persistToSupabase(){
       monto:g.monto,fecha_solicitud:g.fechaSolicitud||null,fecha_inicio:g.fechaInicio||null,
       fecha_vencimiento:g.fechaVencimiento||null,estado:g.estado,observacion:g.obs||'',
       updated_at:new Date().toISOString()}
-    if(g.id&&String(g.id).length>10){await sb.from('garantias').update(row).eq('id',g.id)}
+    if(isUUID(g.id)){await sb.from('garantias').update(row).eq('id',g.id)}
     else{const{data:ins}=await sb.from('garantias').insert(row).select('id').single();if(ins)g.id=ins.id}
   }
 
   // ── Líneas de crédito ──
   for(const l of (estudiosData.lineasCredito||[])){
     const row={entidad:l.entidad,tipo:l.tipo||'banco',monto:l.monto}
-    if(l.id&&String(l.id).length>10){await sb.from('lineas_credito').update(row).eq('id',l.id)}
+    if(isUUID(l.id)){await sb.from('lineas_credito').update(row).eq('id',l.id)}
     else{const{data:ins}=await sb.from('lineas_credito').insert(row).select('id').single();if(ins)l.id=ins.id}
   }
 
@@ -1215,7 +1218,7 @@ async function persistToSupabase(){
   // ── Plan inversión ──
   for(const p of (estudiosData.planInversion||[])){
     const row={cliente:p.cliente,monto:p.monto}
-    if(p.id&&String(p.id).length>10){await sb.from('plan_inversion').update(row).eq('id',p.id)}
+    if(isUUID(p.id)){await sb.from('plan_inversion').update(row).eq('id',p.id)}
     else{const{data:ins}=await sb.from('plan_inversion').insert(row).select('id').single();if(ins)p.id=ins.id}
   }
 }
@@ -1270,14 +1273,22 @@ async function loadAll(){
     catch(e){console.warn('Supabase no disponible, usando localStorage:',e.message)}
   }
 }
-function persist(){
+// persist() ahora es async y ESPERA a que Supabase confirme
+let _persisting=false
+async function persist(){
   persistToLocal()
-  if(sb&&sbOnline){
-    persistToSupabase()
-      .then(()=>{console.log('✓ Supabase sincronizado');toast2('Sincronizado ✓')})
-      .catch(e=>{console.error('✗ Error sync Supabase:',e);toast2('Error al sincronizar','err')})
-  }else{
-    console.warn('⚠ Offline — guardado solo en localStorage');toast2('Sin conexión — guardado local','warn')
+  if(!sb||!sbOnline){toast2('Guardado local (sin conexión)','warn');return}
+  if(_persisting){console.log('persist ya en curso, skip');return}
+  _persisting=true
+  try{
+    await persistToSupabase()
+    console.log('✓ Supabase sincronizado')
+    toast2('Guardado ✓')
+  }catch(e){
+    console.error('✗ Error sync:',e)
+    toast2('Error al guardar: '+e.message,'err')
+  }finally{
+    _persisting=false
   }
 }
 
@@ -2951,10 +2962,10 @@ document.addEventListener('keydown',e=>{
 
 // ── INIT ──────────────────────────────────────────────────
 loadAll().then(()=>{
-  console.log('App lista v10.3 — Supabase:',sbOnline?'✓':'offline')
+  console.log('App lista v10.4 — Supabase:',sbOnline?'✓':'offline')
   const vd=document.createElement('div')
   vd.style.cssText='position:fixed;bottom:4px;left:4px;font-size:9px;color:#94A3B8;z-index:9999;pointer-events:none'
-  vd.textContent='v10.3 · SB:'+(sbOnline?'✓':'✗')
+  vd.textContent='v10.4 · SB:'+(sbOnline?'✓':'✗')
   document.body.appendChild(vd)
 })
 </script>
