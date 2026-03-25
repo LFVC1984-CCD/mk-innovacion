@@ -1410,7 +1410,7 @@ function renderKpis(id){
         <button class="star-btn" onclick="event.stopPropagation();setPrincipal('${id}',${i})" title="Marcar como principal">${k.principal?'★':'☆'}</button>
         <span class="kcard-name">${k.name}${k.principal?' <span style="font-size:10px;color:var(--go);font-weight:700">PRINCIPAL</span>':''}</span>
         <span style="font-size:14px;font-weight:700;color:${tc}">${tr}</span>
-        <button class="xbtn" onclick="event.stopPropagation();if(confirm('¿Eliminar KPI?')){data['${id}'].kpis.splice(${i},1);renderKpis('${id}')}">×</button>
+        <button class="xbtn" onclick="event.stopPropagation();if(confirm('¿Eliminar KPI?')){const k=data['${id}'].kpis[${i}];if(k._sbId&&sb&&sbOnline)sb.from('kpis').delete().eq('id',k._sbId);data['${id}'].kpis.splice(${i},1);persist();renderKpis('${id}')}">×</button>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px" onclick="event.stopPropagation()">
         <span style="font-size:11px;color:#94A3B8">Valor</span>
@@ -1456,7 +1456,7 @@ function renderTasks(id){
         ${['pendiente','en-proceso','completada','bloqueada'].map(s=>`<option value="${s}"${t.estado===s?' selected':''}>${el2[s]}</option>`).join('')}
       </select>
       <button class="btn sm gh" style="font-size:10px;padding:3px 8px" onclick="openTaskModal('${id}',${i})">✎</button>
-      <button class="xbtn" onclick="if(confirm('¿Eliminar?')){data['${id}'].tareas.splice(${i},1);renderTasks('${id}')}">×</button>
+      <button class="xbtn" onclick="if(confirm('¿Eliminar?')){const t=data['${id}'].tareas[${i}];if(t._sbId&&sb&&sbOnline)sb.from('tareas').delete().eq('id',t._sbId);data['${id}'].tareas.splice(${i},1);persist();renderTasks('${id}')}">×</button>
     </div>`
   }).join('')||'<div style="font-size:12px;color:#94A3B8;padding:5px 0">Sin tareas.</div>'
 }
@@ -2421,7 +2421,7 @@ function renderProjects(){
       })()}
       <div style="display:flex;gap:6px;margin-top:8px">
         <button class="btn sm" onclick="openProjModal(${i})">Editar</button>
-        <button class="btn sm danger" onclick="if(confirm('¿Eliminar proyecto?')){projects.splice(${i},1);persist();renderProjects()}">×</button>
+        <button class="btn sm danger" onclick="if(confirm('¿Eliminar proyecto?')){const p=projects[${i}];if(p.id&&String(p.id).length>10&&sb&&sbOnline)sb.from('proyectos').delete().eq('id',p.id);projects.splice(${i},1);persist();renderProjects()}">×</button>
       </div>
     </div>`
   }).join('')||'<div style="color:#94A3B8">Sin proyectos.</div>'
@@ -2677,7 +2677,7 @@ function renderTeam(){
       ${t.contacto?`<div style="font-size:10px;color:#94A3B8;margin-top:4px">${t.contacto}</div>`:''}
       <div style="display:flex;gap:6px;margin-top:8px">
         <button class="btn sm" onclick="openTeamModal(${gi})">Editar</button>
-        <button class="btn sm danger" onclick="if(confirm('¿Eliminar profesional?')){team.splice(${gi},1);persist();renderTeam()}">×</button>
+        <button class="btn sm danger" onclick="if(confirm('¿Eliminar profesional?')){const t=team[${gi}];if(t.id&&String(t.id).length>10&&sb&&sbOnline)sb.from('equipo').delete().eq('id',t.id);team.splice(${gi},1);persist();renderTeam()}">×</button>
       </div>
     </div>`
   }).join('')||'<div style="color:#94A3B8;padding:20px;text-align:center">Sin profesionales en este filtro.</div>'
@@ -2786,7 +2786,7 @@ function renderGarantias(){
       <span style="width:50px;text-align:right;font-size:10px;font-weight:600;color:${pct>80?'var(--re)':'var(--sl)'}">${pct}%</span>
       <span style="width:80px;text-align:right;font-weight:600;color:${disp>=0?'var(--gr)':'var(--re)'}">$${disp} MM</span>
       <button class="btn sm gh" onclick="openLineaModal(${i})">✎</button>
-      <button class="xbtn" onclick="if(confirm('¿Eliminar línea?')){estudiosData.lineasCredito.splice(${i},1);persist();renderGarantias()}">×</button>
+      <button class="xbtn" onclick="if(confirm('¿Eliminar línea?')){const l=estudiosData.lineasCredito[${i}];if(l.id&&String(l.id).length>10&&sb&&sbOnline)sb.from('lineas_credito').delete().eq('id',l.id);estudiosData.lineasCredito.splice(${i},1);persist();renderGarantias()}">×</button>
     </div>`
   }).join('')||'<div style="color:#94A3B8;font-size:12px">Sin líneas definidas.</div>'
 
@@ -2825,7 +2825,7 @@ function renderGarantias(){
       <div style="font-size:11px;color:var(--sl)">${g.entidad}</div>
       <div style="font-size:10px">${g.fechaInicio?fmtD(new Date(g.fechaInicio+'T12:00:00')):'—'}<br/>→ ${g.fechaVencimiento?fmtD(new Date(g.fechaVencimiento+'T12:00:00')):'—'}${diasVenc!==null&&diasVenc<=30&&diasVenc>=0?`<br/><span style="color:var(--am);font-weight:700">${diasVenc}d</span>`:''}</div>
       <div><span class="gar-badge" style="background:${ec}20;color:${ec}">${el}</span></div>
-      <div style="display:flex;gap:4px"><button class="btn sm gh" onclick="openGarModal(${gi})">✎</button><button class="xbtn" onclick="if(confirm('¿Eliminar?')){estudiosData.garantias.splice(${gi},1);persist();renderGarantias()}">×</button></div>
+      <div style="display:flex;gap:4px"><button class="btn sm gh" onclick="openGarModal(${gi})">✎</button><button class="xbtn" onclick="if(confirm('¿Eliminar?')){const g=estudiosData.garantias[${gi}];if(g.id&&String(g.id).length>10&&sb&&sbOnline)sb.from('garantias').delete().eq('id',g.id);estudiosData.garantias.splice(${gi},1);persist();renderGarantias()}">×</button></div>
     </div>`
   }).join('')||'<div style="color:#94A3B8;padding:16px;text-align:center">Sin garantías en este filtro.</div>'
 }
