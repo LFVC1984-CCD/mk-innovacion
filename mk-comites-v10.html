@@ -748,26 +748,14 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
       <div class="mfield"><label>Fecha última oferta</label><input class="minp" type="date" id="pm-fecha-oferta"/></div>
       <div class="mfield"><label>Observación / situación</label><input class="minp" type="text" id="pm-obs" placeholder="Ej: En aclaración 1, esperando respuesta"/></div>
     </div>
-    <!-- Campos adjudicación (visible para adjudicado, activo, cerrado_saldo, cerrado) -->
+    <!-- Datos adjudicación simplificados (solo monto + meta margen) -->
     <div id="pm-adj-fields" style="display:none">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--sl);margin:10px 0 6px;border-top:1px solid var(--bd);padding-top:10px">Datos de Adjudicación</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--sl);margin:10px 0 6px;border-top:1px solid var(--bd);padding-top:10px">Adjudicación</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="mfield"><label>Monto adjudicado ($MM)</label><input class="minp" type="number" id="pm-monto-adj" placeholder="0"/></div>
+        <div class="mfield"><label>Presupuesto de venta ($MM)</label><input class="minp" type="number" id="pm-monto-adj" placeholder="0"/></div>
         <div class="mfield"><label>Meta margen ($MM)</label><input class="minp" type="number" id="pm-meta-margen" placeholder="0"/></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="mfield"><label>Fecha adjudicación</label><input class="minp" type="date" id="pm-fecha-adj"/></div>
-        <div class="mfield"><label>Meta margen (%)</label><input class="minp" type="number" id="pm-meta-margen-pct" step="0.1" placeholder="0"/></div>
-      </div>
-    </div>
-    <!-- Saldos financieros (visible para adjudicado, activo, cerrado_saldo) -->
-    <div id="pm-saldo-fields" style="display:none">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--sl);margin:10px 0 6px;border-top:1px solid var(--bd);padding-top:10px">Saldos Financieros</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="mfield"><label>Saldo por facturar ($MM)</label><input class="minp" type="number" id="pm-saldo-facturar" placeholder="0"/></div>
-        <div class="mfield"><label>Saldos proveedores ($MM)</label><input class="minp" type="number" id="pm-saldo-proveedores" placeholder="0"/></div>
-      </div>
-      <div class="mfield"><label>Comentario financiero</label><input class="minp" type="text" id="pm-comentario-fin" placeholder="Ej: Falta OC proveedor X, retención 10%"/></div>
+      <div style="font-size:10px;color:var(--sl);font-style:italic;margin-top:-4px;margin-bottom:8px">Los datos financieros detallados y saldos se gestionan en el comité de Obras</div>
     </div>
     <div class="mbtns"><button class="btn" onclick="closeProjModal()">Cancelar</button><button class="btn pri" onclick="saveProjModal()">Guardar</button></div>
   </div>
@@ -1595,7 +1583,7 @@ function projectArea(id){
   // Build dynamic slides
   slidesDef=[]
   if(CA==='obras'){
-    const activas=projects.filter(p=>isObra(p)&&p.estado==='adjudicado')
+    const activas=projects.filter(p=>isObra(p)&&['adjudicado','activo'].includes(p.estado))
     const cerradas=projects.filter(p=>isObra(p)&&p.estado==='cerrado_saldo')
     if(activas.length) slidesDef.push({title:'Control Obras — Vista Financiera',strip:'var(--gr)',timer:300,type:'obras-fin',obras:activas})
     if(cerradas.length) slidesDef.push({title:'Obras Cerradas con Saldo',strip:'var(--am)',timer:180,type:'obras-fin',obras:cerradas})
@@ -1713,32 +1701,46 @@ function buildSlideObrasFin(obras,d){
 
 function buildSlideConsolidado(){
   const allObras=projects.filter(p=>isObra(p)&&p.estado!=='cerrado')
-  const activas=allObras.filter(p=>p.estado==='activo')
+  const activas=allObras.filter(p=>['adjudicado','activo'].includes(p.estado))
   const conSaldo=allObras.filter(p=>p.estado==='cerrado_saldo')
-  let tC=0,tF=0,tN=0,tP=0,tG=0,tCo=0
-  allObras.forEach(p=>{const f=p.fin||{};tC+=f.contrato||0;tF+=f.facturado||0;tN+=f.ndc||0;tP+=f.presupuesto||0;tG+=f.gastado||0;tCo+=f.comprometido||0})
+  let tC=0,tF=0,tN=0,tP=0,tG=0,tCo=0,tSF=0,tSP=0,tMM=0
+  allObras.forEach(p=>{
+    const f=p.fin||{};const s=p.saldos||{};const a=p.adj||{}
+    tC+=f.contrato||0;tF+=f.facturado||0;tN+=f.ndc||0;tP+=f.presupuesto||0;tG+=f.gastado||0;tCo+=f.comprometido||0
+    tSF+=s.porFacturar||0;tSP+=s.proveedores||0;tMM+=a.metaMargen||0
+  })
   const pctF=tC>0?Math.round((tF/tC)*100):0
   const margen=tC-tP
   const margenPct=tC>0?Math.round((margen/tC)*1000)/10:0
+  // Usar saldos ingresados si hay, sino calcular
+  const saldoFact=tSF>0?tSF:(tC+tN-tF)
+  const saldoProv=tSP>0?tSP:(tCo-tG)
 
   let html=`<div class="consol-bar">
-    <div class="consol-item"><div class="consol-label">Contratos Totales</div><div class="consol-val">$${tC>999?(tC/1000).toFixed(1):tC} MM</div><div class="consol-sub">${activas.length} activa${activas.length!==1?'s':''}${conSaldo.length?' · '+conSaldo.length+' con saldo':''}</div></div>
-    <div class="consol-item"><div class="consol-label">Saldo por Facturar</div><div class="consol-val">$${((tC+tN-tF)>999?((tC+tN-tF)/1000).toFixed(1):tC+tN-tF)} MM</div><div class="consol-sub">${pctF}% facturado</div></div>
-    <div class="consol-item"><div class="consol-label">Saldo Proveedores</div><div class="consol-val" style="color:#D97706">$${tCo-tG} MM</div><div class="consol-sub">Comprometido − Gastado</div></div>
-    <div class="consol-item"><div class="consol-label">Margen Consolidado</div><div class="consol-val" style="color:${margen>=0?'var(--go)':'#DC2626'}">$${margen} MM</div><div class="consol-sub">${margenPct}% sobre contratos</div></div>
+    <div class="consol-item"><div class="consol-label">Contratos Totales</div><div class="consol-val">$${fmtN(tC)} MM</div><div class="consol-sub">${activas.length} activa${activas.length!==1?'s':''}${conSaldo.length?' · '+conSaldo.length+' con saldo':''}</div></div>
+    <div class="consol-item"><div class="consol-label">Por Facturar</div><div class="consol-val" style="color:var(--am)">$${fmtN(saldoFact)} MM</div><div class="consol-sub">${pctF}% facturado</div></div>
+    <div class="consol-item"><div class="consol-label">Saldo Proveedores</div><div class="consol-val" style="color:var(--re)">$${fmtN(saldoProv)} MM</div><div class="consol-sub">${tSP>0?'Ingresado':'Comprometido − Gastado'}</div></div>
+    <div class="consol-item"><div class="consol-label">Margen Consolidado</div><div class="consol-val" style="color:${margen>=0?'var(--go)':'var(--re)'}">$${fmtN(margen)} MM</div><div class="consol-sub">${margenPct}% · Meta: $${fmtN(tMM)} MM</div></div>
   </div>`
   html+=`<div style="margin-top:16px"><table style="width:100%;border-collapse:collapse;font-size:12px">
     <thead><tr style="background:var(--sl-lt);border-bottom:2px solid var(--bd)">
-      ${['Obra','Contrato','Facturado','NDC','Margen','SPI','Avance','Término'].map(h=>`<th style="text-align:${h==='Obra'?'left':'right'};padding:8px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--sl)">${h}</th>`).join('')}
-    </tr></thead><tbody>${allObras.map(p=>{const f=p.fin||{};const m=f.contrato-f.presupuesto;const sC=f.spi>=1?'var(--gr)':f.spi>=0.85?'var(--am)':'var(--re)'
+      ${['Obra','Estado','Contrato','Facturado','Por Facturar','Proveedores','Margen','SPI'].map(h=>`<th style="text-align:${h==='Obra'||h==='Estado'?'left':'right'};padding:8px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--sl)">${h}</th>`).join('')}
+    </tr></thead><tbody>${allObras.map(p=>{
+    const f=p.fin||{};const s=p.saldos||{};const m=f.contrato-f.presupuesto
+    const sC=f.spi>=1?'var(--gr)':f.spi>=0.85?'var(--am)':'var(--re)'
+    const sf=s.porFacturar||(f.contrato+f.ndc-f.facturado)||0
+    const sp=s.proveedores||(f.comprometido-f.gastado)||0
+    const estL=p.estado==='cerrado_saldo'?'Con saldo':p.estado==='activo'?'Activo':'Adjudicado'
+    const estC=p.estado==='cerrado_saldo'?'var(--am)':'var(--gr)'
     return`<tr style="border-bottom:1px solid var(--bd)">
       <td style="padding:8px;font-weight:600"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color};margin-right:6px"></span>${p.name}</td>
-      <td style="text-align:right;padding:8px">$${f.contrato}</td><td style="text-align:right;padding:8px">$${f.facturado}</td>
-      <td style="text-align:right;padding:8px;color:var(--am)">$${f.ndc}</td>
-      <td style="text-align:right;padding:8px;color:${m>=0?'var(--gr)':'var(--re)'}">${m>=0?'+':''}$${m}</td>
+      <td style="padding:8px;font-size:10px;color:${estC};font-weight:700">${estL}</td>
+      <td style="text-align:right;padding:8px">$${fmtN(f.contrato)}</td>
+      <td style="text-align:right;padding:8px">$${fmtN(f.facturado)}</td>
+      <td style="text-align:right;padding:8px;color:var(--am)">$${fmtN(sf)}</td>
+      <td style="text-align:right;padding:8px;color:${sp>0?'var(--re)':'var(--gr)'}">$${fmtN(sp)}</td>
+      <td style="text-align:right;padding:8px;color:${m>=0?'var(--gr)':'var(--re)'}">${m>=0?'+':''}$${fmtN(m)}</td>
       <td style="text-align:right;padding:8px;color:${sC};font-weight:700">${f.spi}</td>
-      <td style="text-align:right;padding:8px">${f.avanceReal}%</td>
-      <td style="text-align:right;padding:8px;font-size:11px;color:var(--sl)">${p.fechaTermino?fmtD(new Date(p.fechaTermino+'T12:00:00')):'—'}</td>
     </tr>`}).join('')}</tbody></table></div>`
   html+=`<div class="comment-box"><div class="comment-label">Comentario — Consolidado</div><textarea class="comment-inp" placeholder="Comentario consolidado..." oninput="data[CA].comentarios.consol=this.value">${data[CA]?.comentarios?.consol||''}</textarea></div>`
   return html
@@ -2451,8 +2453,10 @@ function exportAmpHistPDF(sesionId){
 
 // ── PROJECTS MASTER ───────────────────────────────────────
 let editProjIdx=null
-function isObra(p){return!!(p.fin&&(p.estado==='adjudicado'||p.estado==='cerrado_saldo'||p.estado==='cerrado'))}
-function getObras(){return projects.filter(p=>isObra(p)&&p.estado!=='cerrado')}
+function isObra(p){return!!(p.fin&&['adjudicado','activo','cerrado_saldo','cerrado'].includes(p.estado))}
+function getObras(){return projects.filter(p=>isObra(p))}
+function getObrasActivas(){return projects.filter(p=>isObra(p)&&['adjudicado','activo'].includes(p.estado))}
+function getObrasCerradasSaldo(){return projects.filter(p=>isObra(p)&&p.estado==='cerrado_saldo')}
 function isEstudio(p){return['en_evaluacion','en_estudio','en_aclaracion','sin_informacion'].includes(p.estado)}
 function getEstudioProjects(estado){return estado?projects.filter(p=>p.estado===estado):projects.filter(p=>isEstudio(p))}
 function getAdjudicados(){return projects.filter(p=>p.estado==='adjudicado'&&p.mandante)}
@@ -2519,17 +2523,10 @@ function openProjModal(idx){
   document.getElementById('pm-margen-est').value=est.margenEstPct||''
   document.getElementById('pm-fecha-oferta').value=est.fechaOferta||''
   document.getElementById('pm-obs').value=est.obs||''
-  // Campos adjudicación
+  // Campos adjudicación (simplificado)
   const adj=p?.adj||{}
   document.getElementById('pm-monto-adj').value=adj.montoAdj||est.montoLicit||''
   document.getElementById('pm-meta-margen').value=adj.metaMargen||''
-  document.getElementById('pm-meta-margen-pct').value=adj.metaMargenPct||est.margenEstPct||''
-  document.getElementById('pm-fecha-adj').value=adj.fechaAdj||''
-  // Campos saldos
-  const sal=p?.saldos||{}
-  document.getElementById('pm-saldo-facturar').value=sal.porFacturar||''
-  document.getElementById('pm-saldo-proveedores').value=sal.proveedores||''
-  document.getElementById('pm-comentario-fin').value=sal.comentario||''
   updProjColorPreview();toggleEstFields()
   document.getElementById('proj-modal').classList.add('on')
 }
@@ -2542,10 +2539,8 @@ function toggleEstFields(){
   const est=document.getElementById('pm-estado').value
   const showEst=['en_evaluacion','en_estudio','en_aclaracion','sin_informacion','adjudicado','no_adjudicado','excusa'].includes(est)
   const showAdj=['adjudicado','activo','cerrado_saldo','cerrado'].includes(est)
-  const showSaldo=['adjudicado','activo','cerrado_saldo'].includes(est)
   document.getElementById('pm-est-fields').style.display=showEst?'block':'none'
   document.getElementById('pm-adj-fields').style.display=showAdj?'block':'none'
-  document.getElementById('pm-saldo-fields').style.display=showSaldo?'block':'none'
 }
 function saveProjModal(){
   const name=document.getElementById('pm-name').value.trim();if(!name){toast2('Ingresa nombre');return}
@@ -2567,14 +2562,10 @@ function saveProjModal(){
     adj:{
       montoAdj:parseFloat(document.getElementById('pm-monto-adj').value)||0,
       metaMargen:parseFloat(document.getElementById('pm-meta-margen').value)||0,
-      metaMargenPct:parseFloat(document.getElementById('pm-meta-margen-pct').value)||0,
-      fechaAdj:document.getElementById('pm-fecha-adj').value
+      metaMargenPct:existing.adj?.metaMargenPct||0,
+      fechaAdj:existing.adj?.fechaAdj||''
     },
-    saldos:{
-      porFacturar:parseFloat(document.getElementById('pm-saldo-facturar').value)||0,
-      proveedores:parseFloat(document.getElementById('pm-saldo-proveedores').value)||0,
-      comentario:document.getElementById('pm-comentario-fin').value.trim()
-    },
+    saldos:existing.saldos||{porFacturar:0,proveedores:0,comentario:''},
     fin:existing.fin||null
   }
   if(['adjudicado','activo'].includes(estado)&&!obj.fin){
@@ -2586,7 +2577,7 @@ function saveProjModal(){
 
 // ── OBRA FINANCIAL EDIT (in Obras area) ───────────────────
 function renderObrasFin(){
-  const obras=getObras()
+  const obras=[...getObrasActivas(),...getObrasCerradasSaldo()]
   const sec=document.getElementById('obras-section')
   if(!obras.length){sec.style.display='none';return}
   sec.style.display='block'
@@ -2617,13 +2608,24 @@ function renderObrasFin(){
           <div class="obra-field"><label>Avance Real (%)</label><input value="${f.avanceReal}" onchange="updFin(${pi},'avanceReal',this.value)"/></div>
           <div class="obra-field"><label>Avance Prog. (%)</label><input value="${f.avanceProg}" onchange="updFin(${pi},'avanceProg',this.value)"/></div>
         </div>
+        ${(()=>{const s=p.saldos||{};const adj=p.adj||{};return`
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--sl);margin:10px 0 6px;border-top:1px solid var(--bd);padding-top:8px">Saldos y Meta</div>
+        <div class="obra-grid" style="grid-template-columns:repeat(4,1fr)">
+          <div class="obra-field"><label>Meta margen ($MM)</label><input value="${adj.metaMargen||0}" onchange="updAdj(${pi},'metaMargen',this.value)"/></div>
+          <div class="obra-field"><label>Saldo por facturar ($MM)</label><input value="${s.porFacturar||0}" onchange="updSaldo(${pi},'porFacturar',this.value)"/></div>
+          <div class="obra-field"><label>Saldos proveedores ($MM)</label><input value="${s.proveedores||0}" onchange="updSaldo(${pi},'proveedores',this.value)"/></div>
+          <div class="obra-field"><label>Comentario</label><input value="${s.comentario||''}" onchange="updSaldo(${pi},'comentario',this.value)" style="font-size:11px"/></div>
+        </div>`})()}
         <div class="obra-row2">
           <div class="obra-field"><label>SPI (auto: real/prog)</label>
             <div class="oval ${spiClass}">${f.spi}</div>
           </div>
           <div class="obra-field"><label>Margen = Contrato − Presupuesto</label>
-            <div class="oval ${margen>=0?'ok':'bad'}">${margen>=0?'+':''}$${margen} MM</div>
+            <div class="oval ${margen>=0?'ok':'bad'}">${margen>=0?'+':''}$${fmtN(margen)} MM</div>
           </div>
+          ${(()=>{const s=p.saldos||{};return(s.porFacturar||s.proveedores)?`
+          <div class="obra-field"><label>Por facturar</label><div class="oval warn">$${fmtN(s.porFacturar||0)} MM</div></div>
+          <div class="obra-field"><label>Proveedores</label><div class="oval ${(s.proveedores||0)>0?'bad':'ok'}">$${fmtN(s.proveedores||0)} MM</div></div>`:''})()}
         </div>
         <div style="margin-top:8px">
           <div style="font-size:10px;color:var(--sl);margin-bottom:4px">Avance: Real ${f.avanceReal}% vs Programado ${f.avanceProg}%</div>
@@ -2648,6 +2650,16 @@ function updFin(pi,field,val){
   // Auto-calc CPI
   if(f.gastado>0)f.cpi=Math.round((f.facturado/f.gastado)*100)/100
   else f.cpi=0
+  persist();renderObrasFin()
+}
+function updSaldo(pi,field,val){
+  if(!projects[pi].saldos)projects[pi].saldos={porFacturar:0,proveedores:0,comentario:''}
+  projects[pi].saldos[field]=field==='comentario'?val:(parseFloat(val)||0)
+  persist();renderObrasFin()
+}
+function updAdj(pi,field,val){
+  if(!projects[pi].adj)projects[pi].adj={montoAdj:0,metaMargen:0,metaMargenPct:0,fechaAdj:''}
+  projects[pi].adj[field]=parseFloat(val)||0
   persist();renderObrasFin()
 }
 
@@ -3030,10 +3042,10 @@ document.addEventListener('keydown',e=>{
 
 // ── INIT ──────────────────────────────────────────────────
 loadAll().then(()=>{
-  console.log('App lista v10.5 — Supabase:',sbOnline?'✓':'offline')
+  console.log('App lista v10.6 — Supabase:',sbOnline?'✓':'offline')
   const vd=document.createElement('div')
   vd.style.cssText='position:fixed;bottom:4px;left:4px;font-size:9px;color:#94A3B8;z-index:9999;pointer-events:none'
-  vd.textContent='v10.5 · SB:'+(sbOnline?'✓':'✗')
+  vd.textContent='v10.6 · SB:'+(sbOnline?'✓':'✗')
   document.body.appendChild(vd)
 })
 </script>
