@@ -381,8 +381,9 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
 .amp-hist-areas{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
 .amp-hist-tasks{font-size:12px;color:var(--ink2)}
 
-.toast{position:fixed;bottom:18px;right:18px;background:var(--gr);color:#fff;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);transition:all .3s;z-index:999;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.15)}
-.toast.on{opacity:1;transform:translateY(0)}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.9);background:var(--ink);color:#fff;padding:16px 28px;border-radius:14px;font-size:15px;font-weight:700;font-family:'Barlow Condensed',sans-serif;opacity:0;transition:all .25s ease;z-index:9999;pointer-events:none;box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center;letter-spacing:.02em;max-width:90vw}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.toast.toast-ok{background:var(--gr)}.toast.toast-err{background:var(--re)}.toast.toast-warn{background:var(--am)}
 @media(max-width:900px){.dg,.pkgrid{grid-template-columns:repeat(2,1fr)}.egrid{grid-template-columns:1fr}.proj-grid{grid-template-columns:repeat(2,1fr)}.obra-grid{grid-template-columns:repeat(2,1fr)}.obra-dash{grid-template-columns:1fr}.team-grid{grid-template-columns:repeat(2,1fr)}.gar-summary{grid-template-columns:repeat(3,1fr)}.amp-hero{flex-direction:column;gap:10px;text-align:center}}
 @media(max-width:600px){.dg,.users-grid{grid-template-columns:1fr}.pkgrid{grid-template-columns:repeat(2,1fr)}.proj-grid{grid-template-columns:1fr}.obra-grid{grid-template-columns:repeat(2,1fr)}.od-kpis{grid-template-columns:repeat(3,1fr)}.team-grid{grid-template-columns:1fr}}
 </style>
@@ -1274,9 +1275,9 @@ function persist(){
   if(sb&&sbOnline){
     persistToSupabase()
       .then(()=>{console.log('✓ Supabase sincronizado');toast2('Sincronizado ✓')})
-      .catch(e=>{console.error('✗ Error sync Supabase:',e);toast2('Error sync: '+e.message)})
+      .catch(e=>{console.error('✗ Error sync Supabase:',e);toast2('Error al sincronizar','err')})
   }else{
-    console.warn('⚠ Offline — guardado solo en localStorage')
+    console.warn('⚠ Offline — guardado solo en localStorage');toast2('Sin conexión — guardado local','warn')
   }
 }
 
@@ -1284,7 +1285,13 @@ function persist(){
 function fmtD(d){return d.toLocaleDateString('es-CL',{day:'2-digit',month:'short',year:'numeric'})}
 function parseF(v){return parseFloat(String(v).replace(/[^0-9.\-]/g,''))||0}
 function trend(k){if(!k.hist||k.hist.length<2)return '=';const a=parseF(k.hist[k.hist.length-1]),b=parseF(k.hist[k.hist.length-2]);return a>b*1.02?'↑':a<b*0.98?'↓':'='}
-function toast2(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2600)}
+function toast2(msg,type='ok'){
+  const t=document.getElementById('toast')
+  t.textContent=msg
+  t.className='toast toast-'+type+' on'
+  clearTimeout(t._tid)
+  t._tid=setTimeout(()=>{t.classList.remove('on')},type==='err'?4000:2000)
+}
 
 // ── KPI STORY ENGINE ──────────────────────────────────────
 function kpiStory(k){
@@ -1393,7 +1400,7 @@ function renderHome(){
 
 // ── EDIT AREA ─────────────────────────────────────────────
 function editArea(id){
-  if(!canEdit(loggedUser,id)){toast2('Sin acceso de edición');return}
+  if(!canEdit(loggedUser,id)){toast2('Sin acceso de edición','warn');return}
   CA=id
   const area=ADEFS.find(a=>a.id===id)
   document.getElementById('et').textContent=area.name
@@ -1486,7 +1493,7 @@ function renderHist(id){
 
 function addKpi(){
   const n=document.getElementById('fkn').value.trim();if(!n)return
-  if(data[CA].kpis.length>=9){toast2('Máximo 9 KPIs');return}
+  if(data[CA].kpis.length>=9){toast2('Máximo 9 KPIs','warn');return}
   const isPrinc=document.getElementById('fkp').checked
   if(isPrinc)data[CA].kpis.forEach(k=>k.principal=false)
   data[CA].kpis.push({name:n,valor:document.getElementById('fkv').value||'0',meta:document.getElementById('fkm').value||'—',tipo:document.getElementById('fkt').value,principal:isPrinc,guide:document.getElementById('fkg').value,hist:[],comment:''})
@@ -2944,10 +2951,10 @@ document.addEventListener('keydown',e=>{
 
 // ── INIT ──────────────────────────────────────────────────
 loadAll().then(()=>{
-  console.log('App lista v10.2 — Supabase:',sbOnline?'✓':'offline')
+  console.log('App lista v10.3 — Supabase:',sbOnline?'✓':'offline')
   const vd=document.createElement('div')
   vd.style.cssText='position:fixed;bottom:4px;left:4px;font-size:9px;color:#94A3B8;z-index:9999;pointer-events:none'
-  vd.textContent='v10.2 · SB:'+(sbOnline?'✓':'✗')
+  vd.textContent='v10.3 · SB:'+(sbOnline?'✓':'✗')
   document.body.appendChild(vd)
 })
 </script>
