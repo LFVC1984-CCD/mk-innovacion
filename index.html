@@ -318,6 +318,9 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
 .gar-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;text-align:center}
 .gar-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
 .gar-sum-card{background:var(--sl-lt);border-radius:8px;border:1px solid var(--bd);padding:12px 16px;text-align:center}
+.gar-tab-btn{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:700;border:none;background:transparent;cursor:pointer;font-family:'Barlow',sans-serif;color:var(--sl);transition:all .15s}
+.gar-tab-btn:hover{color:var(--ink)}
+.gar-tab-btn.active{background:var(--wh);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .gar-sum-val{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;line-height:1}
 .gar-sum-lbl{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--sl);margin-top:4px}
 .linea-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:12px}
@@ -589,18 +592,25 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
 <!-- GARANTIAS -->
 <div class="sc" id="sc-garantias">
   <div style="padding:22px;max-width:1200px;margin:0 auto">
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:12px">
       <div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--ink)">Maestro de <span style="color:var(--co)">Garantías</span></div>
-        <div style="font-size:12px;color:var(--sl)">Boletas bancarias, pólizas de seguro y líneas de crédito</div>
+        <div style="font-size:12px;color:var(--sl)">Garantías, líneas de crédito y entidades financieras</div>
       </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn" onclick="openLineaModal(null)">+ Línea de crédito</button>
-        <button class="btn pri" onclick="openGarModal(null)">+ Nueva garantía</button>
+      <div style="display:flex;gap:6px" id="gar-top-actions">
+        <button class="btn" onclick="openLineaModal(null)">+ Línea</button>
+        <button class="btn pri" onclick="openGarModal(null)">+ Garantía</button>
       </div>
     </div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:3px;background:var(--sl-lt);border-radius:10px;padding:3px;border:1px solid var(--bd);width:fit-content;margin-bottom:16px">
+      <button class="gar-tab-btn active" onclick="showGarTab('garantias',this)">Garantías</button>
+      <button class="gar-tab-btn" onclick="showGarTab('entidades',this)">Entidades</button>
+    </div>
+    <!-- Tab: Garantías -->
+    <div id="gar-tab-garantias">
     <div class="gar-summary" id="gar-summary"></div>
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--sl);margin-bottom:6px">Líneas de Crédito — Bancos y Aseguradoras</div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--sl);margin-bottom:6px">Líneas por Instrumento</div>
     <div id="lineas-list" style="margin-bottom:16px"></div>
     <div class="filters" id="gar-filters"></div>
     <div style="display:flex;align-items:center;gap:8px;margin:8px 0 10px">
@@ -611,6 +621,32 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
       <button class="btn sm" id="gar-sort-venc" onclick="garSort='vencimiento';renderGarantias()">Vencimiento</button>
     </div>
     <div class="gar-grid" id="gar-grid"></div>
+    </div><!-- /gar-tab-garantias -->
+
+    <!-- Tab: Entidades -->
+    <div id="gar-tab-entidades" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:11px;color:var(--sl)">Entidades financieras registradas. Las líneas y garantías se asocian por entidad.</div>
+        <button class="btn pri" onclick="openEntidadMaestroModal(null)">+ Nueva entidad</button>
+      </div>
+      <div id="entidades-maestro-list"></div>
+    </div><!-- /gar-tab-entidades -->
+  </div>
+</div>
+
+<!-- ENTIDAD MAESTRO MODAL -->
+<div class="modal-bg" id="ent-maestro-modal" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-title" id="em-title">Nueva entidad</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="mfield"><label>Nombre</label><input class="minp" type="text" id="em-nombre" placeholder="Ej: BCI, Avla, Santander"/></div>
+      <div class="mfield"><label>Tipo</label>
+        <select class="minp" id="em-tipo"><option value="banco">Banco</option><option value="aseguradora">Aseguradora</option></select>
+      </div>
+    </div>
+    <div class="mfield"><label>Contacto (ejecutivo, email)</label><input class="minp" type="text" id="em-contacto" placeholder="Opcional"/></div>
+    <div class="mfield"><label>Observaciones</label><input class="minp" type="text" id="em-obs" placeholder="Notas"/></div>
+    <div class="mbtns"><button class="btn" onclick="closeEntidadMaestroModal()">Cancelar</button><button class="btn pri" onclick="saveEntidadMaestroModal()">Guardar</button></div>
   </div>
 </div>
 
@@ -628,7 +664,7 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div class="mfield"><label>Banco / Aseguradora</label><input class="minp" type="text" id="gm-entidad" placeholder="Ej: BCI, Mapfre"/></div>
+      <div class="mfield"><label>Entidad</label><select class="minp" id="gm-entidad"></select></div>
       <div class="mfield"><label>Monto ($MM)</label><input class="minp" type="number" id="gm-monto" placeholder="0"/></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
@@ -648,7 +684,7 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
 <div class="modal-bg" id="linea-modal" onclick="if(event.target===this)this.classList.remove('on')">
   <div class="modal-box">
     <div class="modal-title" id="lm-title">Nueva línea</div>
-    <div class="mfield"><label>Entidad</label><input class="minp" type="text" id="lm-entidad" placeholder="Ej: BCI, Santander, Avla"/></div>
+    <div class="mfield"><label>Entidad</label><select class="minp" id="lm-entidad"></select></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="mfield"><label>Tipo entidad</label>
         <select class="minp" id="lm-tipo-entidad"><option value="banco">Banco</option><option value="aseguradora">Aseguradora</option></select>
@@ -1013,7 +1049,7 @@ function sbTipoMap(tipo,guia,nombre){
 async function loadFromSupabase(){
   // Strategy: only overwrite localStorage data if Supabase has ACTUAL data
   // in that table. Empty Supabase tables = keep localStorage/defaults.
-  const [pR,kR,khR,tR,eR,gR,lcR,ceR,piR,caR,haR,mR]=await Promise.all([
+  const [pR,kR,khR,tR,eR,gR,lcR,ceR,piR,caR,haR,mR,entR]=await Promise.all([
     sb.from('proyectos').select('*'),
     sb.from('kpis').select('*').order('area_id').order('orden'),
     sb.from('kpi_historial').select('*').order('fecha'),
@@ -1026,8 +1062,9 @@ async function loadFromSupabase(){
     sb.from('comentarios_area').select('*'),
     sb.from('historial_area').select('*').order('created_at',{ascending:false}),
     sb.from('minutas').select('*').order('fecha',{ascending:false}),
+    sb.from('entidades').select('*').order('nombre'),
   ])
-  const err=[pR,kR,khR,tR,eR,gR,lcR,ceR,piR,caR,haR,mR].find(r=>r.error)
+  const err=[pR,kR,khR,tR,eR,gR,lcR,ceR,piR,caR,haR,mR,entR].find(r=>r.error)
   if(err)throw new Error(err.error.message)
 
   // Helper: only use Supabase data if the table has rows
@@ -1125,6 +1162,9 @@ async function loadFromSupabase(){
       kpis:m.lineas?.kpis||[],tareas:m.lineas?.tareas||[]}))
   }
 
+  // Entidades maestro
+  if(entR.data&&entR.data.length)entidadesMaestro=entR.data.map(e=>({id:e.id,nombre:e.nombre,tipo:e.tipo,contacto:e.contacto||'',obs:e.observacion||''}))
+
   // Users: always keep localStorage (Supabase doesn't store users)
   const localUsers=localStorage.getItem('mk-users')
   if(localUsers){users=JSON.parse(localUsers)}
@@ -1133,7 +1173,7 @@ async function loadFromSupabase(){
 }
 
 // ── Tracking de IDs eliminados para sync con Supabase ──
-const _deletedIds={kpis:[],tareas:[],proyectos:[],equipo:[],garantias:[],lineas_credito:[],plan_inversion:[]}
+const _deletedIds={kpis:[],tareas:[],proyectos:[],equipo:[],garantias:[],lineas_credito:[],plan_inversion:[],entidades:[]}
 // UUID de Supabase: 36 chars con guiones (ej: 550e8400-e29b-41d4-a716-446655440000)
 function isUUID(id){return id&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id))}
 function trackDelete(table,id){if(isUUID(id))_deletedIds[table].push(id)}
@@ -1241,6 +1281,13 @@ async function persistToSupabase(){
     else{const{data:ins}=await sb.from('lineas_credito').insert(row).select('id').single();if(ins)l.id=ins.id}
   }
 
+  // ── Entidades maestro ──
+  for(const e of entidadesMaestro){
+    const row={nombre:e.nombre,tipo:e.tipo,contacto:e.contacto||'',observacion:e.obs||''}
+    if(isUUID(e.id)){await sb.from('entidades').update(row).eq('id',e.id)}
+    else{const{data:ins}=await sb.from('entidades').insert(row).select('id').single();if(ins)e.id=ins.id}
+  }
+
   // ── Config estudios ──
   await sb.from('config_estudios').upsert({clave:'metaAnual',valor:String(estudiosData.metaAnual||20000)},{onConflict:'clave'})
 
@@ -1254,7 +1301,7 @@ async function persistToSupabase(){
 
 // ── STATE ─────────────────────────────────────────────────
 let role=null, CA=null, pslide=0, loggedUser=null
-let data={}, projects=[], users=[], minutas=[], team=[], estudiosData={}
+let data={}, projects=[], users=[], minutas=[], team=[], estudiosData={}, entidadesMaestro=[]
 let projFilter='todos'
 
 function migrateUsers(){
@@ -2849,7 +2896,15 @@ const GAR_TIPOS={seriedad:'Seriedad oferta',fiel_cumplimiento:'Fiel cumplimiento
 const GAR_INSTR={boleta_bancaria:'Boleta bancaria',poliza_seguro:'Póliza de seguro'}
 const GAR_ESTADOS={solicitada:['#0B5ED7','Solicitada'],vigente:['#16A34A','Vigente'],por_vencer:['#D97706','Por vencer'],en_renovacion:['#7C3AED','En renovación'],vencida:['#DC2626','Vencida'],devuelta:['#94A3B8','Devuelta']}
 
-function showGarantias(){setBc([{l:'Inicio',f:'goHome()'}],'Garantías');renderGarantias();showSc('sc-garantias')}
+function showGarantias(){setBc([{l:'Inicio',f:'goHome()'}],'Garantías');renderGarantias();renderEntidadesMaestro();showSc('sc-garantias')}
+function showGarTab(tab,btn){
+  document.querySelectorAll('.gar-tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active')
+  document.getElementById('gar-tab-garantias').style.display=tab==='garantias'?'block':'none'
+  document.getElementById('gar-tab-entidades').style.display=tab==='entidades'?'block':'none'
+  const acts=document.getElementById('gar-top-actions')
+  if(tab==='garantias')acts.innerHTML='<button class="btn" onclick="openLineaModal(null)">+ Línea</button><button class="btn pri" onclick="openGarModal(null)">+ Garantía</button>'
+  else acts.innerHTML='<button class="btn pri" onclick="openEntidadMaestroModal(null)">+ Nueva entidad</button>'
+}
 
 function autoCheckVencimientos(){
   const hoy=new Date();const alerta=new Date(hoy.getTime()+30*24*60*60*1000)
@@ -2981,7 +3036,8 @@ function openGarModal(idx){
   sel.innerHTML='<option value="">— Sin proyecto —</option>'+projects.filter(p=>p.mandante).map(p=>`<option value="${p.name}"${g?.proyecto===p.name?' selected':''}>${p.name}</option>`).join('')
   document.getElementById('gm-tipo').value=g?.tipo||'seriedad'
   document.getElementById('gm-instr').value=g?.instrumento||'boleta_bancaria'
-  document.getElementById('gm-entidad').value=g?.entidad||''
+  const entSel=document.getElementById('gm-entidad')
+  entSel.innerHTML='<option value="">— Seleccionar entidad —</option>'+entidadesMaestro.map(e=>`<option value="${e.nombre}"${g?.entidad===e.nombre?' selected':''}>${e.nombre} (${e.tipo==='banco'?'Banco':'Aseg.'})</option>`).join('')
   document.getElementById('gm-monto').value=g?.monto||''
   document.getElementById('gm-fsol').value=g?.fechaSolicitud||''
   document.getElementById('gm-fini').value=g?.fechaInicio||''
@@ -3015,7 +3071,8 @@ function saveGarModal(){
 function openLineaModal(idx){
   editLineaIdx=idx;const l=idx!==null?(estudiosData.lineasCredito||[])[idx]:null
   document.getElementById('lm-title').textContent=l?'Editar línea':'Nueva línea'
-  document.getElementById('lm-entidad').value=l?.entidad||''
+  const lmSel=document.getElementById('lm-entidad')
+  lmSel.innerHTML='<option value="">— Seleccionar —</option>'+entidadesMaestro.map(e=>`<option value="${e.nombre}"${l?.entidad===e.nombre?' selected':''}>${e.nombre}</option>`).join('')
   document.getElementById('lm-tipo-entidad').value=l?.tipoEntidad||l?.tipo||'banco'
   document.getElementById('lm-instrumento').value=l?.instrumento||'boleta_garantia'
   document.getElementById('lm-monto').value=l?.monto||''
@@ -3037,6 +3094,81 @@ function saveLineaModal(){
   if(!estudiosData.lineasCredito)estudiosData.lineasCredito=[]
   if(editLineaIdx!==null)estudiosData.lineasCredito[editLineaIdx]=obj;else estudiosData.lineasCredito.push(obj)
   persist();closeLineaModal();renderGarantias();toast2(editLineaIdx!==null?'Línea actualizada':'Línea creada')
+}
+
+// ── ENTIDADES MAESTRO ─────────────────────────────────────
+let editEntMIdx=null
+const INSTR_LABELS_M={boleta_garantia:'Boleta de Garantía',poliza_garantia:'Póliza de Garantía',capital_trabajo:'Capital de Trabajo',factoring:'Factoring'}
+
+function renderEntidadesMaestro(){
+  const gars=estudiosData.garantias||[]
+  const lineas=estudiosData.lineasCredito||[]
+  const el=document.getElementById('entidades-maestro-list')
+  if(!el)return
+  el.innerHTML=entidadesMaestro.map((e,ei)=>{
+    // Líneas de esta entidad
+    const entLineas=lineas.filter(l=>l.entidad===e.nombre)
+    const totalAprobado=entLineas.reduce((s,l)=>s+l.monto,0)
+    // Garantías activas de esta entidad
+    const entGars=gars.filter(g=>g.entidad===e.nombre&&['vigente','por_vencer','en_renovacion','solicitada'].includes(g.estado))
+    const totalComprometido=entGars.reduce((s,g)=>s+g.monto,0)
+    const totalDisp=totalAprobado-totalComprometido
+    const pct=totalAprobado>0?Math.round(totalComprometido/totalAprobado*100):0
+    return`<div style="background:var(--wh);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-weight:700;font-size:15px">${e.nombre}</span>
+          <span style="font-size:10px;padding:2px 8px;border-radius:4px;background:var(--sl-lt);color:var(--sl);font-weight:600">${e.tipo==='banco'?'Banco':'Aseguradora'}</span>
+          ${e.contacto?`<span style="font-size:10px;color:var(--sl)">${e.contacto}</span>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:12px;font-weight:700;color:var(--co)">$${fmtN(totalAprobado)} MM</span>
+          <span style="font-size:12px;font-weight:700;color:${pct>80?'var(--re)':'var(--am)'}">${pct}%</span>
+          <span style="font-size:12px;font-weight:700;color:${totalDisp>=0?'var(--gr)':'var(--re)'}">$${fmtN(totalDisp)} MM</span>
+          <button class="btn sm gh" onclick="openEntidadMaestroModal(${ei})">✎</button>
+          <button class="xbtn" onclick="if(confirm('¿Eliminar entidad ${e.nombre}?')){trackDelete('entidades',entidadesMaestro[${ei}].id);entidadesMaestro.splice(${ei},1);persist();renderEntidadesMaestro()}">×</button>
+        </div>
+      </div>
+      ${entLineas.length?`<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--sl);margin-bottom:4px">Líneas</div>
+      ${entLineas.map(l=>{
+        const instr=l.instrumento||'boleta_garantia'
+        const consumo=entGars.filter(g=>(g.instrumento||'boleta_garantia')===instr).reduce((s,g)=>s+g.monto,0)
+        const disp=l.monto-consumo
+        const lpct=l.monto>0?Math.round(consumo/l.monto*100):0
+        const bc=lpct>80?'var(--re)':lpct>50?'var(--am)':'var(--gr)'
+        return`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px">
+          <span style="min-width:140px;font-weight:600;color:var(--ink2)">${INSTR_LABELS_M[instr]||instr}</span>
+          <span style="min-width:70px;text-align:right;color:var(--co);font-weight:700">$${fmtN(l.monto)}</span>
+          <div class="linea-bar" style="flex:1"><div class="linea-fill" style="width:${lpct}%;background:${bc}"></div></div>
+          <span style="min-width:30px;text-align:right;font-size:10px;font-weight:700;color:${bc}">${lpct}%</span>
+          <span style="min-width:65px;text-align:right;font-weight:700;color:${disp>=0?'var(--gr)':'var(--re)'}">$${fmtN(disp)}</span>
+        </div>`}).join('')}`:`<div style="font-size:11px;color:var(--sl);font-style:italic">Sin líneas asignadas</div>`}
+      ${entGars.length?`<div style="font-size:10px;margin-top:6px;color:var(--sl)">${entGars.length} garantía${entGars.length>1?'s':''} activa${entGars.length>1?'s':''} · $${fmtN(totalComprometido)} MM comprometido</div>`:''}</div>`
+  }).join('')||'<div style="color:#94A3B8;text-align:center;padding:16px">Sin entidades. Agrega una con el botón + Nueva entidad.</div>'
+}
+
+function openEntidadMaestroModal(idx){
+  editEntMIdx=idx;const e=idx!==null?entidadesMaestro[idx]:null
+  document.getElementById('em-title').textContent=e?'Editar entidad':'Nueva entidad'
+  document.getElementById('em-nombre').value=e?.nombre||''
+  document.getElementById('em-tipo').value=e?.tipo||'banco'
+  document.getElementById('em-contacto').value=e?.contacto||''
+  document.getElementById('em-obs').value=e?.obs||''
+  document.getElementById('ent-maestro-modal').classList.add('on')
+}
+function closeEntidadMaestroModal(){document.getElementById('ent-maestro-modal').classList.remove('on')}
+function saveEntidadMaestroModal(){
+  const nombre=document.getElementById('em-nombre').value.trim()
+  if(!nombre){toast2('Ingresa nombre','warn');return}
+  const obj={
+    id:editEntMIdx!==null?(entidadesMaestro[editEntMIdx]?.id||'em'+Date.now()):'em'+Date.now(),
+    nombre,tipo:document.getElementById('em-tipo').value,
+    contacto:document.getElementById('em-contacto').value.trim(),
+    obs:document.getElementById('em-obs').value.trim()
+  }
+  if(editEntMIdx!==null)entidadesMaestro[editEntMIdx]=obj;else entidadesMaestro.push(obj)
+  persist();closeEntidadMaestroModal();renderEntidadesMaestro();renderGarantias()
+  toast2(editEntMIdx!==null?'Entidad actualizada':'Entidad creada')
 }
 
 // ── HISTORY ───────────────────────────────────────────────
@@ -3079,10 +3211,10 @@ document.addEventListener('keydown',e=>{
 
 // ── INIT ──────────────────────────────────────────────────
 loadAll().then(()=>{
-  console.log('App lista v10.9 — Supabase:',sbOnline?'✓':'offline')
+  console.log('App lista v11.0 — Supabase:',sbOnline?'✓':'offline')
   const vd=document.createElement('div')
   vd.style.cssText='position:fixed;bottom:4px;left:4px;font-size:9px;color:#94A3B8;z-index:9999;pointer-events:none'
-  vd.textContent='v10.9 · SB:'+(sbOnline?'✓':'✗')
+  vd.textContent='v11.0 · SB:'+(sbOnline?'✓':'✗')
   document.body.appendChild(vd)
 })
 </script>
