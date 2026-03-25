@@ -1,4 +1,4 @@
-export type AreaId = 'finanzas' | 'rrhh' | 'legal' | 'prevencion' | 'estudios' | 'obras' | 'admin' | 'viewer'
+export type AreaId = 'finanzas' | 'rrhh' | 'legal' | 'prevencion' | 'estudios' | 'obras' | 'eti' | 'admin' | 'viewer'
 
 export interface Perfil {
   id: string
@@ -63,6 +63,7 @@ export const AREA_NAMES: Record<string, string> = {
   prevencion: 'Prevención de Riesgos',
   estudios: 'Estudios y Licitaciones',
   obras: 'Obras Activas',
+  eti: 'Eficiencia, Tecnología e Innovación',
   viewer: 'Solo lectura',
 }
 
@@ -74,6 +75,7 @@ export const AREA_COLORS: Record<string, string> = {
   prevencion: '#DC2626',
   estudios: '#64748B',
   obras: '#16A34A',
+  eti: '#0891B2',
   viewer: '#94A3B8',
 }
 
@@ -84,4 +86,5 @@ export const AREAS_LIST: { id: AreaId; name: string; color: string; freq: string
   { id: 'prevencion', name: 'Prevención de Riesgos', color: '#DC2626', freq: 'Semanal' },
   { id: 'estudios', name: 'Estudios y Licitaciones', color: '#64748B', freq: 'Mensual' },
   { id: 'obras', name: 'Obras Activas', color: '#16A34A', freq: 'Semanal' },
+  { id: 'eti', name: 'Eficiencia, Tecnología e Innovación', color: '#0891B2', freq: 'Quincenal' },
 ]
