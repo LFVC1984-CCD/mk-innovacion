@@ -1431,10 +1431,10 @@ function renderKpis(id){
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px" onclick="event.stopPropagation()">
         <span style="font-size:11px;color:#94A3B8">Valor</span>
-        <input class="ki wide" value="${k.valor}" onchange="data['${id}'].kpis[${i}].valor=this.value;renderKpis('${id}')"/>
+        <input class="ki wide" value="${k.valor}" onchange="data['${id}'].kpis[${i}].valor=this.value;persist();renderKpis('${id}')"/>
         <span style="font-size:11px;color:#94A3B8">Meta</span>
-        <input class="ki wide" value="${k.meta}" onchange="data['${id}'].kpis[${i}].meta=this.value;renderKpis('${id}')"/>
-        <select class="ksel" onchange="data['${id}'].kpis[${i}].tipo=this.value;renderKpis('${id}')">
+        <input class="ki wide" value="${k.meta}" onchange="data['${id}'].kpis[${i}].meta=this.value;persist();renderKpis('${id}')"/>
+        <select class="ksel" onchange="data['${id}'].kpis[${i}].tipo=this.value;persist();renderKpis('${id}')">
           ${['porcentaje','numero','dinero','indice','zero'].map(t=>`<option value="${t}"${k.tipo===t?' selected':''}>${{porcentaje:'%',numero:'#',dinero:'$',indice:'idx',zero:'∅'}[t]}</option>`).join('')}
         </select>
       </div>
@@ -1452,7 +1452,7 @@ function renderKpis(id){
 
 function setPrincipal(id,idx){
   data[id].kpis.forEach((k,i)=>k.principal=(i===idx))
-  renderKpis(id)
+  persist();renderKpis(id)
 }
 function toggleKCard(e,el){if(['INPUT','SELECT','BUTTON','LABEL'].includes(e.target.tagName))return;const was=el.classList.contains('expanded');document.querySelectorAll('.kcard.expanded').forEach(c=>c.classList.remove('expanded'));if(!was)el.classList.add('expanded')}
 
@@ -1469,7 +1469,7 @@ function renderTasks(id){
         ${t.fecha?`<div class="tdate">${fmtD(new Date(t.fecha+'T12:00:00'))}</div>`:`<div class="tnodate">⚠ Sin fecha</div>`}
         ${t.proyecto?`<div class="tproj">📁 ${t.proyecto}</div>`:''}
       </div>
-      <select class="test" style="background:${bg};color:${fc}" onchange="data['${id}'].tareas[${i}].estado=this.value;renderTasks('${id}')">
+      <select class="test" style="background:${bg};color:${fc}" onchange="data['${id}'].tareas[${i}].estado=this.value;persist();renderTasks('${id}')">
         ${['pendiente','en-proceso','completada','bloqueada'].map(s=>`<option value="${s}"${t.estado===s?' selected':''}>${el2[s]}</option>`).join('')}
       </select>
       <button class="btn sm gh" style="font-size:10px;padding:3px 8px" onclick="openTaskModal('${id}',${i})">✎</button>
@@ -1490,12 +1490,12 @@ function addKpi(){
   const isPrinc=document.getElementById('fkp').checked
   if(isPrinc)data[CA].kpis.forEach(k=>k.principal=false)
   data[CA].kpis.push({name:n,valor:document.getElementById('fkv').value||'0',meta:document.getElementById('fkm').value||'—',tipo:document.getElementById('fkt').value,principal:isPrinc,guide:document.getElementById('fkg').value,hist:[],comment:''})
-  renderKpis(CA);closeF('kpi');['fkn','fkv','fkm','fkg'].forEach(id=>document.getElementById(id).value='');document.getElementById('fkp').checked=false
+  persist();renderKpis(CA);closeF('kpi');['fkn','fkv','fkm','fkg'].forEach(id=>document.getElementById(id).value='');document.getElementById('fkp').checked=false
 }
 function addTask(){
   const t=document.getElementById('ftt').value.trim();if(!t)return
   data[CA].tareas.push({text:t,resp:document.getElementById('ftr').value,estado:document.getElementById('fte').value,fecha:document.getElementById('ftd').value,proyecto:document.getElementById('ftpr').value,createdAt:new Date().toISOString().split('T')[0]})
-  renderTasks(CA);closeF('task');['ftt','ftd'].forEach(id=>document.getElementById(id).value='');document.getElementById('ftr').value='';document.getElementById('fte').value='pendiente';document.getElementById('ftpr').value=''
+  persist();renderTasks(CA);closeF('task');['ftt','ftd'].forEach(id=>document.getElementById(id).value='');document.getElementById('ftr').value='';document.getElementById('fte').value='pendiente';document.getElementById('ftpr').value=''
 }
 function saveArea(){
   // Push current values to history
@@ -1524,7 +1524,7 @@ function saveTaskModal(){
   t.fecha=document.getElementById('m-fecha').value
   t.estado=document.getElementById('m-estado').value
   t.proyecto=document.getElementById('m-proj').value
-  closeTaskModal();renderTasks(editTId);toast2('Tarea actualizada')
+  persist();closeTaskModal();renderTasks(editTId);toast2('Tarea actualizada')
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2944,11 +2944,10 @@ document.addEventListener('keydown',e=>{
 
 // ── INIT ──────────────────────────────────────────────────
 loadAll().then(()=>{
-  console.log('App lista v10.1 — Supabase:',sbOnline?'✓':'offline')
-  // Versión visible para debug
+  console.log('App lista v10.2 — Supabase:',sbOnline?'✓':'offline')
   const vd=document.createElement('div')
   vd.style.cssText='position:fixed;bottom:4px;left:4px;font-size:9px;color:#94A3B8;z-index:9999;pointer-events:none'
-  vd.textContent='v10.1 · SB:'+(sbOnline?'✓':'✗')
+  vd.textContent='v10.2 · SB:'+(sbOnline?'✓':'✗')
   document.body.appendChild(vd)
 })
 </script>
