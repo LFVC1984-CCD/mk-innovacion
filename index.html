@@ -660,7 +660,7 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
         <select class="minp" id="gm-tipo"><option value="seriedad">Seriedad de la oferta</option><option value="fiel_cumplimiento">Fiel cumplimiento</option><option value="anticipo">Anticipo</option><option value="correcta_ejecucion">Correcta ejecución</option><option value="otra">Otra</option></select>
       </div>
       <div class="mfield"><label>Instrumento</label>
-        <select class="minp" id="gm-instr"><option value="boleta_bancaria">Boleta bancaria</option><option value="poliza_seguro">Póliza de seguro</option></select>
+        <select class="minp" id="gm-instr"><option value="boleta_garantia">Boleta de Garantía</option><option value="poliza_garantia">Póliza de Garantía</option><option value="capital_trabajo">Capital de Trabajo</option><option value="factoring">Factoring</option></select>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -921,11 +921,11 @@ const DEF_ESTUDIOS={
     {id:'lc5',entidad:'Mapfre',tipo:'aseguradora',monto:300},
   ],
   garantias:[
-    {id:'g1',proyecto:'PET CT Clínica Alemana',tipo:'fiel_cumplimiento',instrumento:'boleta_bancaria',entidad:'BCI',monto:38,fechaSolicitud:'2025-05-20',fechaInicio:'2025-06-01',fechaVencimiento:'2026-06-01',estado:'vigente',obs:''},
-    {id:'g2',proyecto:'PET CT Clínica Alemana',tipo:'anticipo',instrumento:'boleta_bancaria',entidad:'BCI',monto:50,fechaSolicitud:'2025-05-20',fechaInicio:'2025-06-01',fechaVencimiento:'2026-04-30',estado:'por_vencer',obs:'Vence con el término de obra'},
-    {id:'g3',proyecto:'Corona MAM',tipo:'fiel_cumplimiento',instrumento:'boleta_bancaria',entidad:'Santander',monto:231,fechaSolicitud:'2025-11-15',fechaInicio:'2025-12-01',fechaVencimiento:'2027-01-15',estado:'vigente',obs:''},
-    {id:'g4',proyecto:'Corona MAM',tipo:'seriedad',instrumento:'poliza_seguro',entidad:'Mapfre',monto:25,fechaSolicitud:'2025-10-01',fechaInicio:'2025-10-10',fechaVencimiento:'2025-12-10',estado:'devuelta',obs:'Devuelta al adjudicar'},
-    {id:'g5',proyecto:'Ampliación Clínica Las Condes',tipo:'seriedad',instrumento:'boleta_bancaria',entidad:'Banco de Chile',monto:42,fechaSolicitud:'2026-03-10',fechaInicio:'2026-03-15',fechaVencimiento:'2026-06-15',estado:'vigente',obs:''},
+    {id:'g1',proyecto:'PET CT Clínica Alemana',tipo:'fiel_cumplimiento',instrumento:'boleta_garantia',entidad:'BCI',monto:38,fechaSolicitud:'2025-05-20',fechaInicio:'2025-06-01',fechaVencimiento:'2026-06-01',estado:'vigente',obs:''},
+    {id:'g2',proyecto:'PET CT Clínica Alemana',tipo:'anticipo',instrumento:'boleta_garantia',entidad:'BCI',monto:50,fechaSolicitud:'2025-05-20',fechaInicio:'2025-06-01',fechaVencimiento:'2026-04-30',estado:'por_vencer',obs:'Vence con el término de obra'},
+    {id:'g3',proyecto:'Corona MAM',tipo:'fiel_cumplimiento',instrumento:'boleta_garantia',entidad:'Santander',monto:231,fechaSolicitud:'2025-11-15',fechaInicio:'2025-12-01',fechaVencimiento:'2027-01-15',estado:'vigente',obs:''},
+    {id:'g4',proyecto:'Corona MAM',tipo:'seriedad',instrumento:'poliza_garantia',entidad:'Mapfre',monto:25,fechaSolicitud:'2025-10-01',fechaInicio:'2025-10-10',fechaVencimiento:'2025-12-10',estado:'devuelta',obs:'Devuelta al adjudicar'},
+    {id:'g5',proyecto:'Ampliación Clínica Las Condes',tipo:'seriedad',instrumento:'boleta_garantia',entidad:'Banco de Chile',monto:42,fechaSolicitud:'2026-03-10',fechaInicio:'2026-03-15',fechaVencimiento:'2026-06-15',estado:'vigente',obs:''},
   ],
   planInversion:[
     {id:'pi1',cliente:'Clínica Alemana',monto:5000},
@@ -1139,7 +1139,7 @@ async function loadFromSupabase(){
   if(has(gR)||has(lcR)||has(piR)){
     const gars=has(gR)?gR.data.map(g=>({id:g.id,
       proyecto:g.proyecto_id?(projIdMap[g.proyecto_id]||''):'',
-      tipo:g.tipo,instrumento:g.instrumento,entidad:g.entidad,
+      tipo:g.tipo,instrumento:normInstr(g.instrumento),entidad:g.entidad,
       monto:Number(g.monto)||0,fechaSolicitud:g.fecha_solicitud||'',
       fechaInicio:g.fecha_inicio||'',fechaVencimiento:g.fecha_vencimiento||'',
       estado:g.estado||'solicitada',obs:g.observacion||''})):estudiosData.garantias
@@ -1371,6 +1371,7 @@ async function persist(){
 // ── UTILS ─────────────────────────────────────────────────
 function fmtD(d){return d.toLocaleDateString('es-CL',{day:'2-digit',month:'short',year:'numeric'})}
 function fmtN(n){return Number(n).toLocaleString('es-CL')}
+function normInstr(i){const m={boleta_bancaria:'boleta_garantia',poliza_seguro:'poliza_garantia'};return m[i]||i||'boleta_garantia'}
 function parseF(v){return parseFloat(String(v).replace(/[^0-9.\-]/g,''))||0}
 function trend(k){if(!k.hist||k.hist.length<2)return '=';const a=parseF(k.hist[k.hist.length-1]),b=parseF(k.hist[k.hist.length-2]);return a>b*1.02?'↑':a<b*0.98?'↓':'='}
 function toast2(msg,type='ok'){
@@ -2893,7 +2894,7 @@ function saveTeamModal(){
 // ── GARANTIAS MASTER ──────────────────────────────────────
 let editGarIdx=null,editLineaIdx=null,garFilter='todos'
 const GAR_TIPOS={seriedad:'Seriedad oferta',fiel_cumplimiento:'Fiel cumplimiento',anticipo:'Anticipo',correcta_ejecucion:'Correcta ejecución',otra:'Otra'}
-const GAR_INSTR={boleta_bancaria:'Boleta bancaria',poliza_seguro:'Póliza de seguro'}
+const GAR_INSTR={boleta_garantia:'Boleta de Garantía',poliza_garantia:'Póliza de Garantía',capital_trabajo:'Capital de Trabajo',factoring:'Factoring'}
 const GAR_ESTADOS={solicitada:['#0B5ED7','Solicitada'],vigente:['#16A34A','Vigente'],por_vencer:['#D97706','Por vencer'],en_renovacion:['#7C3AED','En renovación'],vencida:['#DC2626','Vencida'],devuelta:['#94A3B8','Devuelta']}
 
 function showGarantias(){setBc([{l:'Inicio',f:'goHome()'}],'Garantías');renderGarantias();renderEntidadesMaestro();showSc('sc-garantias')}
@@ -3035,7 +3036,7 @@ function openGarModal(idx){
   const sel=document.getElementById('gm-proj')
   sel.innerHTML='<option value="">— Sin proyecto —</option>'+projects.filter(p=>p.mandante).map(p=>`<option value="${p.name}"${g?.proyecto===p.name?' selected':''}>${p.name}</option>`).join('')
   document.getElementById('gm-tipo').value=g?.tipo||'seriedad'
-  document.getElementById('gm-instr').value=g?.instrumento||'boleta_bancaria'
+  document.getElementById('gm-instr').value=g?.instrumento||'boleta_garantia'
   const entSel=document.getElementById('gm-entidad')
   entSel.innerHTML='<option value="">— Seleccionar entidad —</option>'+entidadesMaestro.map(e=>`<option value="${e.nombre}"${g?.entidad===e.nombre?' selected':''}>${e.nombre} (${e.tipo==='banco'?'Banco':'Aseg.'})</option>`).join('')
   document.getElementById('gm-monto').value=g?.monto||''
@@ -3211,10 +3212,10 @@ document.addEventListener('keydown',e=>{
 
 // ── INIT ──────────────────────────────────────────────────
 loadAll().then(()=>{
-  console.log('App lista v11.0 — Supabase:',sbOnline?'✓':'offline')
+  console.log('App lista v11.1 — Supabase:',sbOnline?'✓':'offline')
   const vd=document.createElement('div')
   vd.style.cssText='position:fixed;bottom:4px;left:4px;font-size:9px;color:#94A3B8;z-index:9999;pointer-events:none'
-  vd.textContent='v11.0 · SB:'+(sbOnline?'✓':'✗')
+  vd.textContent='v11.1 · SB:'+(sbOnline?'✓':'✗')
   document.body.appendChild(vd)
 })
 </script>
