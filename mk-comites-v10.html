@@ -1931,9 +1931,9 @@ function buildSlideGarantias(d){
   const gars=estudiosData.garantias||[]
   const lineas=estudiosData.lineasCredito||[]
   const activas=gars.filter(g=>['vigente','por_vencer','en_renovacion','solicitada'].includes(g.estado))
-  const totalComp=activas.reduce((s,g)=>s+g.monto,0)
+  const totalComp=activas.reduce((s,g)=>s+Number(g.monto),0)
   const porVencer=gars.filter(g=>g.estado==='por_vencer')
-  const totalLineas=lineas.reduce((s,l)=>s+l.monto,0)
+  const totalLineas=lineas.reduce((s,l)=>s+Number(l.monto),0)
 
   // Consumo por entidad
   const consumoPorEnt={}
@@ -2561,7 +2561,7 @@ function renderProjects(){
       ${(()=>{
         const tc=team.filter(t=>t.proyecto===p.name&&t.estado==='activo').length
         const gars=getProjectGarantias(p.name)
-        const tg=gars.reduce((s,g)=>s+g.monto,0)
+        const tg=gars.reduce((s,g)=>s+Number(g.monto),0)
         const pv=gars.filter(g=>g.estado==='por_vencer').length
         let pills=''
         if(tc)pills+=`<span class="pill pok">${tc} profesional${tc>1?'es':''}</span>`
@@ -2946,15 +2946,15 @@ function renderGarantias(){
   const lineas=estudiosData.lineasCredito||[]
 
   // ── Summary: Líneas de crédito consolidadas ──
-  const totalAprobado=lineas.reduce((s,l)=>s+l.monto,0)
+  const totalAprobado=lineas.reduce((s,l)=>s+Number(l.monto),0)
   const consumoPorEntidad={}
-  gars.filter(g=>['vigente','por_vencer','en_renovacion','solicitada'].includes(g.estado)).forEach(g=>{consumoPorEntidad[g.entidad]=(consumoPorEntidad[g.entidad]||0)+g.monto})
+  gars.filter(g=>['vigente','por_vencer','en_renovacion','solicitada'].includes(g.estado)).forEach(g=>{consumoPorEntidad[g.entidad]=(consumoPorEntidad[g.entidad]||0)+Number(g.monto)})
   const totalComprometido=Object.values(consumoPorEntidad).reduce((s,v)=>s+v,0)
   const saldo=totalAprobado-totalComprometido
   const hoy=new Date()
   const en30=new Date(hoy.getTime()+30*24*60*60*1000)
-  const montoPorVencer=gars.filter(g=>['vigente','por_vencer'].includes(g.estado)&&g.fechaVencimiento&&new Date(g.fechaVencimiento+'T12:00:00')<=en30&&new Date(g.fechaVencimiento+'T12:00:00')>=hoy).reduce((s,g)=>s+g.monto,0)
-  const montoVencido=gars.filter(g=>g.estado==='vencida').reduce((s,g)=>s+g.monto,0)
+  const montoPorVencer=gars.filter(g=>['vigente','por_vencer'].includes(g.estado)&&g.fechaVencimiento&&new Date(g.fechaVencimiento+'T12:00:00')<=en30&&new Date(g.fechaVencimiento+'T12:00:00')>=hoy).reduce((s,g)=>s+Number(g.monto),0)
+  const montoVencido=gars.filter(g=>g.estado==='vencida').reduce((s,g)=>s+Number(g.monto),0)
 
   document.getElementById('gar-summary').innerHTML=`
     <div class="gar-sum-card" style="border-left:4px solid var(--co)"><div class="gar-sum-val" style="color:var(--co)">$${fmtN(totalAprobado)} MM</div><div class="gar-sum-lbl">Total aprobado</div></div>
@@ -2970,13 +2970,13 @@ function renderGarantias(){
   const consumoPorEI={}
   gars.filter(g=>['vigente','por_vencer','en_renovacion','solicitada'].includes(g.estado)).forEach(g=>{
     const key=(g.instrumento||'boleta_garantia')+'||'+g.entidad
-    consumoPorEI[key]=(consumoPorEI[key]||0)+g.monto
+    consumoPorEI[key]=(consumoPorEI[key]||0)+Number(g.monto)
   })
   // Agrupar por instrumento
   const instrGrupos=INSTR_ORDER.filter(instr=>lineas.some(l=>(l.instrumento||'boleta_garantia')===instr))
   document.getElementById('lineas-list').innerHTML=instrGrupos.map(instr=>{
     const instrLineas=lineas.filter(l=>(l.instrumento||'boleta_garantia')===instr).sort((a,b)=>b.monto-a.monto)
-    const totalInstr=instrLineas.reduce((s,l)=>s+l.monto,0)
+    const totalInstr=instrLineas.reduce((s,l)=>s+Number(l.monto),0)
     const consumoInstr=instrLineas.reduce((s,l)=>s+(consumoPorEI[instr+'||'+l.entidad]||0),0)
     const dispInstr=totalInstr-consumoInstr
     const pctInstr=totalInstr>0?Math.round(consumoInstr/totalInstr*100):0
@@ -3126,10 +3126,10 @@ function renderEntidadesMaestro(){
   el.innerHTML=entidadesMaestro.map((e,ei)=>{
     // Líneas de esta entidad
     const entLineas=lineas.filter(l=>l.entidad===e.nombre)
-    const totalAprobado=entLineas.reduce((s,l)=>s+l.monto,0)
+    const totalAprobado=entLineas.reduce((s,l)=>s+Number(l.monto),0)
     // Garantías activas de esta entidad
     const entGars=gars.filter(g=>g.entidad===e.nombre&&['vigente','por_vencer','en_renovacion','solicitada'].includes(g.estado))
-    const totalComprometido=entGars.reduce((s,g)=>s+g.monto,0)
+    const totalComprometido=entGars.reduce((s,g)=>s+Number(g.monto),0)
     const totalDisp=totalAprobado-totalComprometido
     const pct=totalAprobado>0?Math.round(totalComprometido/totalAprobado*100):0
     return`<div style="background:var(--wh);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:8px">
@@ -3150,9 +3150,10 @@ function renderEntidadesMaestro(){
       ${entLineas.length?`<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--sl);margin-bottom:4px">Líneas</div>
       ${entLineas.map(l=>{
         const instr=l.instrumento||'boleta_garantia'
-        const consumo=entGars.filter(g=>(g.instrumento||'boleta_garantia')===instr).reduce((s,g)=>s+g.monto,0)
-        const disp=l.monto-consumo
-        const lpct=l.monto>0?Math.round(consumo/l.monto*100):0
+        const consumo=entGars.filter(g=>normInstr(g.instrumento)===instr).reduce((s,g)=>s+Number(g.monto),0)
+        const lmonto=Number(l.monto)
+        const disp=lmonto-consumo
+        const lpct=lmonto>0?Math.round(consumo/lmonto*100):0
         const bc=lpct>80?'var(--re)':'var(--am)'
         return`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px">
           <span style="min-width:140px;font-weight:600;color:var(--ink2)">${INSTR_LABELS_M[instr]||instr}</span>
@@ -3229,10 +3230,10 @@ document.addEventListener('keydown',e=>{
 
 // ── INIT ──────────────────────────────────────────────────
 loadAll().then(()=>{
-  console.log('App lista v11.2 — Supabase:',sbOnline?'✓':'offline')
+  console.log('App lista v11.3 — Supabase:',sbOnline?'✓':'offline')
   const vd=document.createElement('div')
   vd.style.cssText='position:fixed;bottom:4px;left:4px;font-size:9px;color:#94A3B8;z-index:9999;pointer-events:none'
-  vd.textContent='v11.2 · SB:'+(sbOnline?'✓':'✗')
+  vd.textContent='v11.3 · SB:'+(sbOnline?'✓':'✗')
   document.body.appendChild(vd)
 })
 </script>
