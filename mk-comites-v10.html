@@ -2890,53 +2890,53 @@ function renderGarantias(){
     <div class="gar-sum-card" style="border-left:4px solid var(--am)"><div class="gar-sum-val" style="color:var(--am)">$${fmtN(montoPorVencer)} MM</div><div class="gar-sum-lbl">Por vencer (30d)</div></div>
     <div class="gar-sum-card" style="border-left:4px solid var(--re)"><div class="gar-sum-val" style="color:var(--re)">$${fmtN(montoVencido)} MM</div><div class="gar-sum-lbl">Vencido</div></div>`
 
-  // ── Lineas agrupadas por entidad ──
+  // ── Líneas agrupadas por INSTRUMENTO → Entidad → Montos ──
   const INSTR_LABELS={boleta_garantia:'Boleta de Garantía',poliza_garantia:'Póliza de Garantía',capital_trabajo:'Capital de Trabajo',factoring:'Factoring'}
-  // Calcular consumo por entidad+instrumento
+  const INSTR_ORDER=['boleta_garantia','poliza_garantia','capital_trabajo','factoring']
+  // Consumo por entidad+instrumento
   const consumoPorEI={}
   gars.filter(g=>['vigente','por_vencer','en_renovacion','solicitada'].includes(g.estado)).forEach(g=>{
-    const key=g.entidad+'||'+g.instrumento
+    const key=(g.instrumento||'boleta_garantia')+'||'+g.entidad
     consumoPorEI[key]=(consumoPorEI[key]||0)+g.monto
   })
-  // Agrupar líneas por entidad
-  const entidades=[...new Set(lineas.map(l=>l.entidad))].sort()
-  document.getElementById('lineas-list').innerHTML=entidades.map(ent=>{
-    const entLineas=lineas.filter(l=>l.entidad===ent)
-    const tipoEnt=entLineas[0]?.tipoEntidad||entLineas[0]?.tipo||'banco'
-    const totalEnt=entLineas.reduce((s,l)=>s+l.monto,0)
-    const consumoEnt=Object.entries(consumoPorEI).filter(([k])=>k.startsWith(ent+'||')).reduce((s,[,v])=>s+v,0)
-    const dispEnt=totalEnt-consumoEnt
-    const pctEnt=totalEnt>0?Math.round(consumoEnt/totalEnt*100):0
-    return`<div style="background:var(--wh);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;margin-bottom:8px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-weight:700;font-size:14px">${ent}</span>
-          <span style="font-size:10px;padding:2px 8px;border-radius:4px;background:var(--sl-lt);color:var(--sl);font-weight:600">${tipoEnt==='banco'?'Banco':'Aseguradora'}</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:12px">
-          <span style="color:var(--co);font-weight:700">$${fmtN(totalEnt)} MM</span>
-          <span style="color:${pctEnt>80?'var(--re)':'var(--am)'};font-weight:700">${pctEnt}%</span>
-          <span style="color:${dispEnt>=0?'var(--gr)':'var(--re)'};font-weight:700">$${fmtN(dispEnt)} MM disp.</span>
+  // Agrupar por instrumento
+  const instrGrupos=INSTR_ORDER.filter(instr=>lineas.some(l=>(l.instrumento||'boleta_garantia')===instr))
+  document.getElementById('lineas-list').innerHTML=instrGrupos.map(instr=>{
+    const instrLineas=lineas.filter(l=>(l.instrumento||'boleta_garantia')===instr).sort((a,b)=>b.monto-a.monto)
+    const totalInstr=instrLineas.reduce((s,l)=>s+l.monto,0)
+    const consumoInstr=instrLineas.reduce((s,l)=>s+(consumoPorEI[instr+'||'+l.entidad]||0),0)
+    const dispInstr=totalInstr-consumoInstr
+    const pctInstr=totalInstr>0?Math.round(consumoInstr/totalInstr*100):0
+    return`<div style="background:var(--wh);border:1px solid var(--bd);border-radius:10px;margin-bottom:8px;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--sl-lt)">
+        <span style="font-weight:700;font-size:13px">${INSTR_LABELS[instr]}</span>
+        <div style="display:flex;align-items:center;gap:12px;font-size:12px">
+          <span style="color:var(--co);font-weight:700">$${fmtN(totalInstr)} MM</span>
+          <span style="color:${pctInstr>80?'var(--re)':'var(--am)'};font-weight:700">${pctInstr}% usado</span>
+          <span style="color:${dispInstr>=0?'var(--gr)':'var(--re)'};font-weight:700">$${fmtN(dispInstr)} MM disp.</span>
         </div>
       </div>
-      ${entLineas.map(l=>{
+      <div style="padding:0 16px">
+      ${instrLineas.map(l=>{
         const i=lineas.indexOf(l)
-        const instrLabel=INSTR_LABELS[l.instrumento]||l.instrumento||'Boleta de Garantía'
-        const cKey=l.entidad+'||'+(l.instrumento||'boleta_garantia')
+        const cKey=instr+'||'+l.entidad
         const consumo=consumoPorEI[cKey]||0
         const disp=l.monto-consumo
         const pct=l.monto>0?Math.round(consumo/l.monto*100):0
         const barColor=pct>80?'var(--re)':pct>50?'var(--am)':'var(--gr)'
-        return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--bd)">
-          <span style="min-width:140px;font-size:12px;font-weight:600;color:var(--ink2)">${instrLabel}</span>
+        const tipoEnt=l.tipoEntidad||l.tipo||'banco'
+        return`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)">
+          <span style="min-width:110px;font-size:12px;font-weight:700">${l.entidad}</span>
+          <span style="min-width:40px;font-size:9px;color:var(--sl);font-weight:600">${tipoEnt==='banco'?'Banco':'Aseg.'}</span>
           <span style="min-width:70px;text-align:right;font-size:12px;color:var(--co);font-weight:700">$${fmtN(l.monto)}</span>
           <div class="linea-bar" style="flex:1"><div class="linea-fill" style="width:${pct}%;background:${barColor}"></div></div>
           <span style="min-width:35px;text-align:right;font-size:10px;font-weight:700;color:${barColor}">${pct}%</span>
-          <span style="min-width:65px;text-align:right;font-size:11px;font-weight:700;color:${disp>=0?'var(--gr)':'var(--re)'}">$${fmtN(disp)}</span>
+          <span style="min-width:70px;text-align:right;font-size:11px;font-weight:700;color:${disp>=0?'var(--gr)':'var(--re)'}">$${fmtN(disp)}</span>
           <button class="btn sm gh" onclick="openLineaModal(${i})">✎</button>
           <button class="xbtn" onclick="if(confirm('¿Eliminar?')){trackDelete('lineas_credito',estudiosData.lineasCredito[${i}].id);estudiosData.lineasCredito.splice(${i},1);persist();renderGarantias()}">×</button>
         </div>`
       }).join('')}
+      </div>
     </div>`
   }).join('')||'<div style="color:#94A3B8;font-size:12px">Sin líneas definidas.</div>'
 
@@ -3079,10 +3079,10 @@ document.addEventListener('keydown',e=>{
 
 // ── INIT ──────────────────────────────────────────────────
 loadAll().then(()=>{
-  console.log('App lista v10.8 — Supabase:',sbOnline?'✓':'offline')
+  console.log('App lista v10.9 — Supabase:',sbOnline?'✓':'offline')
   const vd=document.createElement('div')
   vd.style.cssText='position:fixed;bottom:4px;left:4px;font-size:9px;color:#94A3B8;z-index:9999;pointer-events:none'
-  vd.textContent='v10.8 · SB:'+(sbOnline?'✓':'✗')
+  vd.textContent='v10.9 · SB:'+(sbOnline?'✓':'✗')
   document.body.appendChild(vd)
 })
 </script>
