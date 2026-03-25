@@ -2453,10 +2453,14 @@ function exportAmpHistPDF(sesionId){
 
 // ── PROJECTS MASTER ───────────────────────────────────────
 let editProjIdx=null
-function isObra(p){return!!(p.fin&&['adjudicado','activo','cerrado_saldo','cerrado'].includes(p.estado))}
+function isObra(p){
+  if(['cerrado_saldo'].includes(p.estado))return true // siempre mostrar para editar saldos
+  return!!(p.fin&&['adjudicado','activo','cerrado'].includes(p.estado))
+}
+function ensureFin(p){if(!p.fin)p.fin={contrato:0,ndc:0,facturado:0,presupuesto:0,gastado:0,comprometido:0,avanceReal:0,avanceProg:0,spi:0,cpi:0};return p.fin}
 function getObras(){return projects.filter(p=>isObra(p))}
 function getObrasActivas(){return projects.filter(p=>isObra(p)&&['adjudicado','activo'].includes(p.estado))}
-function getObrasCerradasSaldo(){return projects.filter(p=>isObra(p)&&p.estado==='cerrado_saldo')}
+function getObrasCerradasSaldo(){return projects.filter(p=>p.estado==='cerrado_saldo')}
 function isEstudio(p){return['en_evaluacion','en_estudio','en_aclaracion','sin_informacion'].includes(p.estado)}
 function getEstudioProjects(estado){return estado?projects.filter(p=>p.estado===estado):projects.filter(p=>isEstudio(p))}
 function getAdjudicados(){return projects.filter(p=>p.estado==='adjudicado'&&p.mandante)}
@@ -2583,7 +2587,7 @@ function renderObrasFin(){
   sec.style.display='block'
   document.getElementById('obras-fin-list').innerHTML=obras.map((p,oi)=>{
     const pi=projects.indexOf(p)
-    const f=p.fin||{contrato:0,ndc:0,facturado:0,presupuesto:0,gastado:0,comprometido:0,avanceReal:0,avanceProg:0,spi:0,cpi:0}
+    const f=ensureFin(p)
     const spiClass=f.spi>=1?'ok':f.spi>=0.85?'warn':'bad'
     const margen=f.contrato-f.presupuesto
     const saldo=f.comprometido-f.gastado
@@ -2591,7 +2595,8 @@ function renderObrasFin(){
       <div class="obra-head" onclick="this.nextElementSibling.classList.toggle('open')">
         <div class="obra-title"><div class="odot" style="background:${p.color}"></div>${p.name}</div>
         <div style="display:flex;gap:6px;align-items:center">
-          <span class="obra-badge" style="background:var(--co-lt);color:var(--co)">$${f.contrato} MM</span>
+          ${p.estado==='cerrado_saldo'?'<span class="obra-badge" style="background:var(--am-lt);color:var(--am)">Cerrado con saldo</span>':''}
+          <span class="obra-badge" style="background:var(--co-lt);color:var(--co)">$${fmtN(f.contrato)} MM</span>
           <span class="obra-badge" style="background:${spiClass==='ok'?'var(--gr-lt)':spiClass==='warn'?'var(--am-lt)':'var(--re-lt)'};color:${spiClass==='ok'?'var(--gr)':spiClass==='warn'?'var(--am)':'var(--re)'}">SPI ${f.spi}</span>
           <span style="font-size:11px;color:#94A3B8">▾</span>
         </div>
@@ -3042,10 +3047,10 @@ document.addEventListener('keydown',e=>{
 
 // ── INIT ──────────────────────────────────────────────────
 loadAll().then(()=>{
-  console.log('App lista v10.6 — Supabase:',sbOnline?'✓':'offline')
+  console.log('App lista v10.7 — Supabase:',sbOnline?'✓':'offline')
   const vd=document.createElement('div')
   vd.style.cssText='position:fixed;bottom:4px;left:4px;font-size:9px;color:#94A3B8;z-index:9999;pointer-events:none'
-  vd.textContent='v10.6 · SB:'+(sbOnline?'✓':'✗')
+  vd.textContent='v10.7 · SB:'+(sbOnline?'✓':'✗')
   document.body.appendChild(vd)
 })
 </script>
