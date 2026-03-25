@@ -321,6 +321,8 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
 .gar-tab-btn{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:700;border:none;background:transparent;cursor:pointer;font-family:'Barlow',sans-serif;color:var(--sl);transition:all .15s}
 .gar-tab-btn:hover{color:var(--ink)}
 .gar-tab-btn.active{background:var(--wh);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.gar-print-mode .btn.sm.gh,.gar-print-mode .xbtn,.gar-print-mode .btn.sm.danger,.gar-print-mode #gar-top-actions,.gar-print-mode .btn.pri[onclick*="Modal"]{display:none!important}
+@media print{.btn.sm.gh,.xbtn,.btn.sm.danger,#gar-top-actions,.btn.pri[onclick*="Modal"],.gar-tab-btn,.toast{display:none!important}}
 .gar-sum-val{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;line-height:1}
 .gar-sum-lbl{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--sl);margin-top:4px}
 .linea-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:12px}
@@ -602,10 +604,17 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
         <button class="btn pri" onclick="openGarModal(null)">+ Garantía</button>
       </div>
     </div>
-    <!-- Tabs -->
-    <div style="display:flex;gap:3px;background:var(--sl-lt);border-radius:10px;padding:3px;border:1px solid var(--bd);width:fit-content;margin-bottom:16px">
+    <!-- Tabs + Mode toggle -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div style="display:flex;gap:3px;background:var(--sl-lt);border-radius:10px;padding:3px;border:1px solid var(--bd);width:fit-content">
       <button class="gar-tab-btn active" onclick="showGarTab('garantias',this)">Garantías</button>
       <button class="gar-tab-btn" onclick="showGarTab('entidades',this)">Entidades</button>
+    </div>
+    <!-- Mode toggle -->
+    <div style="display:flex;gap:3px;background:var(--sl-lt);border-radius:8px;padding:2px;border:1px solid var(--bd)">
+      <button class="gar-tab-btn active" id="gar-mode-edit" onclick="setGarMode('edit')" style="padding:5px 12px;font-size:11px">Edición</button>
+      <button class="gar-tab-btn" id="gar-mode-print" onclick="setGarMode('print')" style="padding:5px 12px;font-size:11px">Impresión</button>
+    </div>
     </div>
     <!-- Tab: Garantías -->
     <div id="gar-tab-garantias">
@@ -2898,6 +2907,14 @@ const GAR_INSTR={boleta_garantia:'Boleta de Garantía',poliza_garantia:'Póliza 
 const GAR_ESTADOS={solicitada:['#0B5ED7','Solicitada'],vigente:['#16A34A','Vigente'],por_vencer:['#D97706','Por vencer'],en_renovacion:['#7C3AED','En renovación'],vencida:['#DC2626','Vencida'],devuelta:['#94A3B8','Devuelta']}
 
 function showGarantias(){setBc([{l:'Inicio',f:'goHome()'}],'Garantías');renderGarantias();renderEntidadesMaestro();showSc('sc-garantias')}
+let garMode='edit'
+function setGarMode(mode){
+  garMode=mode
+  const sc=document.getElementById('sc-garantias')
+  if(mode==='print'){sc.classList.add('gar-print-mode')}else{sc.classList.remove('gar-print-mode')}
+  document.getElementById('gar-mode-edit').classList.toggle('active',mode==='edit')
+  document.getElementById('gar-mode-print').classList.toggle('active',mode==='print')
+}
 function showGarTab(tab,btn){
   document.querySelectorAll('.gar-tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active')
   document.getElementById('gar-tab-garantias').style.display=tab==='garantias'?'block':'none'
@@ -2979,7 +2996,7 @@ function renderGarantias(){
         const consumo=consumoPorEI[cKey]||0
         const disp=l.monto-consumo
         const pct=l.monto>0?Math.round(consumo/l.monto*100):0
-        const barColor=pct>80?'var(--re)':pct>50?'var(--am)':'var(--gr)'
+        const barColor=pct>80?'var(--re)':'var(--am)'
         const tipoEnt=l.tipoEntidad||l.tipo||'banco'
         return`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)">
           <span style="min-width:110px;font-size:12px;font-weight:700">${l.entidad}</span>
@@ -3136,7 +3153,7 @@ function renderEntidadesMaestro(){
         const consumo=entGars.filter(g=>(g.instrumento||'boleta_garantia')===instr).reduce((s,g)=>s+g.monto,0)
         const disp=l.monto-consumo
         const lpct=l.monto>0?Math.round(consumo/l.monto*100):0
-        const bc=lpct>80?'var(--re)':lpct>50?'var(--am)':'var(--gr)'
+        const bc=lpct>80?'var(--re)':'var(--am)'
         return`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px">
           <span style="min-width:140px;font-weight:600;color:var(--ink2)">${INSTR_LABELS_M[instr]||instr}</span>
           <span style="min-width:70px;text-align:right;color:var(--co);font-weight:700">$${fmtN(l.monto)}</span>
@@ -3212,10 +3229,10 @@ document.addEventListener('keydown',e=>{
 
 // ── INIT ──────────────────────────────────────────────────
 loadAll().then(()=>{
-  console.log('App lista v11.1 — Supabase:',sbOnline?'✓':'offline')
+  console.log('App lista v11.2 — Supabase:',sbOnline?'✓':'offline')
   const vd=document.createElement('div')
   vd.style.cssText='position:fixed;bottom:4px;left:4px;font-size:9px;color:#94A3B8;z-index:9999;pointer-events:none'
-  vd.textContent='v11.1 · SB:'+(sbOnline?'✓':'✗')
+  vd.textContent='v11.2 · SB:'+(sbOnline?'✓':'✗')
   document.body.appendChild(vd)
 })
 </script>
