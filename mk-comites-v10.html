@@ -731,10 +731,11 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
         <option value="en_aclaracion">🟡 En Aclaración</option>
         <option value="sin_informacion">⚪ Sin Información</option>
         <option value="adjudicado">🟢 Adjudicado</option>
+        <option value="activo">🔵 Activo (en ejecución)</option>
         <option value="no_adjudicado">🔴 No Adjudicado</option>
         <option value="excusa">⚫ Excusa</option>
         <option value="cerrado_saldo">🟠 Cerrado con saldo</option>
-        <option value="cerrado">🔴 Cerrado</option>
+        <option value="cerrado">⚪ Cerrado</option>
       </select>
       <div id="pm-color-preview" style="height:6px;border-radius:3px;margin-top:6px;transition:background .2s"></div>
     </div>
@@ -744,8 +745,29 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
         <div class="mfield"><label>Monto licitación ($MM)</label><input class="minp" type="number" id="pm-monto-licit" placeholder="0"/></div>
         <div class="mfield"><label>Margen estudio (%)</label><input class="minp" type="number" id="pm-margen-est" placeholder="0"/></div>
       </div>
-      <div class="mfield"><label>Fecha oferta</label><input class="minp" type="date" id="pm-fecha-oferta"/></div>
+      <div class="mfield"><label>Fecha última oferta</label><input class="minp" type="date" id="pm-fecha-oferta"/></div>
       <div class="mfield"><label>Observación / situación</label><input class="minp" type="text" id="pm-obs" placeholder="Ej: En aclaración 1, esperando respuesta"/></div>
+    </div>
+    <!-- Campos adjudicación (visible para adjudicado, activo, cerrado_saldo, cerrado) -->
+    <div id="pm-adj-fields" style="display:none">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--sl);margin:10px 0 6px;border-top:1px solid var(--bd);padding-top:10px">Datos de Adjudicación</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="mfield"><label>Monto adjudicado ($MM)</label><input class="minp" type="number" id="pm-monto-adj" placeholder="0"/></div>
+        <div class="mfield"><label>Meta margen ($MM)</label><input class="minp" type="number" id="pm-meta-margen" placeholder="0"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="mfield"><label>Fecha adjudicación</label><input class="minp" type="date" id="pm-fecha-adj"/></div>
+        <div class="mfield"><label>Meta margen (%)</label><input class="minp" type="number" id="pm-meta-margen-pct" step="0.1" placeholder="0"/></div>
+      </div>
+    </div>
+    <!-- Saldos financieros (visible para adjudicado, activo, cerrado_saldo) -->
+    <div id="pm-saldo-fields" style="display:none">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--sl);margin:10px 0 6px;border-top:1px solid var(--bd);padding-top:10px">Saldos Financieros</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="mfield"><label>Saldo por facturar ($MM)</label><input class="minp" type="number" id="pm-saldo-facturar" placeholder="0"/></div>
+        <div class="mfield"><label>Saldos proveedores ($MM)</label><input class="minp" type="number" id="pm-saldo-proveedores" placeholder="0"/></div>
+      </div>
+      <div class="mfield"><label>Comentario financiero</label><input class="minp" type="text" id="pm-comentario-fin" placeholder="Ej: Falta OC proveedor X, retención 10%"/></div>
     </div>
     <div class="mbtns"><button class="btn" onclick="closeProjModal()">Cancelar</button><button class="btn pri" onclick="saveProjModal()">Guardar</button></div>
   </div>
@@ -974,7 +996,7 @@ const ADEFS=[
 ]
 
 // ── PROJECT COLOR (needed early by Supabase loader) ──────
-const PROJ_ESTADO_COLOR={adjudicado:'#16A34A',en_estudio:'#0B5ED7',en_evaluacion:'#64748B',en_aclaracion:'#D97706',sin_informacion:'#94A3B8',no_adjudicado:'#DC2626',excusa:'#64748B',cerrado_saldo:'#D97706',cerrado:'#DC2626'}
+const PROJ_ESTADO_COLOR={adjudicado:'#16A34A',activo:'#0B5ED7',en_estudio:'#0B5ED7',en_evaluacion:'#64748B',en_aclaracion:'#D97706',sin_informacion:'#94A3B8',no_adjudicado:'#DC2626',excusa:'#64748B',cerrado_saldo:'#D97706',cerrado:'#94A3B8'}
 function projColor(estado){return PROJ_ESTADO_COLOR[estado]||'#64748B'}
 
 // ── SUPABASE ─────────────────────────────────────────────
@@ -1026,6 +1048,8 @@ async function loadFromSupabase(){
       mandante:p.mandante||'',administrador:p.administrador||'',
       fechaInicio:p.fecha_inicio||'',fechaTermino:p.fecha_termino||'',
       est:{montoLicit:Number(p.monto_licitacion)||0,margenEstPct:Number(p.margen_estudio_pct)||0,fechaOferta:p.fecha_oferta||'',obs:p.observacion||''},
+      adj:{montoAdj:Number(p.monto_adjudicado)||0,metaMargen:Number(p.meta_margen)||0,metaMargenPct:Number(p.meta_margen_pct)||0,fechaAdj:p.fecha_adjudicacion||''},
+      saldos:{porFacturar:Number(p.saldo_por_facturar)||0,proveedores:Number(p.saldo_proveedores)||0,comentario:p.comentario_financiero||''},
       fin:(Number(p.contrato)||Number(p.facturado)||Number(p.gastado))?{contrato:Number(p.contrato)||0,ndc:Number(p.ndc)||0,facturado:Number(p.facturado)||0,presupuesto:Number(p.presupuesto)||0,gastado:Number(p.gastado)||0,comprometido:Number(p.comprometido)||0,avanceReal:Number(p.avance_real)||0,avanceProg:Number(p.avance_prog)||0,spi:Number(p.spi)||0,cpi:Number(p.cpi)||0}:null,
       gar:null
     }))
@@ -1135,6 +1159,10 @@ async function persistToSupabase(){
     fecha_inicio:p.fechaInicio||null,fecha_termino:p.fechaTermino||null,
     monto_licitacion:p.est?.montoLicit||0,margen_estudio_pct:p.est?.margenEstPct||0,
     fecha_oferta:p.est?.fechaOferta||null,observacion:p.est?.obs||'',
+    monto_adjudicado:p.adj?.montoAdj||0,meta_margen:p.adj?.metaMargen||0,
+    meta_margen_pct:p.adj?.metaMargenPct||0,fecha_adjudicacion:p.adj?.fechaAdj||null,
+    saldo_por_facturar:p.saldos?.porFacturar||0,saldo_proveedores:p.saldos?.proveedores||0,
+    comentario_financiero:p.saldos?.comentario||'',
     contrato:p.fin?.contrato||0,ndc:p.fin?.ndc||0,facturado:p.fin?.facturado||0,
     presupuesto:p.fin?.presupuesto||0,gastado:p.fin?.gastado||0,comprometido:p.fin?.comprometido||0,
     avance_real:p.fin?.avanceReal||0,avance_prog:p.fin?.avanceProg||0,
@@ -1148,6 +1176,11 @@ async function persistToSupabase(){
     const row={nombre:p.name,estado:p.estado,mandante:p.mandante||'',administrador:p.administrador||'',
       fecha_inicio:p.fechaInicio||null,fecha_termino:p.fechaTermino||null,
       monto_licitacion:p.est?.montoLicit||0,margen_estudio_pct:p.est?.margenEstPct||0,
+      fecha_oferta:p.est?.fechaOferta||null,observacion:p.est?.obs||'',
+      monto_adjudicado:p.adj?.montoAdj||0,meta_margen:p.adj?.metaMargen||0,
+      meta_margen_pct:p.adj?.metaMargenPct||0,fecha_adjudicacion:p.adj?.fechaAdj||null,
+      saldo_por_facturar:p.saldos?.porFacturar||0,saldo_proveedores:p.saldos?.proveedores||0,
+      comentario_financiero:p.saldos?.comentario||'',
       contrato:p.fin?.contrato||0,ndc:p.fin?.ndc||0,facturado:p.fin?.facturado||0,
       presupuesto:p.fin?.presupuesto||0,gastado:p.fin?.gastado||0,comprometido:p.fin?.comprometido||0,
       avance_real:p.fin?.avanceReal||0,avance_prog:p.fin?.avanceProg||0,spi:p.fin?.spi||0,cpi:p.fin?.cpi||0}
@@ -1294,6 +1327,7 @@ async function persist(){
 
 // ── UTILS ─────────────────────────────────────────────────
 function fmtD(d){return d.toLocaleDateString('es-CL',{day:'2-digit',month:'short',year:'numeric'})}
+function fmtN(n){return Number(n).toLocaleString('es-CL')}
 function parseF(v){return parseFloat(String(v).replace(/[^0-9.\-]/g,''))||0}
 function trend(k){if(!k.hist||k.hist.length<2)return '=';const a=parseF(k.hist[k.hist.length-1]),b=parseF(k.hist[k.hist.length-2]);return a>b*1.02?'↑':a<b*0.98?'↓':'='}
 function toast2(msg,type='ok'){
@@ -2425,8 +2459,8 @@ function getAdjudicados(){return projects.filter(p=>p.estado==='adjudicado'&&p.m
 function getNoAdjudicados(){return projects.filter(p=>['no_adjudicado','excusa'].includes(p.estado))}
 function showProjects(){setBc([{l:'Inicio',f:'goHome()'}],'Proyectos');renderProjects();showSc('sc-projects')}
 function renderProjects(){
-  const estadoLabel={activo:'● Activo',cerrado_saldo:'◐ Cerrado con saldo',cerrado:'○ Cerrado'}
-  const estadoColor={activo:'var(--gr)',cerrado_saldo:'var(--am)',cerrado:'var(--sl)'}
+  const estadoLabel={adjudicado:'🟢 Adjudicado',activo:'🔵 Activo',cerrado_saldo:'🟠 Cerrado con saldo',cerrado:'⚪ Cerrado',en_evaluacion:'📋 En Evaluación',en_estudio:'🔵 En Estudio',en_aclaracion:'🟡 En Aclaración',sin_informacion:'⚪ Sin Info',no_adjudicado:'🔴 No Adjudicado',excusa:'⚫ Excusa'}
+  const estadoColor={adjudicado:'var(--gr)',activo:'var(--co)',cerrado_saldo:'var(--am)',cerrado:'var(--sl)',en_evaluacion:'var(--sl)',en_estudio:'var(--co)',en_aclaracion:'var(--go)',no_adjudicado:'var(--re)',excusa:'#1E293B'}
   document.getElementById('proj-grid').innerHTML=projects.map((p,i)=>{
     const isO=isObra(p)
     return`<div class="proj-card" style="border-left-color:${p.color}">
@@ -2438,8 +2472,16 @@ function renderProjects(){
         ${p.fechaInicio?`<span>📅 Inicio: ${fmtD(new Date(p.fechaInicio+'T12:00:00'))}</span>`:''}
         ${p.fechaTermino?`<span>🏁 Término: ${fmtD(new Date(p.fechaTermino+'T12:00:00'))}</span>`:''}
       </div>`:''}
-      ${isO&&p.fin?`<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-        <span class="pill pinfo">$${p.fin.contrato} MM</span>
+      ${p.adj&&p.adj.montoAdj?`<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;font-size:10px">
+        <span class="pill pinfo">Adjudicado: $${fmtN(p.adj.montoAdj)} MM</span>
+        ${p.adj.metaMargen?`<span class="pill pok">Meta: $${fmtN(p.adj.metaMargen)} MM (${p.adj.metaMargenPct||0}%)</span>`:''}
+      </div>`:''}
+      ${p.saldos&&(p.saldos.porFacturar||p.saldos.proveedores)?`<div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;font-size:10px">
+        ${p.saldos.porFacturar?`<span class="pill pwarn">Por facturar: $${fmtN(p.saldos.porFacturar)} MM</span>`:''}
+        ${p.saldos.proveedores?`<span class="pill pbad">Proveedores: $${fmtN(p.saldos.proveedores)} MM</span>`:''}
+      </div>`:''}
+      ${isO&&p.fin?`<div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;font-size:10px">
+        <span class="pill pinfo">Contrato: $${fmtN(p.fin.contrato)} MM</span>
         <span class="pill ${p.fin.spi>=1?'pok':p.fin.spi>=0.85?'pwarn':'pbad'}">SPI ${p.fin.spi}</span>
         <span class="pill pinfo">${p.fin.avanceReal}%</span>
       </div>`:''}
@@ -2477,6 +2519,17 @@ function openProjModal(idx){
   document.getElementById('pm-margen-est').value=est.margenEstPct||''
   document.getElementById('pm-fecha-oferta').value=est.fechaOferta||''
   document.getElementById('pm-obs').value=est.obs||''
+  // Campos adjudicación
+  const adj=p?.adj||{}
+  document.getElementById('pm-monto-adj').value=adj.montoAdj||est.montoLicit||''
+  document.getElementById('pm-meta-margen').value=adj.metaMargen||''
+  document.getElementById('pm-meta-margen-pct').value=adj.metaMargenPct||est.margenEstPct||''
+  document.getElementById('pm-fecha-adj').value=adj.fechaAdj||''
+  // Campos saldos
+  const sal=p?.saldos||{}
+  document.getElementById('pm-saldo-facturar').value=sal.porFacturar||''
+  document.getElementById('pm-saldo-proveedores').value=sal.proveedores||''
+  document.getElementById('pm-comentario-fin').value=sal.comentario||''
   updProjColorPreview();toggleEstFields()
   document.getElementById('proj-modal').classList.add('on')
 }
@@ -2488,7 +2541,11 @@ function updProjColorPreview(){
 function toggleEstFields(){
   const est=document.getElementById('pm-estado').value
   const showEst=['en_evaluacion','en_estudio','en_aclaracion','sin_informacion','adjudicado','no_adjudicado','excusa'].includes(est)
+  const showAdj=['adjudicado','activo','cerrado_saldo','cerrado'].includes(est)
+  const showSaldo=['adjudicado','activo','cerrado_saldo'].includes(est)
   document.getElementById('pm-est-fields').style.display=showEst?'block':'none'
+  document.getElementById('pm-adj-fields').style.display=showAdj?'block':'none'
+  document.getElementById('pm-saldo-fields').style.display=showSaldo?'block':'none'
 }
 function saveProjModal(){
   const name=document.getElementById('pm-name').value.trim();if(!name){toast2('Ingresa nombre');return}
@@ -2507,10 +2564,21 @@ function saveProjModal(){
       fechaOferta:document.getElementById('pm-fecha-oferta').value,
       obs:document.getElementById('pm-obs').value.trim()
     },
+    adj:{
+      montoAdj:parseFloat(document.getElementById('pm-monto-adj').value)||0,
+      metaMargen:parseFloat(document.getElementById('pm-meta-margen').value)||0,
+      metaMargenPct:parseFloat(document.getElementById('pm-meta-margen-pct').value)||0,
+      fechaAdj:document.getElementById('pm-fecha-adj').value
+    },
+    saldos:{
+      porFacturar:parseFloat(document.getElementById('pm-saldo-facturar').value)||0,
+      proveedores:parseFloat(document.getElementById('pm-saldo-proveedores').value)||0,
+      comentario:document.getElementById('pm-comentario-fin').value.trim()
+    },
     fin:existing.fin||null
   }
-  if(estado==='adjudicado'&&obj.mandante&&!obj.fin){
-    obj.fin={contrato:obj.est.montoLicit||0,ndc:0,facturado:0,presupuesto:0,gastado:0,comprometido:0,avanceReal:0,avanceProg:0,spi:0,cpi:0}
+  if(['adjudicado','activo'].includes(estado)&&!obj.fin){
+    obj.fin={contrato:obj.adj.montoAdj||obj.est.montoLicit||0,ndc:0,facturado:0,presupuesto:0,gastado:0,comprometido:0,avanceReal:0,avanceProg:0,spi:0,cpi:0}
   }
   if(editProjIdx!==null)projects[editProjIdx]=obj;else projects.push(obj)
   persist();closeProjModal();renderProjects();toast2(editProjIdx!==null?'Proyecto actualizado':'Proyecto creado')
@@ -2962,10 +3030,10 @@ document.addEventListener('keydown',e=>{
 
 // ── INIT ──────────────────────────────────────────────────
 loadAll().then(()=>{
-  console.log('App lista v10.4 — Supabase:',sbOnline?'✓':'offline')
+  console.log('App lista v10.5 — Supabase:',sbOnline?'✓':'offline')
   const vd=document.createElement('div')
   vd.style.cssText='position:fixed;bottom:4px;left:4px;font-size:9px;color:#94A3B8;z-index:9999;pointer-events:none'
-  vd.textContent='v10.4 · SB:'+(sbOnline?'✓':'✗')
+  vd.textContent='v10.5 · SB:'+(sbOnline?'✓':'✗')
   document.body.appendChild(vd)
 })
 </script>
