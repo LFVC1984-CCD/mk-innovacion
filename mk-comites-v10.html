@@ -647,14 +647,22 @@ select.test{border:none;font-family:'Barlow',sans-serif;font-weight:700;font-siz
 <!-- LINEA MODAL -->
 <div class="modal-bg" id="linea-modal" onclick="if(event.target===this)this.classList.remove('on')">
   <div class="modal-box">
-    <div class="modal-title" id="lm-title">Nueva línea de crédito</div>
-    <div class="mfield"><label>Entidad (banco o aseguradora)</label><input class="minp" type="text" id="lm-entidad" placeholder="Ej: BCI, Santander, Mapfre"/></div>
+    <div class="modal-title" id="lm-title">Nueva línea</div>
+    <div class="mfield"><label>Entidad</label><input class="minp" type="text" id="lm-entidad" placeholder="Ej: BCI, Santander, Avla"/></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div class="mfield"><label>Tipo</label>
-        <select class="minp" id="lm-tipo"><option value="banco">Banco</option><option value="aseguradora">Aseguradora</option></select>
+      <div class="mfield"><label>Tipo entidad</label>
+        <select class="minp" id="lm-tipo-entidad"><option value="banco">Banco</option><option value="aseguradora">Aseguradora</option></select>
       </div>
-      <div class="mfield"><label>Monto línea ($MM)</label><input class="minp" type="number" id="lm-monto" placeholder="0"/></div>
+      <div class="mfield"><label>Instrumento</label>
+        <select class="minp" id="lm-instrumento">
+          <option value="boleta_garantia">Boleta de Garantía</option>
+          <option value="poliza_garantia">Póliza de Garantía</option>
+          <option value="capital_trabajo">Capital de Trabajo</option>
+          <option value="factoring">Factoring</option>
+        </select>
+      </div>
     </div>
+    <div class="mfield"><label>Monto línea ($MM)</label><input class="minp" type="number" id="lm-monto" placeholder="0"/></div>
     <div class="mbtns"><button class="btn" onclick="closeLineaModal()">Cancelar</button><button class="btn pri" onclick="saveLineaModal()">Guardar</button></div>
   </div>
 </div>
@@ -1103,7 +1111,7 @@ async function loadFromSupabase(){
 
     estudiosData={
       metaAnual:Number(cfgMap.metaAnual)||estudiosData.metaAnual||20000,
-      lineasCredito:has(lcR)?lcR.data.map(l=>({id:l.id,entidad:l.entidad,tipo:l.tipo||'banco',monto:Number(l.monto)||0})):estudiosData.lineasCredito,
+      lineasCredito:has(lcR)?lcR.data.map(l=>({id:l.id,entidad:l.entidad,tipoEntidad:l.tipo_entidad||l.tipo||'banco',tipo:l.tipo_entidad||l.tipo||'banco',instrumento:l.instrumento||'boleta_garantia',monto:Number(l.monto)||0})):estudiosData.lineasCredito,
       garantias:gars,
       planInversion:has(piR)?piR.data.map(p=>({id:p.id,cliente:p.cliente,monto:Number(p.monto)||0})):estudiosData.planInversion
     }
@@ -1228,7 +1236,7 @@ async function persistToSupabase(){
 
   // ── Líneas de crédito ──
   for(const l of (estudiosData.lineasCredito||[])){
-    const row={entidad:l.entidad,tipo:l.tipo||'banco',monto:l.monto}
+    const row={entidad:l.entidad,tipo:l.tipoEntidad||l.tipo||'banco',tipo_entidad:l.tipoEntidad||l.tipo||'banco',instrumento:l.instrumento||'boleta_garantia',monto:l.monto}
     if(isUUID(l.id)){await sb.from('lineas_credito').update(row).eq('id',l.id)}
     else{const{data:ins}=await sb.from('lineas_credito').insert(row).select('id').single();if(ins)l.id=ins.id}
   }
@@ -2876,45 +2884,61 @@ function renderGarantias(){
   const montoVencido=gars.filter(g=>g.estado==='vencida').reduce((s,g)=>s+g.monto,0)
 
   document.getElementById('gar-summary').innerHTML=`
-    <div class="gar-sum-card" style="border-left:4px solid var(--co)"><div class="gar-sum-val" style="color:var(--co)">$${totalAprobado} MM</div><div class="gar-sum-lbl">Total aprobado</div></div>
-    <div class="gar-sum-card" style="border-left:4px solid var(--am)"><div class="gar-sum-val" style="color:var(--am)">$${totalComprometido} MM</div><div class="gar-sum-lbl">Comprometido</div></div>
-    <div class="gar-sum-card" style="border-left:4px solid ${saldo>=0?'var(--gr)':'var(--re)'}"><div class="gar-sum-val" style="color:${saldo>=0?'var(--gr)':'var(--re)'}">$${saldo} MM</div><div class="gar-sum-lbl">Saldo disponible</div></div>
-    <div class="gar-sum-card" style="border-left:4px solid var(--am)"><div class="gar-sum-val" style="color:var(--am)">$${montoPorVencer} MM</div><div class="gar-sum-lbl">Por vencer (30d)</div></div>
-    <div class="gar-sum-card" style="border-left:4px solid var(--re)"><div class="gar-sum-val" style="color:var(--re)">$${montoVencido} MM</div><div class="gar-sum-lbl">Vencido</div></div>`
+    <div class="gar-sum-card" style="border-left:4px solid var(--co)"><div class="gar-sum-val" style="color:var(--co)">$${fmtN(totalAprobado)} MM</div><div class="gar-sum-lbl">Total aprobado</div></div>
+    <div class="gar-sum-card" style="border-left:4px solid var(--am)"><div class="gar-sum-val" style="color:var(--am)">$${fmtN(totalComprometido)} MM</div><div class="gar-sum-lbl">Comprometido</div></div>
+    <div class="gar-sum-card" style="border-left:4px solid ${saldo>=0?'var(--gr)':'var(--re)'}"><div class="gar-sum-val" style="color:${saldo>=0?'var(--gr)':'var(--re)'}">$${fmtN(saldo)} MM</div><div class="gar-sum-lbl">Saldo disponible</div></div>
+    <div class="gar-sum-card" style="border-left:4px solid var(--am)"><div class="gar-sum-val" style="color:var(--am)">$${fmtN(montoPorVencer)} MM</div><div class="gar-sum-lbl">Por vencer (30d)</div></div>
+    <div class="gar-sum-card" style="border-left:4px solid var(--re)"><div class="gar-sum-val" style="color:var(--re)">$${fmtN(montoVencido)} MM</div><div class="gar-sum-lbl">Vencido</div></div>`
 
-  // ── Lineas detail ──
-  // Sort lineas
-  const sortedLineas=[...lineas]
-  if(garSort==='entidad')sortedLineas.sort((a,b)=>a.entidad.localeCompare(b.entidad))
-  else if(garSort==='monto')sortedLineas.sort((a,b)=>b.monto-a.monto)
-  else if(garSort==='saldo'){
-    sortedLineas.sort((a,b)=>{
-      const da=a.monto-(consumoPorEntidad[a.entidad]||0)
-      const db=b.monto-(consumoPorEntidad[b.entidad]||0)
-      return da-db
-    })
-  }
-
-  document.getElementById('lineas-list').innerHTML=sortedLineas.map((l)=>{
-    const i=lineas.indexOf(l)
-    const consumo=consumoPorEntidad[l.entidad]||0;const disp=l.monto-consumo;const pct=l.monto>0?Math.round((consumo/l.monto)*100):0
-    return`<div class="linea-row">
-      <span style="width:120px;font-weight:600">${l.entidad}</span>
-      <span style="width:60px;font-size:10px;color:var(--sl);font-weight:600">${l.tipo==='banco'?'Banco':'Aseg.'}</span>
-      <span style="width:70px;text-align:right">$${l.monto} MM</span>
-      <div class="linea-bar"><div class="linea-fill" style="width:${pct}%;background:${pct>80?'var(--re)':pct>50?'var(--am)':'var(--gr)'}"></div></div>
-      <span style="width:50px;text-align:right;font-size:10px;font-weight:600;color:${pct>80?'var(--re)':'var(--sl)'}">${pct}%</span>
-      <span style="width:80px;text-align:right;font-weight:600;color:${disp>=0?'var(--gr)':'var(--re)'}">$${disp} MM</span>
-      <button class="btn sm gh" onclick="openLineaModal(${i})">✎</button>
-      <button class="xbtn" onclick="if(confirm('¿Eliminar línea?')){trackDelete('lineas_credito',estudiosData.lineasCredito[${i}].id);estudiosData.lineasCredito.splice(${i},1);persist();renderGarantias()}">×</button>
+  // ── Lineas agrupadas por entidad ──
+  const INSTR_LABELS={boleta_garantia:'Boleta de Garantía',poliza_garantia:'Póliza de Garantía',capital_trabajo:'Capital de Trabajo',factoring:'Factoring'}
+  // Calcular consumo por entidad+instrumento
+  const consumoPorEI={}
+  gars.filter(g=>['vigente','por_vencer','en_renovacion','solicitada'].includes(g.estado)).forEach(g=>{
+    const key=g.entidad+'||'+g.instrumento
+    consumoPorEI[key]=(consumoPorEI[key]||0)+g.monto
+  })
+  // Agrupar líneas por entidad
+  const entidades=[...new Set(lineas.map(l=>l.entidad))].sort()
+  document.getElementById('lineas-list').innerHTML=entidades.map(ent=>{
+    const entLineas=lineas.filter(l=>l.entidad===ent)
+    const tipoEnt=entLineas[0]?.tipoEntidad||entLineas[0]?.tipo||'banco'
+    const totalEnt=entLineas.reduce((s,l)=>s+l.monto,0)
+    const consumoEnt=Object.entries(consumoPorEI).filter(([k])=>k.startsWith(ent+'||')).reduce((s,[,v])=>s+v,0)
+    const dispEnt=totalEnt-consumoEnt
+    const pctEnt=totalEnt>0?Math.round(consumoEnt/totalEnt*100):0
+    return`<div style="background:var(--wh);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-weight:700;font-size:14px">${ent}</span>
+          <span style="font-size:10px;padding:2px 8px;border-radius:4px;background:var(--sl-lt);color:var(--sl);font-weight:600">${tipoEnt==='banco'?'Banco':'Aseguradora'}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+          <span style="color:var(--co);font-weight:700">$${fmtN(totalEnt)} MM</span>
+          <span style="color:${pctEnt>80?'var(--re)':'var(--am)'};font-weight:700">${pctEnt}%</span>
+          <span style="color:${dispEnt>=0?'var(--gr)':'var(--re)'};font-weight:700">$${fmtN(dispEnt)} MM disp.</span>
+        </div>
+      </div>
+      ${entLineas.map(l=>{
+        const i=lineas.indexOf(l)
+        const instrLabel=INSTR_LABELS[l.instrumento]||l.instrumento||'Boleta de Garantía'
+        const cKey=l.entidad+'||'+(l.instrumento||'boleta_garantia')
+        const consumo=consumoPorEI[cKey]||0
+        const disp=l.monto-consumo
+        const pct=l.monto>0?Math.round(consumo/l.monto*100):0
+        const barColor=pct>80?'var(--re)':pct>50?'var(--am)':'var(--gr)'
+        return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--bd)">
+          <span style="min-width:140px;font-size:12px;font-weight:600;color:var(--ink2)">${instrLabel}</span>
+          <span style="min-width:70px;text-align:right;font-size:12px;color:var(--co);font-weight:700">$${fmtN(l.monto)}</span>
+          <div class="linea-bar" style="flex:1"><div class="linea-fill" style="width:${pct}%;background:${barColor}"></div></div>
+          <span style="min-width:35px;text-align:right;font-size:10px;font-weight:700;color:${barColor}">${pct}%</span>
+          <span style="min-width:65px;text-align:right;font-size:11px;font-weight:700;color:${disp>=0?'var(--gr)':'var(--re)'}">$${fmtN(disp)}</span>
+          <button class="btn sm gh" onclick="openLineaModal(${i})">✎</button>
+          <button class="xbtn" onclick="if(confirm('¿Eliminar?')){trackDelete('lineas_credito',estudiosData.lineasCredito[${i}].id);estudiosData.lineasCredito.splice(${i},1);persist();renderGarantias()}">×</button>
+        </div>`
+      }).join('')}
     </div>`
   }).join('')||'<div style="color:#94A3B8;font-size:12px">Sin líneas definidas.</div>'
-
-  // ── Sort buttons active state ──
-  ;['entidad','monto','saldo','venc'].forEach(s=>{
-    const el=document.getElementById('gar-sort-'+s)
-    if(el){el.style.background=garSort===(s==='venc'?'vencimiento':s)?'var(--co)':'';el.style.color=garSort===(s==='venc'?'vencimiento':s)?'#fff':'';el.style.borderColor=garSort===(s==='venc'?'vencimiento':s)?'var(--co)':''}
-  })
 
   // ── Filters ──
   const counts={todos:gars.length}
@@ -2992,7 +3016,8 @@ function openLineaModal(idx){
   editLineaIdx=idx;const l=idx!==null?(estudiosData.lineasCredito||[])[idx]:null
   document.getElementById('lm-title').textContent=l?'Editar línea':'Nueva línea'
   document.getElementById('lm-entidad').value=l?.entidad||''
-  document.getElementById('lm-tipo').value=l?.tipo||'banco'
+  document.getElementById('lm-tipo-entidad').value=l?.tipoEntidad||l?.tipo||'banco'
+  document.getElementById('lm-instrumento').value=l?.instrumento||'boleta_garantia'
   document.getElementById('lm-monto').value=l?.monto||''
   document.getElementById('linea-modal').classList.add('on')
 }
@@ -3000,8 +3025,15 @@ function closeLineaModal(){document.getElementById('linea-modal').classList.remo
 function saveLineaModal(){
   const entidad=document.getElementById('lm-entidad').value.trim()
   const monto=parseFloat(document.getElementById('lm-monto').value)||0
-  if(!entidad||!monto){toast2('Completa entidad y monto');return}
-  const obj={id:editLineaIdx!==null?(estudiosData.lineasCredito[editLineaIdx]?.id||'lc'+Date.now()):'lc'+Date.now(),entidad,tipo:document.getElementById('lm-tipo').value,monto}
+  if(!entidad||!monto){toast2('Completa entidad y monto','warn');return}
+  const obj={
+    id:editLineaIdx!==null?(estudiosData.lineasCredito[editLineaIdx]?.id||'lc'+Date.now()):'lc'+Date.now(),
+    entidad,
+    tipoEntidad:document.getElementById('lm-tipo-entidad').value,
+    instrumento:document.getElementById('lm-instrumento').value,
+    tipo:document.getElementById('lm-tipo-entidad').value, // compat
+    monto
+  }
   if(!estudiosData.lineasCredito)estudiosData.lineasCredito=[]
   if(editLineaIdx!==null)estudiosData.lineasCredito[editLineaIdx]=obj;else estudiosData.lineasCredito.push(obj)
   persist();closeLineaModal();renderGarantias();toast2(editLineaIdx!==null?'Línea actualizada':'Línea creada')
@@ -3047,10 +3079,10 @@ document.addEventListener('keydown',e=>{
 
 // ── INIT ──────────────────────────────────────────────────
 loadAll().then(()=>{
-  console.log('App lista v10.7 — Supabase:',sbOnline?'✓':'offline')
+  console.log('App lista v10.8 — Supabase:',sbOnline?'✓':'offline')
   const vd=document.createElement('div')
   vd.style.cssText='position:fixed;bottom:4px;left:4px;font-size:9px;color:#94A3B8;z-index:9999;pointer-events:none'
-  vd.textContent='v10.7 · SB:'+(sbOnline?'✓':'✗')
+  vd.textContent='v10.8 · SB:'+(sbOnline?'✓':'✗')
   document.body.appendChild(vd)
 })
 </script>
