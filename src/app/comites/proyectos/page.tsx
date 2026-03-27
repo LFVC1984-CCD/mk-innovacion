@@ -6,6 +6,7 @@ import ProyectoCard from '@/components/comites/ProyectoCard'
 import ProyectoModal from '@/components/comites/ProyectoModal'
 import type { Proyecto, ProyectoEstado } from '@/lib/types'
 import { ESTADO_LABELS, ESTADO_COLORS } from '@/lib/types'
+import { toast } from '@/components/ui/Toast'
 
 type FilterKey = 'todos' | 'estudio' | 'adjudicados' | 'cerrados' | 'no_adjudicados'
 
@@ -50,7 +51,8 @@ export default function ProyectosPage() {
 
   async function handleDelete(p: Proyecto) {
     if (!confirm(`¿Eliminar proyecto "${p.nombre}"?`)) return
-    await remove(p.id)
+    const ok = await remove(p.id)
+    if (ok) toast('Proyecto eliminado')
   }
 
   if (authLoading || loading) {
@@ -142,7 +144,7 @@ export default function ProyectosPage() {
       <ProyectoModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSave={save}
+        onSave={async (p) => { const ok = await save(p); if (ok) toast('Proyecto guardado'); return ok }}
         proyecto={editing}
       />
     </>

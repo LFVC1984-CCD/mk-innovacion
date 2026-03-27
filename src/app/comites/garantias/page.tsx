@@ -8,6 +8,7 @@ import type { GarantiaEstado } from '@/lib/comites/data'
 import SummaryCard from '@/components/comites/SummaryCard'
 import ViewToggle from '@/components/comites/ViewToggle'
 import GarantiaModal from '@/components/comites/GarantiaModal'
+import { toast } from '@/components/ui/Toast'
 import EntidadModal from '@/components/comites/EntidadModal'
 
 type Tab = 'garantias' | 'entidades' | 'instrumentos'
@@ -415,15 +416,15 @@ export default function GarantiasPage() {
         editing={garEditing}
         proyectos={proyectos}
         entidades={entidades}
-        onSave={async (input, id) => { await saveGarantia(input, id); setGarModal(false) }}
-        onDelete={async (id) => { await deleteGarantia(id); setGarModal(false) }}
+        onSave={async (input, id) => { await saveGarantia(input, id); setGarModal(false); toast('Garantía guardada') }}
+        onDelete={async (id) => { await deleteGarantia(id); setGarModal(false); toast('Garantía eliminada') }}
       />
       <EntidadModal
         open={entModal}
         onClose={() => setEntModal(false)}
         editing={entEditing}
-        onSave={async (input, id) => { await saveEntidad(input, id); setEntModal(false) }}
-        onDelete={async (id) => { await deleteEntidad(id); setEntModal(false) }}
+        onSave={async (input, id) => { await saveEntidad(input, id); setEntModal(false); toast('Entidad guardada') }}
+        onDelete={async (id) => { await deleteEntidad(id); setEntModal(false); toast('Entidad eliminada') }}
       />
     </>
   )

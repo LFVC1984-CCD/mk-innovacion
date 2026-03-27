@@ -3,10 +3,11 @@ import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Miembro } from '@/lib/types'
 
+const supabase = createClient()
+
 export function useEquipo() {
   const [equipo, setEquipo] = useState<Miembro[]>([])
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -21,21 +22,18 @@ export function useEquipo() {
       })) as Miembro[])
     }
     setLoading(false)
-  }, [supabase])
+  }, [])
 
   useEffect(() => { load() }, [load])
 
   async function save(m: Omit<Miembro, 'id' | 'proyecto_nombre'> & { id?: string }): Promise<boolean> {
-    // Auto-set estado based on proyecto
     const adjusted = { ...m }
     if (!adjusted.proyecto_id && adjusted.estado === 'activo') adjusted.estado = 'disponible'
     if (adjusted.proyecto_id && adjusted.estado === 'disponible') adjusted.estado = 'activo'
 
     const row = {
-      nombre: adjusted.nombre,
-      cargo: adjusted.cargo,
-      proyecto_id: adjusted.proyecto_id || null,
-      estado: adjusted.estado,
+      nombre: adjusted.nombre, cargo: adjusted.cargo,
+      proyecto_id: adjusted.proyecto_id || null, estado: adjusted.estado,
       contacto: adjusted.contacto || '',
     }
 

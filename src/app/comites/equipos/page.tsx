@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/comites/hooks'
 import MiembroCard from '@/components/comites/MiembroCard'
 import MiembroModal from '@/components/comites/MiembroModal'
 import type { Miembro, Proyecto } from '@/lib/types'
+import { toast } from '@/components/ui/Toast'
 import { ESTADO_COLORS, fechaTerminoEfectiva } from '@/lib/types'
 
 type EstadoFilter = 'todos' | 'activo' | 'disponible' | 'inactivo'
@@ -122,7 +123,7 @@ export default function EquiposPage() {
           uniqueCargos={uniqueCargos}
           projColorMap={projColorMap}
           onEdit={m => { setEditing(m); setModalOpen(true) }}
-          onDelete={async m => { if (confirm(`¿Eliminar a "${m.nombre}"?`)) await remove(m.id) }}
+          onDelete={async m => { if (confirm(`¿Eliminar a "${m.nombre}"?`)) { const ok = await remove(m.id); if (ok) toast('Miembro eliminado') } }}
         />
       ) : (
         <CalendarioView equipo={equipo} projects={projects} />
@@ -131,7 +132,7 @@ export default function EquiposPage() {
       <MiembroModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSave={save}
+        onSave={async (m) => { const ok = await save(m); if (ok) toast('Miembro guardado'); return ok }}
         miembro={editing}
         proyectos={projects}
       />

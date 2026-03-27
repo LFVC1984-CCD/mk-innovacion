@@ -130,8 +130,9 @@ function tipoLabel(raw: string): string {
 //  HOOK
 // ══════════════════════════════════════
 
+const supabase = createClient()
+
 export function useGarantias() {
-  const supabase = createClient()
   const [garantias, setGarantias] = useState<GarantiaRow[]>([])
   const [entidades, setEntidades] = useState<EntidadRow[]>([])
   const [lineas, setLineas] = useState<LineaCreditoRow[]>([])

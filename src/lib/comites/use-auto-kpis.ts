@@ -24,9 +24,10 @@ export interface AutoKPI {
 //  HOOK
 // ══════════════════════════════════════
 
+const supabase = createClient()
+
 export function useAutoKpis(areaId: AreaId | string) {
   const { projects, loading: projLoading } = useProjects()
-  const supabase = createClient()
 
   // Extra data for areas that need their own tables
   const [extraData, setExtraData] = useState<Record<string, unknown[]>>({})

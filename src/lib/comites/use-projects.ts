@@ -3,10 +3,11 @@ import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Proyecto } from '@/lib/types'
 
+const supabase = createClient()
+
 export function useProjects() {
   const [projects, setProjects] = useState<Proyecto[]>([])
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -16,7 +17,7 @@ export function useProjects() {
       .order('updated_at', { ascending: false })
     if (!error && data) setProjects(data as Proyecto[])
     setLoading(false)
-  }, [supabase])
+  }, [])
 
   useEffect(() => { load() }, [load])
 
