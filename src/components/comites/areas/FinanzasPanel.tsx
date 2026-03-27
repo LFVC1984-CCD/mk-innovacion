@@ -4,9 +4,20 @@ import { createClient } from '@/lib/supabase/client'
 import { useProjects } from '@/lib/comites/use-projects'
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtMM, fmtMoney } from '@/lib/comites/data'
-import { isObra } from '@/lib/types'
+import { isObra, isEstudio } from '@/lib/types'
 
 // ── Types ──
+
+interface FlujoProyecto {
+  id: string
+  proyecto_id: string
+  mes: string
+  tipo: 'ingreso' | 'egreso'
+  categoria: string
+  monto: number
+  real: boolean
+  observacion: string
+}
 
 interface LineaCentral {
   id: string
@@ -16,17 +27,40 @@ interface LineaCentral {
   concepto: string
   monto: number
   real: boolean
-  observacion: string | null
 }
 
-interface LineaCredito {
-  id: string
-  entidad: string
-  instrumento: string
-  monto: number
-}
+// ── Config ──
 
-// ── Helpers ──
+const CAT_INGRESO = [
+  { value: 'estado_pago', label: 'Estado de pago' },
+  { value: 'ndc', label: 'Notas de cambio' },
+  { value: 'anticipo', label: 'Anticipo' },
+  { value: 'retencion', label: 'Retención liberada' },
+]
+
+const CAT_EGRESO = [
+  { value: 'proveedores', label: 'Proveedores (OC/SC)' },
+  { value: 'subcontrato', label: 'Subcontratos' },
+  { value: 'mano_obra', label: 'Mano de obra' },
+  { value: 'gastos_matriz', label: 'Gastos matriz' },
+  { value: 'otro_obra', label: 'Otro gasto obra' },
+]
+
+const CAT_OFICINA = [
+  { value: 'remuneraciones', label: 'Remuneraciones' },
+  { value: 'arriendo_oficina', label: 'Arriendo oficina' },
+  { value: 'servicios', label: 'Servicios' },
+  { value: 'seguros', label: 'Seguros' },
+  { value: 'impuestos', label: 'Impuestos' },
+  { value: 'costos_financieros', label: 'Costos financieros' },
+  { value: 'tecnologia', label: 'Tecnología' },
+  { value: 'otro_oficina', label: 'Otro oficina' },
+]
+
+function catLabel(cat: string): string {
+  const all = [...CAT_INGRESO, ...CAT_EGRESO, ...CAT_OFICINA]
+  return all.find(c => c.value === cat)?.label || cat.replace(/_/g, ' ')
+}
 
 function fmtMes(mes: string): string {
   const [y, m] = mes.split('-')
@@ -34,17 +68,15 @@ function fmtMes(mes: string): string {
   return `${meses[parseInt(m) - 1]} ${y.slice(2)}`
 }
 
-const CAT_OFICINA: { value: string; label: string }[] = [
-  { value: 'remuneraciones', label: 'Remuneraciones oficina' },
-  { value: 'arriendo_oficina', label: 'Arriendo oficina' },
-  { value: 'servicios', label: 'Servicios (agua, luz, internet)' },
-  { value: 'seguros', label: 'Seguros' },
-  { value: 'impuestos', label: 'Impuestos' },
-  { value: 'costos_financieros', label: 'Costos financieros' },
-  { value: 'tecnologia', label: 'Tecnología / licencias' },
-  { value: 'marketing', label: 'Marketing / comercial' },
-  { value: 'otro_oficina', label: 'Otro gasto oficina' },
-]
+function generateMonths(back: number, forward: number): string[] {
+  const months: string[] = []
+  const now = new Date()
+  for (let i = -back; i <= forward; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
+    months.push(d.toISOString().slice(0, 7))
+  }
+  return months
+}
 
 // ══════════════════════════════════════
 //  PANEL
@@ -56,346 +88,461 @@ export default function FinanzasPanel() {
   const { canEdit } = useAuth()
   const ce = canEdit('finanzas')
 
+  const [flujoProyectos, setFlujoProyectos] = useState<FlujoProyecto[]>([])
   const [lineasCentral, setLineasCentral] = useState<LineaCentral[]>([])
-  const [lineasCredito, setLineasCredito] = useState<LineaCredito[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'consolidado' | 'oficina'>('consolidado')
-  const [modalLinea, setModalLinea] = useState<Partial<LineaCentral> | null>(null)
+  const [nivel, setNivel] = useState<1 | 2 | 3>(1)
+  const [expandedProy, setExpandedProy] = useState<string | null>(null)
+
+  // Modal
+  const [modal, setModal] = useState<{
+    proyectoId: string; tipo: 'ingreso' | 'egreso'; categoria: string;
+    mes: string; monto: string; repetir: string; real: boolean; obs: string;
+    editId?: string; isOficina?: boolean
+  } | null>(null)
 
   const currentMonth = new Date().toISOString().slice(0, 7)
+  const months = useMemo(() => generateMonths(3, 9), [])
 
   async function load() {
     setLoading(true)
-    const [fRes, lcRes] = await Promise.all([
-      supabase.from('flujo_financiero').select('*').order('mes').order('tipo'),
-      supabase.from('lineas_credito').select('*'),
+    const [fpRes, fcRes] = await Promise.all([
+      supabase.from('flujo_proyectos').select('*').order('mes'),
+      supabase.from('flujo_financiero').select('*').order('mes'),
     ])
-    setLineasCentral((fRes.data || []).map((l: Record<string, unknown>) => ({ ...l, monto: Number(l.monto) || 0 })) as LineaCentral[])
-    setLineasCredito((lcRes.data || []).map((l: Record<string, unknown>) => ({ ...l, monto: Number(l.monto) || 0 })) as LineaCredito[])
+    setFlujoProyectos((fpRes.data || []).map((r: Record<string, unknown>) => ({ ...r, monto: Number(r.monto) || 0 })) as FlujoProyecto[])
+    setLineasCentral((fcRes.data || []).map((r: Record<string, unknown>) => ({ ...r, monto: Number(r.monto) || 0 })) as LineaCentral[])
     setLoading(false)
   }
-
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load() }, [])
 
-  // ── Obras activas ──
+  // ── Obras y estudios ──
   const obras = useMemo(() => projects.filter(p => isObra(p) || p.estado === 'cerrado_saldo'), [projects])
+  const estudios = useMemo(() => projects.filter(p => isEstudio(p)), [projects])
 
-  // ── INGRESOS consolidados ──
-  const ingresos = useMemo(() => {
-    const items: { concepto: string; fuente: string; monto: number; tipo: string }[] = []
-
-    // 1. Facturación por obra (estados de pago)
-    obras.forEach(p => {
-      if (p.facturado > 0) items.push({ concepto: p.nombre, fuente: 'Estado de pago', monto: p.facturado, tipo: 'facturacion' })
-    })
-
-    // 2. NDC por obra
-    obras.forEach(p => {
-      if (p.ndc > 0) items.push({ concepto: p.nombre, fuente: 'NDC', monto: p.ndc, tipo: 'ndc' })
-    })
-
-    // 3. Líneas de crédito (capital trabajo, factoring)
-    lineasCredito.forEach(lc => {
-      if (lc.monto > 0) {
-        const instrLabel = lc.instrumento === 'capital_trabajo' ? 'Capital de trabajo' :
-                          lc.instrumento === 'factoring' ? 'Factoring' :
-                          lc.instrumento.replace(/_/g, ' ')
-        items.push({ concepto: `${lc.entidad} — ${instrLabel}`, fuente: 'Línea de crédito', monto: lc.monto, tipo: 'linea_credito' })
-      }
-    })
-
-    return items
-  }, [obras, lineasCredito])
-
-  // ── EGRESOS consolidados ──
-  const egresos = useMemo(() => {
-    const items: { concepto: string; fuente: string; monto: number; tipo: string }[] = []
-
-    // 1. OC + SC por obra (proveedores)
-    obras.forEach(p => {
-      const proveedores = (p.oc || 0) + (p.sc || 0) + (p.adicionales || 0)
-      if (proveedores > 0) items.push({ concepto: p.nombre, fuente: 'Proveedores (OC+SC+Adic)', monto: proveedores, tipo: 'proveedores' })
-    })
-
-    // 2. Mano de obra
-    obras.forEach(p => {
-      if (p.mano_obra > 0) items.push({ concepto: p.nombre, fuente: 'Mano de obra', monto: p.mano_obra, tipo: 'mano_obra' })
-    })
-
-    // 3. Gastos matriz
-    obras.forEach(p => {
-      if (p.gastos_matriz > 0) items.push({ concepto: p.nombre, fuente: 'Gastos matriz', monto: p.gastos_matriz, tipo: 'gastos_matriz' })
-    })
-
-    // 4. Oficina central (del flujo_financiero)
-    lineasCentral.filter(l => l.tipo === 'egreso').forEach(l => {
-      items.push({ concepto: l.concepto, fuente: `Oficina — ${l.real ? 'Real' : 'Proyectado'}`, monto: l.monto, tipo: 'oficina' })
-    })
-
-    return items
-  }, [obras, lineasCentral])
-
-  // ── Totales ──
-  const totalIngresos = ingresos.reduce((s, i) => s + i.monto, 0)
-  const totalEgresos = egresos.reduce((s, e) => s + e.monto, 0)
-  const saldoNeto = totalIngresos - totalEgresos
-
-  // Subtotales por fuente
-  const ingByTipo = useMemo(() => {
+  // ── Saldo por facturar por proyecto ──
+  const saldoFacturar = useMemo(() => {
     const map: Record<string, number> = {}
-    ingresos.forEach(i => { map[i.tipo] = (map[i.tipo] || 0) + i.monto })
+    obras.forEach(p => {
+      const proyectadoFuturo = flujoProyectos
+        .filter(f => f.proyecto_id === p.id && f.tipo === 'ingreso' && f.categoria === 'estado_pago' && !f.real)
+        .reduce((s, f) => s + f.monto, 0)
+      map[p.id] = (p.contrato + p.ndc) - p.facturado - proyectadoFuturo
+    })
     return map
-  }, [ingresos])
+  }, [obras, flujoProyectos])
 
-  const egByTipo = useMemo(() => {
-    const map: Record<string, number> = {}
-    egresos.forEach(e => { map[e.tipo] = (map[e.tipo] || 0) + e.monto })
-    return map
-  }, [egresos])
+  // ── Datos por mes para Nivel 1 ──
+  const porMes = useMemo(() => {
+    return months.map(mes => {
+      // Ingresos: flujo_proyectos + leads
+      const ingProy = flujoProyectos.filter(f => f.mes === mes && f.tipo === 'ingreso')
+      const ingReal = ingProy.filter(f => f.real).reduce((s, f) => s + f.monto, 0)
+      const ingProyectado = ingProy.filter(f => !f.real).reduce((s, f) => s + f.monto, 0)
 
-  // Oficina: presupuesto mensual
-  const oficinaEgTotal = lineasCentral.filter(l => l.tipo === 'egreso').reduce((s, l) => s + l.monto, 0)
-  const oficinaProy = lineasCentral.filter(l => !l.real && l.tipo === 'egreso').reduce((s, l) => s + l.monto, 0)
-  const oficinaReal = lineasCentral.filter(l => l.real && l.tipo === 'egreso').reduce((s, l) => s + l.monto, 0)
+      // Egresos: flujo_proyectos + oficina central
+      const egProy = flujoProyectos.filter(f => f.mes === mes && f.tipo === 'egreso')
+      const egOficina = lineasCentral.filter(l => l.mes === mes && l.tipo === 'egreso')
+      const egReal = egProy.filter(f => f.real).reduce((s, f) => s + f.monto, 0) + egOficina.filter(l => l.real).reduce((s, l) => s + l.monto, 0)
+      const egProyectado = egProy.filter(f => !f.real).reduce((s, f) => s + f.monto, 0) + egOficina.filter(l => !l.real).reduce((s, l) => s + l.monto, 0)
 
-  // ── CRUD Oficina Central ──
-  async function saveLinea() {
-    if (!modalLinea || !modalLinea.concepto?.trim()) return
-    if ((modalLinea as LineaCentral).id) {
-      const { id, ...rest } = modalLinea as LineaCentral
-      await supabase.from('flujo_financiero').update(rest).eq('id', id)
-    } else {
-      await supabase.from('flujo_financiero').insert(modalLinea)
+      const totalIng = ingReal + ingProyectado
+      const totalEg = egReal + egProyectado
+
+      return { mes, ingReal, ingProyectado, totalIng, egReal, egProyectado, totalEg, saldo: totalIng - totalEg, isPast: mes < currentMonth, isCurrent: mes === currentMonth }
+    })
+  }, [months, flujoProyectos, lineasCentral, currentMonth])
+
+  // Acumulado
+  const porMesAcum = useMemo(() => {
+    let acum = 0
+    return porMes.map(m => { acum += m.saldo; return { ...m, acumulado: acum } })
+  }, [porMes])
+
+  // Totales
+  const totalIng = porMes.reduce((s, m) => s + m.totalIng, 0)
+  const totalEg = porMes.reduce((s, m) => s + m.totalEg, 0)
+  const leadsPipeline = estudios.reduce((s, p) => s + p.monto_licitacion * (p.margen_estudio_pct / 100), 0)
+
+  // ── Por proyecto para Nivel 2 ──
+  const porProyecto = useMemo(() => {
+    const items: { id: string; nombre: string; tipo: 'obra' | 'lead' | 'oficina'; ing: number; eg: number; saldoFact: number; flujos: FlujoProyecto[] }[] = []
+
+    obras.forEach(p => {
+      const flujos = flujoProyectos.filter(f => f.proyecto_id === p.id)
+      const ing = flujos.filter(f => f.tipo === 'ingreso').reduce((s, f) => s + f.monto, 0)
+      const eg = flujos.filter(f => f.tipo === 'egreso').reduce((s, f) => s + f.monto, 0)
+      items.push({ id: p.id, nombre: p.nombre, tipo: 'obra', ing, eg, saldoFact: saldoFacturar[p.id] || 0, flujos })
+    })
+
+    // Leads
+    estudios.forEach(p => {
+      const ponderado = p.monto_licitacion * (p.margen_estudio_pct / 100)
+      if (ponderado > 0) items.push({ id: p.id, nombre: `${p.nombre} (Lead)`, tipo: 'lead', ing: ponderado, eg: 0, saldoFact: 0, flujos: [] })
+    })
+
+    // Oficina
+    const egOficina = lineasCentral.filter(l => l.tipo === 'egreso').reduce((s, l) => s + l.monto, 0)
+    if (egOficina > 0 || lineasCentral.length > 0) {
+      items.push({ id: 'oficina', nombre: 'Oficina Central', tipo: 'oficina', ing: 0, eg: egOficina, saldoFact: 0, flujos: [] })
     }
-    setModalLinea(null)
+
+    return items
+  }, [obras, estudios, flujoProyectos, lineasCentral, saldoFacturar])
+
+  // ── Por naturaleza para Nivel 3 ──
+  const porNaturaleza = useMemo(() => {
+    const map: Record<string, { label: string; tipo: 'ingreso' | 'egreso'; monto: number; items: { proyecto: string; monto: number }[] }> = {}
+
+    flujoProyectos.forEach(f => {
+      const proy = projects.find(p => p.id === f.proyecto_id)
+      const key = f.categoria
+      if (!map[key]) map[key] = { label: catLabel(key), tipo: f.tipo, monto: 0, items: [] }
+      map[key].monto += f.monto
+      map[key].items.push({ proyecto: proy?.nombre || '?', monto: f.monto })
+    })
+
+    lineasCentral.forEach(l => {
+      const key = 'oficina_' + l.categoria
+      if (!map[key]) map[key] = { label: `Oficina: ${catLabel(l.categoria)}`, tipo: l.tipo as 'ingreso' | 'egreso', monto: 0, items: [] }
+      map[key].monto += l.monto
+      map[key].items.push({ proyecto: l.concepto, monto: l.monto })
+    })
+
+    return Object.values(map).sort((a, b) => b.monto - a.monto)
+  }, [flujoProyectos, lineasCentral, projects])
+
+  // ── CRUD ──
+  async function saveModal() {
+    if (!modal) return
+    const monto = parseFloat(modal.monto) || 0
+    if (monto <= 0) return
+
+    if (modal.isOficina) {
+      // Oficina central → flujo_financiero
+      const row = { mes: modal.mes, tipo: modal.tipo, categoria: modal.categoria, concepto: modal.obs || catLabel(modal.categoria), monto, real: modal.real, observacion: '' }
+      if (modal.editId) {
+        await supabase.from('flujo_financiero').update(row).eq('id', modal.editId)
+      } else {
+        const reps = parseInt(modal.repetir) || 1
+        const rows = []
+        for (let i = 0; i < reps; i++) {
+          const d = new Date(modal.mes + '-01')
+          d.setMonth(d.getMonth() + i)
+          rows.push({ ...row, mes: d.toISOString().slice(0, 7) })
+        }
+        await supabase.from('flujo_financiero').insert(rows)
+      }
+    } else {
+      // Por proyecto → flujo_proyectos
+      const row = { proyecto_id: modal.proyectoId, mes: modal.mes, tipo: modal.tipo, categoria: modal.categoria, monto, real: modal.real, observacion: modal.obs || '' }
+      if (modal.editId) {
+        await supabase.from('flujo_proyectos').update(row).eq('id', modal.editId)
+      } else {
+        const reps = parseInt(modal.repetir) || 1
+        const rows = []
+        for (let i = 0; i < reps; i++) {
+          const d = new Date(modal.mes + '-01')
+          d.setMonth(d.getMonth() + i)
+          rows.push({ ...row, mes: d.toISOString().slice(0, 7) })
+        }
+        await supabase.from('flujo_proyectos').insert(rows)
+      }
+    }
+    setModal(null)
     load()
   }
 
-  async function deleteLinea(id: string) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async function deleteFlujo(id: string, isOficina: boolean) {
     if (!confirm('¿Eliminar esta línea?')) return
-    await supabase.from('flujo_financiero').delete().eq('id', id)
+    if (isOficina) await supabase.from('flujo_financiero').delete().eq('id', id)
+    else await supabase.from('flujo_proyectos').delete().eq('id', id)
     load()
   }
 
-  if (loading) {
-    return <div className="space-y-3"><div className="h-28 skeleton rounded-xl" /><div className="h-48 skeleton rounded-xl" /></div>
+  function openNewModal(tipo: 'ingreso' | 'egreso', isOficina = false) {
+    setModal({
+      proyectoId: obras[0]?.id || '', tipo, categoria: tipo === 'ingreso' ? 'estado_pago' : isOficina ? 'remuneraciones' : 'proveedores',
+      mes: currentMonth, monto: '', repetir: '1', real: false, obs: '', isOficina,
+    })
   }
+
+  if (loading) return <div className="space-y-3"><div className="h-28 skeleton rounded-xl" /><div className="h-48 skeleton rounded-xl" /></div>
+
+  const maxBar = Math.max(...porMes.map(m => Math.max(m.totalIng, m.totalEg)), 1)
 
   return (
     <div>
-      {/* ── Consolidado general ── */}
-      <div className="hero-gradient rounded-xl p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+      {/* ── KPIs ── */}
+      <div className="hero-gradient rounded-xl p-5 grid grid-cols-2 sm:grid-cols-5 gap-4 mb-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Ingresos Totales</p>
-          <p className="font-condensed text-[28px] font-black text-green-400 leading-tight mt-1">{fmtMM(totalIngresos)}</p>
-          <p className="text-[10px] text-white/30 mt-0.5">{obras.length} obras + líneas crédito</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Ingresos Prog.</p>
+          <p className="font-condensed text-[26px] font-black text-green-400 leading-tight mt-1">{fmtMM(totalIng)}</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Egresos Totales</p>
-          <p className="font-condensed text-[28px] font-black text-red-400 leading-tight mt-1">{fmtMM(totalEgresos)}</p>
-          <p className="text-[10px] text-white/30 mt-0.5">Obras + Oficina central</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Egresos Prog.</p>
+          <p className="font-condensed text-[26px] font-black text-red-400 leading-tight mt-1">{fmtMM(totalEg)}</p>
         </div>
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Saldo Neto</p>
-          <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: saldoNeto >= 0 ? '#E1BA10' : '#DC2626' }}>
-            {saldoNeto >= 0 ? '+' : ''}{fmtMM(saldoNeto)}
+          <p className="font-condensed text-[26px] font-black leading-tight mt-1" style={{ color: totalIng - totalEg >= 0 ? '#E1BA10' : '#DC2626' }}>
+            {totalIng - totalEg >= 0 ? '+' : ''}{fmtMM(totalIng - totalEg)}
           </p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Oficina Central</p>
-          <p className="font-condensed text-lg font-black text-white/60 leading-tight mt-1">{fmtMM(oficinaEgTotal)}</p>
-          <p className="text-[10px] text-white/30 mt-0.5">
-            {fmtMoney(oficinaReal)} real · {fmtMoney(oficinaProy)} proy
-          </p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Obras</p>
+          <p className="font-condensed text-[26px] font-black text-white leading-tight mt-1">{obras.length}</p>
+        </div>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Leads Pipeline</p>
+          <p className="font-condensed text-[26px] font-black text-cobalt leading-tight mt-1">{fmtMM(leadsPipeline)}</p>
+          <p className="text-[10px] text-white/30">{estudios.length} en estudio</p>
         </div>
       </div>
 
-      {/* ── Tabs ── */}
+      {/* ── Tabs Nivel + Acciones ── */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex gap-1">
-          <button onClick={() => setTab('consolidado')}
-            className={`px-3.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-all ${tab === 'consolidado' ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1]'}`}>
-            Consolidado
-          </button>
-          <button onClick={() => setTab('oficina')}
-            className={`px-3.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-all ${tab === 'oficina' ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1]'}`}>
-            Oficina Central ({lineasCentral.length})
-          </button>
+          {([1, 2, 3] as const).map(n => (
+            <button key={n} onClick={() => setNivel(n)}
+              className={`px-3.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-all ${nivel === n ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1]'}`}>
+              {n === 1 ? 'Flujo Mensual' : n === 2 ? 'Por Proyecto' : 'Por Naturaleza'}
+            </button>
+          ))}
         </div>
-        {ce && tab === 'oficina' && (
-          <button onClick={() => setModalLinea({ mes: currentMonth, tipo: 'egreso', categoria: 'remuneraciones', concepto: '', monto: 0, real: false, observacion: null })}
-            className="bg-cobalt text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark transition-colors btn-scale">
-            + Gasto oficina
-          </button>
+        {ce && (
+          <div className="flex gap-1.5">
+            <button onClick={() => openNewModal('ingreso')} className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-green-700 btn-scale">+ Ingreso</button>
+            <button onClick={() => openNewModal('egreso')} className="bg-red-500 text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-red-600 btn-scale">+ Egreso obra</button>
+            <button onClick={() => openNewModal('egreso', true)} className="bg-slate-600 text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-slate-700 btn-scale">+ Oficina</button>
+          </div>
         )}
       </div>
 
-      {/* ═══ TAB: CONSOLIDADO ═══ */}
-      {tab === 'consolidado' && (
-        <div className="grid grid-cols-2 gap-4">
-          {/* Ingresos */}
-          <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
-            <div className="px-4 py-2.5 bg-green-50 border-b border-green-200 flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-green-700">Ingresos</span>
-              <span className="font-condensed text-sm font-black text-green-700">{fmtMM(totalIngresos)}</span>
-            </div>
-
-            {/* Subtotals */}
-            <div className="px-4 py-2 border-b border-[#F1F5F9] space-y-1">
-              {ingByTipo.facturacion > 0 && <SubRow label="Estados de pago" monto={ingByTipo.facturacion} color="#16A34A" />}
-              {ingByTipo.ndc > 0 && <SubRow label="NDC (notas de crédito)" monto={ingByTipo.ndc} color="#16A34A" />}
-              {ingByTipo.linea_credito > 0 && <SubRow label="Líneas de crédito" monto={ingByTipo.linea_credito} color="#0B5ED7" />}
-            </div>
-
-            {/* Detail */}
-            <div className="max-h-[300px] overflow-y-auto divide-y divide-[#F1F5F9]">
-              {ingresos.map((item, i) => (
-                <div key={i} className="px-4 py-2 flex items-center gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-ink truncate">{item.concepto}</p>
-                    <p className="text-[10px] text-slate">{item.fuente}</p>
-                  </div>
-                  <span className="font-condensed text-sm font-bold text-green-700 shrink-0">{fmtMM(item.monto)}</span>
-                </div>
-              ))}
-              {ingresos.length === 0 && <div className="px-4 py-6 text-center text-slate text-xs">Sin ingresos registrados en obras ni líneas</div>}
-            </div>
-          </div>
-
-          {/* Egresos */}
-          <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
-            <div className="px-4 py-2.5 bg-red-50 border-b border-red-200 flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-red-700">Egresos</span>
-              <span className="font-condensed text-sm font-black text-red-700">{fmtMM(totalEgresos)}</span>
-            </div>
-
-            {/* Subtotals */}
-            <div className="px-4 py-2 border-b border-[#F1F5F9] space-y-1">
-              {egByTipo.proveedores > 0 && <SubRow label="Proveedores (OC+SC+Adic)" monto={egByTipo.proveedores} color="#DC2626" />}
-              {egByTipo.mano_obra > 0 && <SubRow label="Mano de obra" monto={egByTipo.mano_obra} color="#D97706" />}
-              {egByTipo.gastos_matriz > 0 && <SubRow label="Gastos matriz" monto={egByTipo.gastos_matriz} color="#7C3AED" />}
-              {egByTipo.oficina > 0 && <SubRow label="Oficina central" monto={egByTipo.oficina} color="#64748B" />}
-            </div>
-
-            {/* Detail */}
-            <div className="max-h-[300px] overflow-y-auto divide-y divide-[#F1F5F9]">
-              {egresos.map((item, i) => (
-                <div key={i} className="px-4 py-2 flex items-center gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-ink truncate">{item.concepto}</p>
-                    <p className="text-[10px] text-slate">{item.fuente}</p>
-                  </div>
-                  <span className="font-condensed text-sm font-bold text-red-600 shrink-0">{fmtMM(item.monto)}</span>
-                </div>
-              ))}
-              {egresos.length === 0 && <div className="px-4 py-6 text-center text-slate text-xs">Sin egresos registrados</div>}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══ TAB: OFICINA CENTRAL ═══ */}
-      {tab === 'oficina' && (
+      {/* ═══ NIVEL 1: Flujo Mensual ═══ */}
+      {nivel === 1 && (
         <>
-          {lineasCentral.length === 0 ? (
-            <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate text-sm">
-              Sin gastos de oficina central. Agrega presupuesto mensual proyectado y actualiza con datos reales.
+          {/* Chart */}
+          <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate">Flujo de caja mensual ($MM)</p>
+              <div className="flex gap-3 text-[10px]">
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-green-500" /> Ing real</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-green-500/30" /> Ing proy</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-red-400" /> Eg real</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-red-400/30" /> Eg proy</span>
+              </div>
             </div>
-          ) : (
-            <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
-                    <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate">Mes</th>
-                    <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate">Categoría</th>
-                    <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate">Concepto</th>
-                    <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate">Monto ($MM)</th>
-                    <th className="text-center px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate">Estado</th>
-                    {ce && <th className="w-20" />}
+            <div className="flex gap-1 items-end" style={{ height: 140 }}>
+              {porMesAcum.map(m => (
+                <div key={m.mes} className="flex-1 flex flex-col items-center gap-0.5">
+                  <div className="w-full flex gap-0.5 items-end" style={{ height: 100 }}>
+                    {/* Ingreso stacked bar */}
+                    <div className="flex-1 flex flex-col justify-end">
+                      {m.ingProyectado > 0 && <div className="rounded-t" style={{ height: `${(m.ingProyectado / maxBar) * 100}%`, background: '#16A34A40', minHeight: 2 }} />}
+                      {m.ingReal > 0 && <div className="rounded-t" style={{ height: `${(m.ingReal / maxBar) * 100}%`, background: '#16A34A', minHeight: 2 }} />}
+                    </div>
+                    {/* Egreso stacked bar */}
+                    <div className="flex-1 flex flex-col justify-end">
+                      {m.egProyectado > 0 && <div className="rounded-t" style={{ height: `${(m.egProyectado / maxBar) * 100}%`, background: '#F8717140', minHeight: 2 }} />}
+                      {m.egReal > 0 && <div className="rounded-t" style={{ height: `${(m.egReal / maxBar) * 100}%`, background: '#F87171', minHeight: 2 }} />}
+                    </div>
+                  </div>
+                  <div className={`text-[8px] font-bold ${m.saldo >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                    {m.totalIng > 0 || m.totalEg > 0 ? (m.saldo >= 0 ? '+' : '') + fmtMoney(m.saldo) : ''}
+                  </div>
+                  <div className={`text-[9px] font-bold ${m.isCurrent ? 'text-cobalt' : 'text-slate'}`}>{fmtMes(m.mes)}</div>
+                </div>
+              ))}
+            </div>
+            {/* Acumulado line */}
+            <div className="flex gap-1 mt-1">
+              {porMesAcum.map(m => (
+                <div key={m.mes} className="flex-1 text-center">
+                  <span className={`text-[8px] font-condensed font-bold ${m.acumulado >= 0 ? 'text-cobalt' : 'text-danger'}`}>
+                    {m.totalIng > 0 || m.totalEg > 0 ? fmtMoney(m.acumulado) : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tabla resumen */}
+          <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                  <th className="text-left px-3.5 py-2 text-[10px] font-bold uppercase tracking-widest text-slate">Mes</th>
+                  <th className="text-right px-2 py-2 text-[10px] font-bold uppercase text-green-600">Ingresos</th>
+                  <th className="text-right px-2 py-2 text-[10px] font-bold uppercase text-red-500">Egresos</th>
+                  <th className="text-right px-2 py-2 text-[10px] font-bold uppercase text-slate">Saldo</th>
+                  <th className="text-right px-3.5 py-2 text-[10px] font-bold uppercase text-cobalt">Acumulado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {porMesAcum.filter(m => m.totalIng > 0 || m.totalEg > 0).map(m => (
+                  <tr key={m.mes} className={`border-b border-[#F1F5F9] ${m.isCurrent ? 'bg-blue-50/50' : ''}`}>
+                    <td className="px-3.5 py-2 font-semibold">
+                      {fmtMes(m.mes)}
+                      {m.isCurrent && <span className="text-[9px] text-cobalt font-bold ml-1">actual</span>}
+                    </td>
+                    <td className="px-2 py-2 text-right font-condensed font-bold text-green-600">{m.totalIng > 0 ? fmtMM(m.totalIng) : '—'}</td>
+                    <td className="px-2 py-2 text-right font-condensed font-bold text-red-500">{m.totalEg > 0 ? fmtMM(m.totalEg) : '—'}</td>
+                    <td className="px-2 py-2 text-right font-condensed font-bold" style={{ color: m.saldo >= 0 ? '#16A34A' : '#DC2626' }}>{fmtMM(m.saldo)}</td>
+                    <td className="px-3.5 py-2 text-right font-condensed font-bold" style={{ color: m.acumulado >= 0 ? '#0B5ED7' : '#DC2626' }}>{fmtMM(m.acumulado)}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {lineasCentral.map(l => (
-                    <tr key={l.id} className="border-b border-[#F1F5F9] hover:bg-[#F8FAFC]">
-                      <td className="px-3.5 py-2.5 font-semibold">{fmtMes(l.mes)}</td>
-                      <td className="px-3.5 py-2.5 text-slate">{CAT_OFICINA.find(c => c.value === l.categoria)?.label || l.categoria}</td>
-                      <td className="px-3.5 py-2.5 text-ink">{l.concepto}</td>
-                      <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-red-600">{fmtMM(l.monto)}</td>
-                      <td className="px-3.5 py-2.5 text-center">
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${l.real ? 'bg-green-50 text-success' : 'bg-amber-50 text-amber'}`}>
-                          {l.real ? 'Real' : 'Proyectado'}
-                        </span>
-                      </td>
-                      {ce && (
-                        <td className="px-2 py-2.5 text-right">
-                          <button onClick={() => setModalLinea({ ...l })} className="text-slate hover:text-cobalt text-[10px] mr-1">editar</button>
-                          <button onClick={() => deleteLinea(l.id)} className="text-[#CBD5E1] hover:text-danger text-sm">×</button>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                ))}
+              </tbody>
+            </table>
+            {porMes.every(m => m.totalIng === 0 && m.totalEg === 0) && (
+              <div className="p-12 text-center text-slate text-sm">Sin proyecciones. Usa los botones + Ingreso / + Egreso para programar el flujo.</div>
+            )}
+          </div>
         </>
       )}
 
-      {/* ══ MODAL GASTO OFICINA ══ */}
-      {modalLinea && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0F172A]/60 backdrop-blur-md" onClick={() => setModalLinea(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[500px] max-h-[85vh] overflow-y-auto mx-4 ring-1 ring-black/5" onClick={e => e.stopPropagation()}>
+      {/* ═══ NIVEL 2: Por Proyecto ═══ */}
+      {nivel === 2 && (
+        <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase text-slate">Proyecto</th>
+                <th className="text-right px-2 py-2.5 text-[10px] font-bold uppercase text-green-600">Ing. Prog.</th>
+                <th className="text-right px-2 py-2.5 text-[10px] font-bold uppercase text-red-500">Eg. Est.</th>
+                <th className="text-right px-2 py-2.5 text-[10px] font-bold uppercase text-slate">Saldo</th>
+                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase text-cobalt">Saldo x Fact.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {porProyecto.map(p => {
+                const saldo = p.ing - p.eg
+                const isExp = expandedProy === p.id
+                return (
+                  <tr key={p.id} className="border-b border-[#F1F5F9] hover:bg-[#F8FAFC] cursor-pointer" onClick={() => setExpandedProy(isExp ? null : p.id)}>
+                    <td className="px-3.5 py-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-ink">{p.nombre}</span>
+                        {p.tipo === 'lead' && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cobalt-light text-cobalt">Lead</span>}
+                        {p.tipo === 'oficina' && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate">Oficina</span>}
+                        {p.flujos.length > 0 && <span className="text-[9px] text-slate">{p.flujos.length} líneas</span>}
+                      </div>
+                    </td>
+                    <td className="px-2 py-2.5 text-right font-condensed font-bold text-green-600">{p.ing > 0 ? fmtMM(p.ing) : '—'}</td>
+                    <td className="px-2 py-2.5 text-right font-condensed font-bold text-red-500">{p.eg > 0 ? fmtMM(p.eg) : '—'}</td>
+                    <td className="px-2 py-2.5 text-right font-condensed font-bold" style={{ color: saldo >= 0 ? '#16A34A' : '#DC2626' }}>{fmtMM(saldo)}</td>
+                    <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-cobalt">{p.saldoFact > 0 ? fmtMM(p.saldoFact) : '—'}</td>
+                  </tr>
+                )
+              })}
+              {/* Totals row */}
+              <tr className="bg-[#F8FAFC] font-bold">
+                <td className="px-3.5 py-2.5 text-[10px] uppercase text-slate">Total</td>
+                <td className="px-2 py-2.5 text-right font-condensed text-green-700">{fmtMM(porProyecto.reduce((s, p) => s + p.ing, 0))}</td>
+                <td className="px-2 py-2.5 text-right font-condensed text-red-600">{fmtMM(porProyecto.reduce((s, p) => s + p.eg, 0))}</td>
+                <td className="px-2 py-2.5 text-right font-condensed" style={{ color: totalIng - totalEg >= 0 ? '#16A34A' : '#DC2626' }}>{fmtMM(totalIng - totalEg)}</td>
+                <td className="px-3.5 py-2.5 text-right font-condensed text-cobalt">{fmtMM(Object.values(saldoFacturar).reduce((s, v) => s + Math.max(0, v), 0))}</td>
+              </tr>
+            </tbody>
+          </table>
+          {porProyecto.length === 0 && <div className="p-12 text-center text-slate text-sm">Sin proyecciones por proyecto.</div>}
+        </div>
+      )}
+
+      {/* ═══ NIVEL 3: Por Naturaleza ═══ */}
+      {nivel === 3 && (
+        <div className="space-y-2.5">
+          {porNaturaleza.length === 0 ? (
+            <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate text-sm">Sin datos para agrupar por naturaleza.</div>
+          ) : porNaturaleza.map((nat, i) => (
+            <div key={i} className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
+              <div className="px-4 py-2.5 flex items-center justify-between border-b border-[#E2E8F0]" style={{ borderLeftWidth: 3, borderLeftColor: nat.tipo === 'ingreso' ? '#16A34A' : '#DC2626' }}>
+                <span className="text-xs font-bold">{nat.label}</span>
+                <span className="font-condensed text-sm font-bold" style={{ color: nat.tipo === 'ingreso' ? '#16A34A' : '#DC2626' }}>{fmtMM(nat.monto)}</span>
+              </div>
+              <div className="divide-y divide-[#F1F5F9]">
+                {nat.items.map((item, j) => (
+                  <div key={j} className="px-4 py-2 flex items-center justify-between">
+                    <span className="text-xs text-ink">{item.proyecto}</span>
+                    <span className="text-xs font-condensed font-bold" style={{ color: nat.tipo === 'ingreso' ? '#16A34A' : '#DC2626' }}>{fmtMM(item.monto)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ══ MODAL PROYECCIÓN ══ */}
+      {modal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0F172A]/60 backdrop-blur-md" onClick={() => setModal(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[520px] max-h-[85vh] overflow-y-auto mx-4 ring-1 ring-black/5" onClick={e => e.stopPropagation()}>
             <div className="px-5 py-3.5 border-b border-[#E2E8F0] flex items-center justify-between">
-              <h3 className="font-condensed font-bold text-lg">{(modalLinea as LineaCentral).id ? 'Editar gasto' : 'Nuevo gasto oficina'}</h3>
-              <button onClick={() => setModalLinea(null)} className="w-7 h-7 rounded-lg border border-[#E2E8F0] flex items-center justify-center text-slate hover:bg-[#F1F5F9]">×</button>
+              <h3 className="font-condensed font-bold text-lg">
+                {modal.editId ? 'Editar' : 'Nueva'} {modal.tipo === 'ingreso' ? 'proyección de ingreso' : modal.isOficina ? 'gasto oficina' : 'proyección de egreso'}
+              </h3>
+              <button onClick={() => setModal(null)} className="w-7 h-7 rounded-lg border border-[#E2E8F0] flex items-center justify-center text-slate hover:bg-[#F1F5F9]">×</button>
             </div>
             <div className="px-5 py-4 grid grid-cols-2 gap-3">
-              <div>
-                <L>Mes</L>
-                <input type="month" value={modalLinea.mes || ''} onChange={e => setModalLinea(p => ({ ...p!, mes: e.target.value }))} className="inp" />
-              </div>
+              {!modal.isOficina && (
+                <div className="col-span-2">
+                  <L>Proyecto</L>
+                  <select value={modal.proyectoId} onChange={e => setModal(p => p ? { ...p, proyectoId: e.target.value } : null)} className="inp">
+                    <option value="">— Seleccionar —</option>
+                    <optgroup label="Obras activas">
+                      {obras.map(p => <option key={p.id} value={p.id}>{p.nombre}{saldoFacturar[p.id] > 0 ? ` (saldo: ${fmtMoney(saldoFacturar[p.id])}MM)` : ''}</option>)}
+                    </optgroup>
+                  </select>
+                </div>
+              )}
               <div>
                 <L>Categoría</L>
-                <select value={modalLinea.categoria || 'remuneraciones'} onChange={e => setModalLinea(p => ({ ...p!, categoria: e.target.value }))} className="inp">
-                  {CAT_OFICINA.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                <select value={modal.categoria} onChange={e => setModal(p => p ? { ...p, categoria: e.target.value } : null)} className="inp">
+                  {modal.isOficina ? CAT_OFICINA.map(c => <option key={c.value} value={c.value}>{c.label}</option>) :
+                   modal.tipo === 'ingreso' ? CAT_INGRESO.map(c => <option key={c.value} value={c.value}>{c.label}</option>) :
+                   CAT_EGRESO.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
               </div>
-              <div className="col-span-2">
-                <L>Concepto</L>
-                <input value={modalLinea.concepto || ''} onChange={e => setModalLinea(p => ({ ...p!, concepto: e.target.value }))} className="inp" placeholder="Ej: Arriendo oficina marzo" />
+              <div>
+                <L>Mes inicio</L>
+                <input type="month" value={modal.mes} onChange={e => setModal(p => p ? { ...p, mes: e.target.value } : null)} className="inp" />
               </div>
               <div>
                 <L>Monto ($MM)</L>
-                <input type="number" value={modalLinea.monto || ''} onChange={e => setModalLinea(p => ({ ...p!, monto: parseFloat(e.target.value) || 0 }))} className="inp" placeholder="0" />
+                <input type="number" value={modal.monto} onChange={e => setModal(p => p ? { ...p, monto: e.target.value } : null)} className="inp" placeholder="0" />
+                {modal.tipo === 'ingreso' && modal.categoria === 'estado_pago' && modal.proyectoId && (
+                  <p className="text-[10px] text-cobalt mt-0.5">Saldo disponible: {fmtMM(saldoFacturar[modal.proyectoId] || 0)}</p>
+                )}
               </div>
-              <div className="flex items-end">
-                <label className="flex items-center gap-2 cursor-pointer pb-2">
-                  <input type="checkbox" checked={modalLinea.real || false} onChange={e => setModalLinea(p => ({ ...p!, real: e.target.checked }))} className="w-4 h-4 rounded border-[#CBD5E1]" />
+              <div>
+                <L>Repetir por</L>
+                <div className="flex items-center gap-1.5">
+                  <input type="number" min="1" max="12" value={modal.repetir} onChange={e => setModal(p => p ? { ...p, repetir: e.target.value } : null)} className="inp w-16 text-center" />
+                  <span className="text-xs text-slate">meses</span>
+                </div>
+              </div>
+              <div className="col-span-2 flex items-center gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={modal.real} onChange={e => setModal(p => p ? { ...p, real: e.target.checked } : null)} className="w-4 h-4 rounded border-[#CBD5E1]" />
                   <span className="text-xs font-semibold text-ink">Dato real (ejecutado)</span>
                 </label>
               </div>
               <div className="col-span-2">
                 <L>Observación (opcional)</L>
-                <input value={modalLinea.observacion || ''} onChange={e => setModalLinea(p => ({ ...p!, observacion: e.target.value }))} className="inp" placeholder="Nota opcional" />
+                <input value={modal.obs} onChange={e => setModal(p => p ? { ...p, obs: e.target.value } : null)} className="inp" placeholder="Nota" />
               </div>
             </div>
             <div className="px-5 py-3.5 border-t border-[#E2E8F0] flex justify-end gap-2">
-              <button onClick={() => setModalLinea(null)} className="px-4 py-2 border border-[#E2E8F0] rounded-lg text-xs font-semibold hover:bg-[#F1F5F9]">Cancelar</button>
-              <button onClick={saveLinea} className="px-4 py-2 bg-cobalt text-white rounded-lg text-xs font-bold hover:bg-cobalt-dark btn-scale">Guardar</button>
+              <button onClick={() => setModal(null)} className="px-4 py-2 border border-[#E2E8F0] rounded-lg text-xs font-semibold hover:bg-[#F1F5F9]">Cancelar</button>
+              <button onClick={saveModal} className="px-4 py-2 bg-cobalt text-white rounded-lg text-xs font-bold hover:bg-cobalt-dark btn-scale">
+                {parseInt(modal.repetir) > 1 ? `Guardar (${modal.repetir} meses)` : 'Guardar'}
+              </button>
             </div>
           </div>
         </div>
       )}
-    </div>
-  )
-}
-
-function SubRow({ label, monto, color }: { label: string; monto: number; color: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-[10px] font-semibold" style={{ color }}>{label}</span>
-      <span className="text-[11px] font-condensed font-bold" style={{ color }}>{fmtMM(monto)}</span>
     </div>
   )
 }
