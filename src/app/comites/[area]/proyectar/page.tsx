@@ -6,8 +6,8 @@ import { useAutoKpis } from '@/lib/comites/use-auto-kpis'
 import { toast } from '@/components/ui/Toast'
 import { fmtFecha, fmtFechaDate } from '@/lib/comites/data'
 import { createClient } from '@/lib/supabase/client'
-import { AREAS_LIST, TAREA_TIPO_LABELS, TAREA_TIPO_COLORS } from '@/lib/types'
-import type { AreaId, TareaTipo } from '@/lib/types'
+import { AREAS_LIST } from '@/lib/types'
+import type { AreaId } from '@/lib/types'
 import KPIDashboard from '@/components/comites/KPIDashboard'
 import PDFExportButton from '@/components/comites/PDFExportButton'
 
@@ -124,13 +124,7 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
   const totalTareas = tareas.length
   const maxEstado = Math.max(...Object.values(byEstado), 1)
 
-  const tipoKeys: TareaTipo[] = ['seguimiento', 'acuerdo', 'accion_correctiva', 'solicitud']
-  const byTipo: Record<string, number> = {}
-  tipoKeys.forEach(t => { byTipo[t] = tareas.filter(ta => (ta.tipo || 'seguimiento') === t).length })
-  const maxTipo = Math.max(...Object.values(byTipo), 1)
-
   const bloqueadas = tareas.filter(t => t.estado === 'bloqueada').slice(0, 3)
-  const sinFecha = tareas.filter(t => t.estado !== 'completada' && !t.fecha_compromiso).length
 
   // ── Comment input component ──
   function SlideComment({ slideIdx }: { slideIdx: number }) {
@@ -196,16 +190,15 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
       {/* ═══ SLIDES ═══ */}
       <div className="px-7 py-5">
 
-        {/* ── Slide 0: Scoreboard ── */}
+        {/* ── Slide 0: Solo KPIs (4-8 tarjetas) + comentario ── */}
         <div ref={el => { slideRefs.current[0] = el }} style={{ display: show(0) ? 'block' : 'none' }}>
           <Hdr color={areaInfo?.color} text="Momento 1 · Scoreboard" />
 
-          {/* Auto KPIs */}
           {!isRRHH && autoKpis.length > 0 ? (
-            <KPIDashboard kpis={autoKpis} areaColor={areaInfo?.color} />
+            <KPIDashboard kpis={autoKpis.slice(0, 8)} areaColor={areaInfo?.color} />
           ) : (
-            <div className="grid grid-cols-2 gap-3.5">
-              {kpis.map(k => {
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+              {kpis.slice(0, 8).map(k => {
                 const color = k.status === 'verde' ? '#16A34A' : k.status === 'amarillo' ? '#D97706' : '#DC2626'
                 return (
                   <div key={k.id} className="bg-[#F8FAFC] rounded-lg p-4 border border-[#E2E8F0]" style={{ borderLeftWidth: 4, borderLeftColor: color }}>
@@ -220,90 +213,52 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
             </div>
           )}
 
-          {/* Quick task summary (gráfica, no lista) */}
-          <div className="grid grid-cols-2 gap-4 mt-5">
-            <div className="bg-[#F8FAFC] rounded-xl p-4 border border-[#E2E8F0]">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate mb-3">Tareas por estado ({totalTareas})</p>
-              <div className="space-y-2">
-                <StatBar label="Bloqueadas" value={byEstado.bloqueada} max={maxEstado} color="#DC2626" total={totalTareas} />
-                <StatBar label="En proceso" value={byEstado['en-proceso']} max={maxEstado} color="#0B5ED7" total={totalTareas} />
-                <StatBar label="Pendientes" value={byEstado.pendiente} max={maxEstado} color="#D97706" total={totalTareas} />
-                <StatBar label="Completadas" value={byEstado.completada} max={maxEstado} color="#16A34A" total={totalTareas} />
-              </div>
-            </div>
-            <div className="bg-[#F8FAFC] rounded-xl p-4 border border-[#E2E8F0]">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate mb-3">Tareas por tipo</p>
-              <div className="space-y-2">
-                {tipoKeys.map(t => byTipo[t] > 0 ? (
-                  <StatBar key={t} label={TAREA_TIPO_LABELS[t]} value={byTipo[t]} max={maxTipo} color={TAREA_TIPO_COLORS[t]} total={totalTareas} />
-                ) : null)}
-              </div>
-              {sinFecha > 0 && (
-                <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-danger font-bold">
-                  {sinFecha} tarea{sinFecha > 1 ? 's' : ''} sin fecha de compromiso
-                </div>
-              )}
-            </div>
-          </div>
-
           {ce && <SlideComment slideIdx={0} />}
         </div>
 
-        {/* ── Slide 1: Estado de Tareas (gráficas + alertas) ── */}
+        {/* ── Slide 1: Solo 4 estados de tareas ── */}
         <div ref={el => { slideRefs.current[1] = el }} style={{ display: show(1) ? 'block' : 'none' }}>
           <Hdr color="#D97706" text="Momento 2 · Estado de Tareas" />
 
-          {/* Alert: bloqueadas */}
-          {bloqueadas.length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-              <p className="text-xs font-bold text-danger uppercase tracking-wider mb-2">Bloqueadas — requieren atención ({byEstado.bloqueada})</p>
-              {bloqueadas.map(t => (
-                <div key={t.id} className="flex items-center gap-2.5 py-2 border-b border-red-100 last:border-0">
-                  <div className="w-2 h-2 rounded-full bg-danger shrink-0" />
-                  <span className="flex-1 text-sm text-ink font-medium">{t.texto}</span>
-                  <span className="text-xs text-slate">{t.responsable || 'Sin asignar'}</span>
-                </div>
-              ))}
-              {byEstado.bloqueada > 3 && <p className="text-[10px] text-danger mt-1">... y {byEstado.bloqueada - 3} más</p>}
-            </div>
-          )}
-
-          {/* Large stat cards */}
-          <div className="grid grid-cols-4 gap-3 mb-4">
+          {/* 4 stat cards */}
+          <div className="grid grid-cols-4 gap-3 mb-5">
             {[
               { label: 'Bloqueadas', value: byEstado.bloqueada, color: '#DC2626', bg: '#FEE2E2' },
               { label: 'En proceso', value: byEstado['en-proceso'], color: '#0B5ED7', bg: '#EFF6FF' },
-              { label: 'Pendientes', value: byEstado.pendiente, color: '#D97706', bg: '#FEF3C7' },
+              { label: 'Abiertas', value: byEstado.pendiente, color: '#D97706', bg: '#FEF3C7' },
               { label: 'Completadas', value: byEstado.completada, color: '#16A34A', bg: '#DCFCE7' },
             ].map(s => (
-              <div key={s.label} className="rounded-xl p-4 text-center" style={{ background: s.bg }}>
-                <p className="font-condensed text-5xl font-black" style={{ color: s.color }}>{s.value}</p>
-                <p className="text-xs font-bold mt-1" style={{ color: s.color }}>{s.label}</p>
+              <div key={s.label} className="rounded-xl p-5 text-center" style={{ background: s.bg }}>
+                <p className="font-condensed text-6xl font-black leading-none" style={{ color: s.color }}>{s.value}</p>
+                <p className="text-xs font-bold mt-2" style={{ color: s.color }}>{s.label}</p>
+                <p className="text-[10px] text-slate mt-0.5">{totalTareas > 0 ? Math.round((s.value / totalTareas) * 100) : 0}%</p>
               </div>
             ))}
           </div>
 
-          {/* Tipo distribution */}
-          <div className="bg-[#F8FAFC] rounded-xl p-4 border border-[#E2E8F0]">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate mb-3">Distribución por tipo</p>
-            <div className="flex gap-3">
-              {tipoKeys.map(t => {
-                const count = byTipo[t]
-                const pct = totalTareas > 0 ? Math.round((count / totalTareas) * 100) : 0
-                return (
-                  <div key={t} className="flex-1 text-center">
-                    <div className="h-24 flex items-end justify-center mb-1">
-                      <div className="w-full max-w-[60px] rounded-t-lg transition-all duration-700"
-                        style={{ height: `${totalTareas > 0 ? Math.max((count / Math.max(...Object.values(byTipo))) * 100, count > 0 ? 8 : 0) : 0}%`, background: TAREA_TIPO_COLORS[t] }} />
-                    </div>
-                    <p className="font-condensed text-xl font-black" style={{ color: TAREA_TIPO_COLORS[t] }}>{count}</p>
-                    <p className="text-[10px] font-semibold text-slate">{TAREA_TIPO_LABELS[t]}</p>
-                    <p className="text-[9px] text-slate">{pct}%</p>
-                  </div>
-                )
-              })}
+          {/* Horizontal bar chart */}
+          <div className="bg-[#F8FAFC] rounded-xl p-5 border border-[#E2E8F0]">
+            <div className="space-y-3">
+              <StatBar label="Bloqueadas" value={byEstado.bloqueada} max={maxEstado} color="#DC2626" total={totalTareas} />
+              <StatBar label="En proceso" value={byEstado['en-proceso']} max={maxEstado} color="#0B5ED7" total={totalTareas} />
+              <StatBar label="Abiertas" value={byEstado.pendiente} max={maxEstado} color="#D97706" total={totalTareas} />
+              <StatBar label="Completadas" value={byEstado.completada} max={maxEstado} color="#16A34A" total={totalTareas} />
             </div>
           </div>
+
+          {/* Top 3 bloqueadas alert */}
+          {bloqueadas.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
+              <p className="text-xs font-bold text-danger uppercase tracking-wider mb-2">Requieren atención</p>
+              {bloqueadas.map(t => (
+                <div key={t.id} className="flex items-center gap-2.5 py-1.5 border-b border-red-100 last:border-0">
+                  <div className="w-2 h-2 rounded-full bg-danger shrink-0" />
+                  <span className="flex-1 text-xs text-ink">{t.texto}</span>
+                  <span className="text-[10px] text-slate">{t.responsable || '—'}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {ce && <SlideComment slideIdx={1} />}
         </div>

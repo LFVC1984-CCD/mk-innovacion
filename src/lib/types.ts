@@ -105,9 +105,26 @@ export type ProyectoEstado =
   | 'no_adjudicado' | 'excusa'
   | 'cerrado_saldo' | 'cerrado'
 
+export type TipoProyecto = 'obra' | 'innovacion' | 'estudio' | 'servicio'
+
+export const TIPO_PROYECTO_LABELS: Record<TipoProyecto, string> = {
+  obra: 'Obra',
+  innovacion: 'Innovación',
+  estudio: 'Estudio',
+  servicio: 'Servicio',
+}
+
+export const TIPO_PROYECTO_COLORS: Record<TipoProyecto, string> = {
+  obra: '#16A34A',
+  innovacion: '#0891B2',
+  estudio: '#64748B',
+  servicio: '#7C3AED',
+}
+
 export interface Proyecto {
   id: string
   nombre: string
+  tipo_proyecto: TipoProyecto
   estado: ProyectoEstado
   mandante: string | null
   administrador: string | null
@@ -203,7 +220,7 @@ export function isEstudio(p: Proyecto): boolean {
 }
 
 export const EMPTY_PROYECTO: Omit<Proyecto, 'id'> = {
-  nombre: '', estado: 'en_evaluacion', mandante: null, administrador: null,
+  nombre: '', tipo_proyecto: 'obra', estado: 'en_evaluacion', mandante: null, administrador: null,
   fecha_inicio: null, fecha_termino: null,
   monto_licitacion: 0, margen_estudio_pct: 0, fecha_oferta: null, observacion: null,
   monto_adjudicado: 0, meta_margen: 0, meta_margen_pct: 0, fecha_adjudicacion: null, fecha_fin_asbuilt: null,

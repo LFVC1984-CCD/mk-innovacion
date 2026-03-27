@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Modal, { Field, Input, Select, Row2, Divider, Btn } from './Modal'
-import type { Proyecto, ProyectoEstado } from '@/lib/types'
-import { ESTADO_LABELS, ESTADO_COLORS, EMPTY_PROYECTO } from '@/lib/types'
+import type { Proyecto, ProyectoEstado, TipoProyecto } from '@/lib/types'
+import { ESTADO_LABELS, ESTADO_COLORS, EMPTY_PROYECTO, TIPO_PROYECTO_LABELS } from '@/lib/types'
 
 interface Props {
   open: boolean
@@ -70,13 +70,25 @@ export default function ProyectoModal({ open, onClose, onSave, proyecto, equipoN
         </>
       }
     >
-      <Field label="Nombre del proyecto">
-        <Input
-          value={form.nombre}
-          onChange={e => upd('nombre', e.target.value)}
-          placeholder="Ej: PET CT Clínica Alemana"
-        />
-      </Field>
+      <Row2>
+        <Field label="Nombre del proyecto">
+          <Input
+            value={form.nombre}
+            onChange={e => upd('nombre', e.target.value)}
+            placeholder="Ej: PET CT Clínica Alemana"
+          />
+        </Field>
+        <Field label="Tipo de proyecto">
+          <Select
+            value={form.tipo_proyecto || 'obra'}
+            onChange={e => upd('tipo_proyecto', e.target.value as TipoProyecto)}
+          >
+            {Object.entries(TIPO_PROYECTO_LABELS).map(([k, v]) => (
+              <option key={k} value={k}>{v}</option>
+            ))}
+          </Select>
+        </Field>
+      </Row2>
 
       <Row2>
         <Field label="Mandante">
