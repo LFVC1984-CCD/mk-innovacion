@@ -57,7 +57,9 @@ export function useAutoKpis(areaId: AreaId | string) {
       }
       if (areaId === 'finanzas') {
         const { data: flujo } = await supabase.from('flujo_financiero').select('*')
+        const { data: lc } = await supabase.from('lineas_credito').select('*')
         data.flujo = (flujo || []).map((l: Record<string, unknown>) => ({ ...l, monto: Number(l.monto) || 0 }))
+        data.lineas_credito = (lc || []).map((l: Record<string, unknown>) => ({ ...l, monto: Number(l.monto) || 0 }))
       }
 
       setExtraData(data)
@@ -78,7 +80,7 @@ export function useAutoKpis(areaId: AreaId | string) {
       case 'legal': return computeLegal(extraData)
       case 'prevencion': return computePrevencion(extraData)
       case 'eti': return computeETI(extraData)
-      case 'finanzas': return computeFinanzas(extraData)
+      case 'finanzas': return computeFinanzas(extraData, projects)
       default: return []
     }
   }, [areaId, projects, extraData, loading])
@@ -198,22 +200,31 @@ function computeETI(data: Record<string, unknown[]>): AutoKPI[] {
   ]
 }
 
-function computeFinanzas(data: Record<string, unknown[]>): AutoKPI[] {
-  const lineas = (data.flujo || []) as { mes: string; tipo: string; monto: number; real: boolean }[]
-  const currentMonth = new Date().toISOString().slice(0, 7)
-  const mesActual = lineas.filter(l => l.mes === currentMonth)
-  const ingMes = mesActual.filter(l => l.tipo === 'ingreso').reduce((s, l) => s + l.monto, 0)
-  const egMes = mesActual.filter(l => l.tipo === 'egreso').reduce((s, l) => s + l.monto, 0)
-  const saldoMes = ingMes - egMes
+function computeFinanzas(data: Record<string, unknown[]>, projects: { facturado: number; ndc: number; oc: number; sc: number; adicionales: number; mano_obra: number; gastos_matriz: number; contrato: number; estado: string }[]): AutoKPI[] {
+  const obras = projects.filter(p => isObra(p as never) || p.estado === 'cerrado_saldo')
+  const lineasCred = (data.lineas_credito || []) as { monto: number }[]
+  const oficina = (data.flujo || []) as { tipo: string; monto: number }[]
 
-  const totalIng = lineas.filter(l => l.tipo === 'ingreso').reduce((s, l) => s + l.monto, 0)
-  const totalEg = lineas.filter(l => l.tipo === 'egreso').reduce((s, l) => s + l.monto, 0)
-  const saldoTotal = totalIng - totalEg
+  // Ingresos: facturación + NDC + líneas de crédito
+  const ingFacturacion = obras.reduce((s, p) => s + p.facturado, 0)
+  const ingNDC = obras.reduce((s, p) => s + p.ndc, 0)
+  const ingLineas = lineasCred.reduce((s, l) => s + l.monto, 0)
+  const totalIng = ingFacturacion + ingNDC + ingLineas
+
+  // Egresos: proveedores + MO + gastos matriz + oficina
+  const egProveedores = obras.reduce((s, p) => s + (p.oc || 0) + (p.sc || 0) + (p.adicionales || 0), 0)
+  const egMO = obras.reduce((s, p) => s + p.mano_obra, 0)
+  const egMatriz = obras.reduce((s, p) => s + (p.gastos_matriz || 0), 0)
+  const egOficina = oficina.filter(l => l.tipo === 'egreso').reduce((s, l) => s + l.monto, 0)
+  const totalEg = egProveedores + egMO + egMatriz + egOficina
+
+  const saldoNeto = totalIng - totalEg
 
   return [
-    { key: 'ing_mes', nombre: 'Ingresos Mes', valor: fmtM(ingMes), valorNum: ingMes, status: 'ok', formato: 'dinero' },
-    { key: 'eg_mes', nombre: 'Egresos Mes', valor: fmtM(egMes), valorNum: egMes, status: 'ok', formato: 'dinero' },
-    { key: 'saldo_mes', nombre: 'Saldo Mes', valor: fmtM(saldoMes), valorNum: saldoMes, status: saldoMes >= 0 ? 'ok' : 'bad', formato: 'dinero' },
-    { key: 'saldo_total', nombre: 'Saldo Acumulado', valor: fmtM(saldoTotal), valorNum: saldoTotal, status: saldoTotal >= 0 ? 'ok' : 'bad', formato: 'dinero' },
+    { key: 'ingresos', nombre: 'Ingresos Totales', valor: fmtM(totalIng), valorNum: totalIng, status: 'ok', formato: 'dinero' },
+    { key: 'egresos', nombre: 'Egresos Totales', valor: fmtM(totalEg), valorNum: totalEg, status: 'ok', formato: 'dinero' },
+    { key: 'saldo', nombre: 'Saldo Neto', valor: fmtM(saldoNeto), valorNum: saldoNeto, status: saldoNeto >= 0 ? 'ok' : 'bad', formato: 'dinero' },
+    { key: 'oficina', nombre: 'Oficina Central', valor: fmtM(egOficina), valorNum: egOficina, status: 'ok', formato: 'dinero' },
+    { key: 'facturacion', nombre: 'Facturación Obras', valor: fmtM(ingFacturacion), valorNum: ingFacturacion, status: 'ok', formato: 'dinero' },
   ]
 }
