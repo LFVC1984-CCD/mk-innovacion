@@ -123,6 +123,7 @@ export default function AmpliadoPage() {
           responsable: ac.responsable || null,
           responsable_id: null,
           estado: 'pendiente',
+          tipo: 'acuerdo',
           fecha_compromiso: ac.fecha || null,
           from_decision: false,
           area_destino: null,

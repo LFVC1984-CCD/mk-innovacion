@@ -21,6 +21,22 @@ export interface KPI {
   orden: number
 }
 
+export type TareaTipo = 'seguimiento' | 'acuerdo' | 'accion_correctiva' | 'solicitud'
+
+export const TAREA_TIPO_LABELS: Record<TareaTipo, string> = {
+  seguimiento: 'Seguimiento',
+  acuerdo: 'Acuerdo',
+  accion_correctiva: 'Acción correctiva',
+  solicitud: 'Solicitud',
+}
+
+export const TAREA_TIPO_COLORS: Record<TareaTipo, string> = {
+  seguimiento: '#64748B',
+  acuerdo: '#0B5ED7',
+  accion_correctiva: '#DC2626',
+  solicitud: '#D97706',
+}
+
 export interface Tarea {
   id: string
   area_id: AreaId
@@ -28,9 +44,9 @@ export interface Tarea {
   responsable: string | null
   responsable_id: string | null
   estado: 'pendiente' | 'en-proceso' | 'completada' | 'bloqueada'
+  tipo: TareaTipo
   fecha_compromiso: string | null
   from_decision: boolean
-  /** Área destino: si la tarea es de ETI pero impacta a otra área, aparece en ambas */
   area_destino: AreaId | null
 }
 
