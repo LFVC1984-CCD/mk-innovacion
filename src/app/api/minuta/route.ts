@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
 
   // Send email via Resend
   const areaName = AREA_NAMES[area_id] || area_id
-  const fecha = new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' })
+  const now = new Date()
+  const fecha = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`
 
   const htmlContent = `
     <div style="font-family: 'Barlow', Arial, sans-serif; max-width: 640px; margin: 0 auto;">

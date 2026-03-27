@@ -1,3 +1,23 @@
+// ── Formateo de fechas ──
+
+/** Formato DD/MM/YYYY. Ej: "2026-03-25" → "25/03/2026" */
+export function fmtFecha(d: string | null | undefined): string {
+  if (!d) return ''
+  const date = new Date(d + 'T12:00:00')
+  const dd = String(date.getDate()).padStart(2, '0')
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const yyyy = date.getFullYear()
+  return `${dd}/${mm}/${yyyy}`
+}
+
+/** Formato DD/MM/YYYY para Date object */
+export function fmtFechaDate(date: Date): string {
+  const dd = String(date.getDate()).padStart(2, '0')
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const yyyy = date.getFullYear()
+  return `${dd}/${mm}/${yyyy}`
+}
+
 // ── Formateo de montos ──
 
 /** Formato moneda chilena con separador de miles (punto). Ej: 1250 → "$1.250" */

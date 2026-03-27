@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { Perfil, KPI, Tarea, Decision, Parking, AreaId } from '@/lib/types'
+import type { Perfil, KPI, Tarea, AreaId } from '@/lib/types'
 
 export function useAuth() {
   const [perfil, setPerfil] = useState<Perfil | null>(null)
@@ -34,28 +34,29 @@ export function useAuth() {
 export function useAreaData(areaId: AreaId | null) {
   const [kpis, setKpis] = useState<KPI[]>([])
   const [tareas, setTareas] = useState<Tarea[]>([])
-  const [decisiones, setDecisiones] = useState<Decision[]>([])
-  const [parking, setParking] = useState<Parking[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
   async function refresh() {
     if (!areaId) return
     setLoading(true)
-    const [kRes, tRes, dRes, pRes] = await Promise.all([
+    const [kRes, tRes, tCrossRes] = await Promise.all([
       supabase.from('kpis').select('*').eq('area_id', areaId).order('orden'),
       supabase.from('tareas').select('*').eq('area_id', areaId).order('created_at'),
-      supabase.from('decisiones').select('*').eq('area_id', areaId).order('created_at'),
-      supabase.from('parking').select('*').eq('area_id', areaId).order('created_at'),
+      // Cross-area: tareas de otras áreas (ej: ETI) que tienen area_destino = esta área
+      supabase.from('tareas').select('*').eq('area_destino', areaId).neq('area_id', areaId).order('created_at'),
     ])
     setKpis(kRes.data as KPI[] || [])
-    setTareas(tRes.data as Tarea[] || [])
-    setDecisiones(dRes.data as Decision[] || [])
-    setParking(pRes.data as Parking[] || [])
+    // Merge propias + cross-area (sin duplicados)
+    const propias = (tRes.data || []) as Tarea[]
+    const cross = (tCrossRes.data || []) as Tarea[]
+    const ids = new Set(propias.map(t => t.id))
+    const merged = [...propias, ...cross.filter(t => !ids.has(t.id))]
+    setTareas(merged)
     setLoading(false)
   }
 
   useEffect(() => { refresh() }, [areaId])
 
-  return { kpis, tareas, decisiones, parking, loading, refresh, setKpis, setTareas, setDecisiones, setParking, supabase }
+  return { kpis, tareas, loading, refresh, setKpis, setTareas, supabase }
 }

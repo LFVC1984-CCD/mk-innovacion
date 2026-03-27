@@ -29,6 +29,18 @@
 }
 .btn-gold:hover { background: #C4A00C; }
 
+.inp {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 12px;
+  outline: none;
+  transition: border-color .15s;
+}
+.inp:focus { border-color: #0B5ED7; }
+.inp::placeholder { color: #94A3B8; }
+
 .toast {
   position: fixed; bottom: 18px; right: 18px;
   background: #16A34A; color: #fff;

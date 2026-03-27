@@ -1,17 +1,18 @@
 'use client'
-import { use } from 'react'
 import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth, useAreaData } from '@/lib/comites/hooks'
 import TopBar from '@/components/ui/TopBar'
+import { fmtFecha } from '@/lib/comites/data'
 import ToastContainer, { toast } from '@/components/ui/Toast'
 import { AREAS_LIST } from '@/lib/types'
 import type { AreaId } from '@/lib/types'
+import { AREA_PANELS } from '@/components/comites/areas'
 
-export default function AreaEditPage({ params }: { params: Promise<{ area: string }> }) {
-  const { area: areaId } = use(params)
+export default function AreaEditPage({ params }: { params: { area: string } }) {
+  const areaId = params.area
   const { perfil, loading: authLoading, canEdit } = useAuth()
-  const { kpis, tareas, decisiones, parking, loading, refresh, supabase } = useAreaData(areaId as AreaId)
+  const { kpis, tareas, loading, refresh, supabase } = useAreaData(areaId as AreaId)
   const areaInfo = AREAS_LIST.find(a => a.id === areaId)
 
   // KPI form
@@ -27,17 +28,14 @@ export default function AreaEditPage({ params }: { params: Promise<{ area: strin
   const [taskText, setTaskText] = useState('')
   const [taskResp, setTaskResp] = useState('')
   const [taskFecha, setTaskFecha] = useState('')
+  const [taskAreaDestino, setTaskAreaDestino] = useState('')
 
-  // Decision form
-  const [showDecForm, setShowDecForm] = useState(false)
-  const [decText, setDecText] = useState('')
-  const [decUrgencia, setDecUrgencia] = useState('reunion')
-
-  // Parking form
-  const [parkText, setParkText] = useState('')
+  // Panel especializado del área
+  const AreaPanel = AREA_PANELS[areaId as AreaId]
 
   if (authLoading || loading) return <div className="min-h-screen flex items-center justify-center text-slate-400">Cargando...</div>
-  if (!canEdit(areaId)) return <div className="min-h-screen flex items-center justify-center text-red-500">Sin acceso para editar esta área</div>
+  if (!perfil) return <div className="min-h-screen flex items-center justify-center text-red-500">No se pudo cargar el perfil. Intenta cerrar sesión y volver a entrar.</div>
+  if (!canEdit(areaId)) return <div className="min-h-screen flex items-center justify-center text-red-500">Sin acceso para editar esta área ({perfil.area_id})</div>
 
   async function addKpi() {
     if (!kpiName.trim()) return
@@ -65,8 +63,9 @@ export default function AreaEditPage({ params }: { params: Promise<{ area: strin
     await supabase.from('tareas').insert({
       area_id: areaId, texto: taskText, responsable: taskResp || null,
       fecha_compromiso: taskFecha || null, estado: 'pendiente',
+      area_destino: taskAreaDestino || null,
     })
-    setTaskText(''); setTaskResp(''); setTaskFecha(''); setShowTaskForm(false)
+    setTaskText(''); setTaskResp(''); setTaskFecha(''); setTaskAreaDestino(''); setShowTaskForm(false)
     toast('Tarea agregada')
     refresh()
   }
@@ -78,43 +77,6 @@ export default function AreaEditPage({ params }: { params: Promise<{ area: strin
 
   async function deleteTask(id: string) {
     await supabase.from('tareas').delete().eq('id', id)
-    refresh()
-  }
-
-  async function addDecision() {
-    if (!decText.trim()) return
-    await supabase.from('decisiones').insert({
-      area_id: areaId, texto: decText, urgencia: decUrgencia,
-    })
-    setDecText(''); setShowDecForm(false)
-    toast('Decisión agregada')
-    refresh()
-  }
-
-  async function resolveDecision(id: string, texto: string) {
-    await supabase.from('decisiones').update({ resuelta: true }).eq('id', id)
-    await supabase.from('tareas').insert({
-      area_id: areaId, texto, estado: 'pendiente', from_decision: true,
-    })
-    toast('Decisión resuelta → tarea creada')
-    refresh()
-  }
-
-  async function deleteDecision(id: string) {
-    await supabase.from('decisiones').delete().eq('id', id)
-    refresh()
-  }
-
-  async function addParkingItem() {
-    if (!parkText.trim()) return
-    await supabase.from('parking').insert({ area_id: areaId, texto: parkText })
-    setParkText('')
-    toast('Tema agregado al parking lot')
-    refresh()
-  }
-
-  async function deleteParkingItem(id: string) {
-    await supabase.from('parking').delete().eq('id', id)
     refresh()
   }
 
@@ -132,12 +94,6 @@ export default function AreaEditPage({ params }: { params: Promise<{ area: strin
     'completada': { bg: '#DCFCE7', text: '#16A34A' },
     'bloqueada': { bg: '#FEE2E2', text: '#DC2626' },
     'pendiente': { bg: '#F8FAFC', text: '#64748B' },
-  }
-
-  const urgColors: Record<string, { bg: string; text: string; label: string }> = {
-    'urgente': { bg: '#FEE2E2', text: '#DC2626', label: 'Urgente' },
-    'reunion': { bg: '#FEF3C7', text: '#D97706', label: 'Esta reunión' },
-    'proxima': { bg: '#F8FAFC', text: '#64748B', label: 'Próxima' },
   }
 
   return (
@@ -161,6 +117,7 @@ export default function AreaEditPage({ params }: { params: Promise<{ area: strin
           </div>
         </div>
 
+        {/* ── Zona Común: KPIs + Tareas ── */}
         <div className="grid grid-cols-2 gap-3.5">
           {/* KPIs Card */}
           <div className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
@@ -227,56 +184,6 @@ export default function AreaEditPage({ params }: { params: Promise<{ area: strin
             </div>
           </div>
 
-          {/* Decisiones Card */}
-          <div className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
-            <div className="px-3.5 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-0.5 h-4 rounded bg-gold" />
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Decisiones del comité</span>
-              </div>
-              <button onClick={() => setShowDecForm(!showDecForm)} className="text-xs text-cobalt font-semibold hover:bg-cobalt-light px-2 py-0.5 rounded">+ Agregar</button>
-            </div>
-            <div className="p-3.5">
-              {decisiones.length === 0 && <p className="text-xs text-slate-400 py-2">Sin decisiones.</p>}
-              {decisiones.map((dec, i) => {
-                const u = urgColors[dec.urgencia] || urgColors.proxima
-                return (
-                  <div key={dec.id} className="flex gap-2 items-start py-2 border-b border-slate-100 last:border-0">
-                    <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-black text-white mt-0.5" style={{ background: dec.resuelta ? '#16A34A' : '#0B5ED7' }}>{i + 1}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-xs text-ink leading-snug ${dec.resuelta ? 'line-through opacity-50' : ''}`}>{dec.texto}</p>
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: u.bg, color: u.text }}>{u.label}</span>
-                        {!dec.resuelta && (
-                          <label className="flex items-center gap-1 text-[10px] text-slate-500 cursor-pointer">
-                            <input type="checkbox" onChange={() => resolveDecision(dec.id, dec.texto)} />
-                            Resuelta → crear tarea
-                          </label>
-                        )}
-                      </div>
-                    </div>
-                    <button onClick={() => deleteDecision(dec.id)} className="text-slate-300 hover:text-red-500 text-sm flex-shrink-0">×</button>
-                  </div>
-                )
-              })}
-
-              {showDecForm && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
-                  <input value={decText} onChange={e => setDecText(e.target.value)} placeholder="¿Qué necesita aprobar el comité?" className="w-full text-xs px-2 py-1.5 border border-slate-200 rounded mb-1.5 focus:outline-none focus:border-cobalt" />
-                  <select value={decUrgencia} onChange={e => setDecUrgencia(e.target.value)} className="w-full text-xs px-2 py-1.5 border border-slate-200 rounded mb-2">
-                    <option value="urgente">Urgente</option>
-                    <option value="reunion">Esta reunión</option>
-                    <option value="proxima">Próxima reunión</option>
-                  </select>
-                  <div className="flex gap-1.5">
-                    <button onClick={addDecision} className="px-3 py-1 bg-cobalt text-white text-xs rounded font-semibold">Agregar</button>
-                    <button onClick={() => setShowDecForm(false)} className="px-3 py-1 border border-slate-200 text-xs rounded font-semibold">Cancelar</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Tareas Card */}
           <div className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
             <div className="px-3.5 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
@@ -296,10 +203,15 @@ export default function AreaEditPage({ params }: { params: Promise<{ area: strin
                       <p className="text-xs text-ink leading-snug">
                         {t.texto}
                         {t.from_decision && <span className="text-cobalt italic text-[10px] ml-1">— de decisión</span>}
+                        {t.area_id !== areaId && (
+                          <span className="inline-flex items-center gap-0.5 ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#0891B2]/10 text-[#0891B2]">
+                            ← {t.area_id.toUpperCase()}
+                          </span>
+                        )}
                       </p>
                       <p className="text-[10px] text-slate-400 mt-0.5">{t.responsable || '—'}</p>
                       {t.fecha_compromiso ? (
-                        <p className="text-[10px] text-cobalt font-semibold">{new Date(t.fecha_compromiso + 'T12:00:00').toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                        <p className="text-[10px] text-cobalt font-semibold">{fmtFecha(t.fecha_compromiso)}</p>
                       ) : (
                         <p className="text-[10px] text-red-500 font-semibold">Sin fecha — agregar antes del comité</p>
                       )}
@@ -322,6 +234,16 @@ export default function AreaEditPage({ params }: { params: Promise<{ area: strin
                   <div className="flex gap-1.5 mb-2">
                     <input value={taskResp} onChange={e => setTaskResp(e.target.value)} placeholder="Responsable" className="flex-1 text-xs px-2 py-1.5 border border-slate-200 rounded focus:outline-none focus:border-cobalt" />
                     <input type="date" value={taskFecha} onChange={e => setTaskFecha(e.target.value)} className="text-xs px-2 py-1.5 border border-slate-200 rounded focus:outline-none focus:border-cobalt" />
+                    <select
+                      value={taskAreaDestino}
+                      onChange={e => setTaskAreaDestino(e.target.value)}
+                      className="text-xs px-2 py-1.5 border border-slate-200 rounded focus:outline-none focus:border-cobalt bg-white"
+                    >
+                      <option value="">Solo este comité</option>
+                      {AREAS_LIST.filter(a => a.id !== areaId).map(a => (
+                        <option key={a.id} value={a.id}>→ {a.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="flex gap-1.5">
                     <button onClick={addTask} className="px-3 py-1 bg-cobalt text-white text-xs rounded font-semibold">Agregar</button>
@@ -331,31 +253,27 @@ export default function AreaEditPage({ params }: { params: Promise<{ area: strin
               )}
             </div>
           </div>
-
-          {/* Parking Lot Card */}
-          <div className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
-            <div className="px-3.5 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
-              <div className="w-0.5 h-4 rounded bg-slate-400" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Parking Lot</span>
-            </div>
-            <div className="p-3.5">
-              <div className="text-[10px] font-bold text-amber mb-1.5">Temas para próxima reunión</div>
-              {parking.length === 0 && <p className="text-[10px] text-slate-400 py-1">Sin temas.</p>}
-              {parking.map(p => (
-                <div key={p.id} className="flex items-center gap-1.5 py-1 border-b border-slate-100 last:border-0 text-xs text-ink2">
-                  <span className="text-amber">▸</span>
-                  <span className="flex-1">{p.texto}</span>
-                  <button onClick={() => deleteParkingItem(p.id)} className="text-slate-300 hover:text-red-500 text-sm">×</button>
-                </div>
-              ))}
-              <div className="flex gap-1.5 mt-2">
-                <input value={parkText} onChange={e => setParkText(e.target.value)} placeholder="Agregar tema..." onKeyDown={e => e.key === 'Enter' && addParkingItem()}
-                  className="flex-1 text-xs px-2 py-1.5 border border-slate-200 rounded focus:outline-none focus:border-cobalt" />
-                <button onClick={addParkingItem} className="px-3 py-1 bg-cobalt text-white text-xs rounded font-semibold">+ Agregar</button>
-              </div>
-            </div>
-          </div>
         </div>
+
+        {/* ── Módulo Especializado del Área ── */}
+        {AreaPanel && (
+          <div className="mt-5">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-0.5 h-4 rounded" style={{ background: areaInfo?.color || '#64748B' }} />
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                {areaId === 'obras' ? 'Control Financiero' :
+                 areaId === 'legal' ? 'Causas Activas' :
+                 areaId === 'prevencion' ? 'Estadísticas de Seguridad' :
+                 areaId === 'estudios' ? 'Pipeline de Licitaciones' :
+                 areaId === 'finanzas' ? 'Flujo Financiero' :
+                 areaId === 'eti' ? 'Herramientas Digitales' :
+                 areaId === 'rrhh' ? 'Dotación y Movimientos' :
+                 'Módulo Especializado'}
+              </span>
+            </div>
+            <AreaPanel />
+          </div>
+        )}
       </div>
     </div>
   )

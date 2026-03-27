@@ -4,7 +4,11 @@ import { usePathname } from 'next/navigation'
 
 const NAV = [
   { href: '/comites', label: 'Inicio' },
+  { href: '/comites/proyectos', label: 'Proyectos' },
+  { href: '/comites/equipos', label: 'Equipos' },
+  { href: '/comites/financiero', label: 'Obras $' },
   { href: '/comites/garantias', label: 'Garantías' },
+  { href: '/comites/historial', label: 'Historial' },
 ]
 
 export default function ComitesLayout({ children }: { children: React.ReactNode }) {
@@ -37,11 +41,14 @@ export default function ComitesLayout({ children }: { children: React.ReactNode 
                 </Link>
               )
             })}
-            {['Proyectos', 'Equipos', 'Historial'].map(l => (
-              <span key={l} className="px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-white/10 text-white/25 cursor-not-allowed">
-                {l}
-              </span>
-            ))}
+            <Link href="/comites/usuarios"
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
+                pathname.startsWith('/comites/usuarios')
+                  ? 'bg-cobalt border-cobalt text-white'
+                  : 'border-white/10 text-white/50 hover:text-white/80 hover:bg-white/5'
+              }`}>
+              Usuarios
+            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-2.5">

@@ -23,19 +23,21 @@ export default function ComitesHomePage() {
     async function loadSummaries() {
       const [kRes, tRes] = await Promise.all([
         supabase.from('kpis').select('area_id,status'),
-        supabase.from('tareas').select('area_id,estado,fecha_compromiso'),
+        supabase.from('tareas').select('area_id,area_destino,estado,fecha_compromiso'),
       ])
 
       const sums: Record<string, AreaSummary> = {}
       AREAS_LIST.forEach(a => {
         const kpis = (kRes.data || []).filter((k: { area_id: string }) => k.area_id === a.id)
-        const tareas = (tRes.data || []).filter((t: { area_id: string }) => t.area_id === a.id)
+        // Tareas propias + tareas de otras áreas con area_destino = esta área
+        const allTareas = (tRes.data || []) as { area_id: string; area_destino: string | null; estado: string; fecha_compromiso: string | null }[]
+        const tareas = allTareas.filter(t => t.area_id === a.id || t.area_destino === a.id)
         sums[a.id] = {
           kpiCount: kpis.length,
           badCount: kpis.filter((k: { status: string }) => k.status === 'bad').length,
           warnCount: kpis.filter((k: { status: string }) => k.status === 'warn').length,
-          activeCount: tareas.filter((t: { estado: string }) => t.estado === 'en-proceso').length,
-          noDateCount: tareas.filter((t: { estado: string; fecha_compromiso: string | null }) => t.estado !== 'completada' && !t.fecha_compromiso).length,
+          activeCount: tareas.filter(t => t.estado === 'en-proceso').length,
+          noDateCount: tareas.filter(t => t.estado !== 'completada' && !t.fecha_compromiso).length,
         }
       })
       setSummaries(sums)
@@ -45,7 +47,8 @@ export default function ComitesHomePage() {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-400">Cargando...</div>
 
-  const today = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  const now = new Date()
+  const today = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`
   const weekNum = Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))
 
   return (

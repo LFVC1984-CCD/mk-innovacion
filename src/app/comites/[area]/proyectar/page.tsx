@@ -1,18 +1,19 @@
 'use client'
-import { use, useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useAuth, useAreaData } from '@/lib/comites/hooks'
 import ToastContainer, { toast } from '@/components/ui/Toast'
+import { fmtFecha, fmtFechaDate } from '@/lib/comites/data'
 import { AREAS_LIST } from '@/lib/types'
 import type { AreaId } from '@/lib/types'
 
 const MT = [5 * 60, 10 * 60, 5 * 60]
-const ML = ['Momento 1 — Scoreboard', 'Momento 2 — Problemas y Decisiones', 'Momento 3 — Compromisos y Cierre']
+const ML = ['Momento 1 — Scoreboard', 'Momento 2 — Problemas y Alertas', 'Momento 3 — Compromisos y Cierre']
 
-export default function ProyectarPage({ params }: { params: Promise<{ area: string }> }) {
-  const { area: areaId } = use(params)
+export default function ProyectarPage({ params }: { params: { area: string } }) {
+  const areaId = params.area
   const { loading: authLoading, canEdit } = useAuth()
-  const { kpis, tareas, decisiones, parking, loading, refresh, supabase } = useAreaData(areaId as AreaId)
+  const { kpis, tareas, loading, refresh, supabase } = useAreaData(areaId as AreaId)
   const areaInfo = AREAS_LIST.find(a => a.id === areaId)
 
   const [slide, setSlide] = useState(0)
@@ -59,17 +60,13 @@ export default function ProyectarPage({ params }: { params: Promise<{ area: stri
       if (!lines.find(l => l.text === `${k.nombre}: ${k.comentario}`))
         lines.push({ tag: 'KPI', text: `${k.nombre}: ${k.comentario}`, origin: 'comentario KPI' })
     })
-    decisiones.filter(d => d.resuelta).forEach(d => {
-      if (!lines.find(l => l.text === d.texto))
-        lines.push({ tag: 'Decisión', text: d.texto, origin: 'decisión resuelta' })
-    })
     tareas.filter(t => t.from_decision).forEach(t => {
       const txt = `${t.texto} · ${t.responsable || 'por asignar'}`
       if (!lines.find(l => l.text === txt))
-        lines.push({ tag: 'Tarea', text: txt, origin: 'de decisión' })
+        lines.push({ tag: 'Tarea', text: txt, origin: 'compromiso' })
     })
     setMinutaLines(lines)
-  }, [kpis, decisiones, tareas])
+  }, [kpis, tareas])
 
   async function saveMinuta() {
     if (!minutaLines.length) { toast('Sin líneas en la minuta'); return }
@@ -88,13 +85,6 @@ export default function ProyectarPage({ params }: { params: Promise<{ area: stri
     navigator.clipboard?.writeText(txt).then(() => toast('Minuta copiada al portapapeles'))
   }
 
-  async function resolveDecisionProj(id: string, texto: string) {
-    await supabase.from('decisiones').update({ resuelta: true }).eq('id', id)
-    await supabase.from('tareas').insert({ area_id: areaId, texto, estado: 'pendiente', from_decision: true })
-    toast('Decisión resuelta → tarea creada')
-    refresh()
-  }
-
   if (authLoading || loading) return <div className="min-h-screen flex items-center justify-center text-slate-400">Cargando...</div>
 
   const timerMin = Math.floor(timerSec / 60)
@@ -102,25 +92,16 @@ export default function ProyectarPage({ params }: { params: Promise<{ area: stri
   const timerPct = timerMax > 0 ? (timerSec / timerMax) * 100 : 0
   const ce = canEdit(areaId)
 
-  const statusColors: Record<string, { bg: string; text: string; label: string }> = {
-    'en-proceso': { bg: '#EFF6FF', text: '#0B5ED7', label: 'En proceso' },
-    'completada': { bg: '#DCFCE7', text: '#16A34A', label: 'Completada' },
-    'bloqueada': { bg: '#FEE2E2', text: '#DC2626', label: 'Bloqueada' },
-    'pendiente': { bg: '#F8FAFC', text: '#64748B', label: 'Pendiente' },
-  }
-
-  const urgColors: Record<string, { bg: string; text: string; label: string }> = {
-    'urgente': { bg: '#FEE2E2', text: '#DC2626', label: 'Urgente' },
-    'reunion': { bg: '#FEF3C7', text: '#D97706', label: 'Esta reunión' },
-    'proxima': { bg: '#F8FAFC', text: '#64748B', label: 'Próxima' },
-  }
-
   const tagColors: Record<string, { bg: string; text: string }> = {
     'KPI': { bg: '#EFF6FF', text: '#0B5ED7' },
-    'Decisión': { bg: '#FEE2E2', text: '#DC2626' },
     'Tarea': { bg: '#DCFCE7', text: '#16A34A' },
-    'Parking': { bg: '#FEF3C7', text: '#D97706' },
   }
+
+  // Clasificar tareas por estado para Slide 1
+  const tareasBloquedas = tareas.filter(t => t.estado === 'bloqueada')
+  const tareasEnProceso = tareas.filter(t => t.estado === 'en-proceso')
+  const tareasPendientes = tareas.filter(t => t.estado === 'pendiente')
+  const tareasCompletadas = tareas.filter(t => t.estado === 'completada')
 
   return (
     <div className="min-h-screen bg-white">
@@ -131,7 +112,7 @@ export default function ProyectarPage({ params }: { params: Promise<{ area: stri
             {areaInfo?.name} <span className="text-gold">·</span>
           </h1>
           <p className="text-white/40 text-xs uppercase tracking-widest mt-0.5">
-            Comité · {new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })} · MK Ingeniería
+            Comité · {fmtFechaDate(new Date())} · MK Ingeniería
           </p>
         </div>
         <div className="flex items-center gap-2.5">
@@ -229,7 +210,7 @@ export default function ProyectarPage({ params }: { params: Promise<{ area: stri
                   <span className="flex-1 text-xs text-ink">{t.texto}</span>
                   <span className="text-xs text-slate-400">{t.responsable}</span>
                   {t.fecha_compromiso ? (
-                    <span className="text-xs text-cobalt font-semibold">{new Date(t.fecha_compromiso + 'T12:00:00').toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })}</span>
+                    <span className="text-xs text-cobalt font-semibold">{fmtFecha(t.fecha_compromiso)}</span>
                   ) : (
                     <span className="text-[10px] text-red-500 font-bold">sin fecha</span>
                   )}
@@ -239,77 +220,94 @@ export default function ProyectarPage({ params }: { params: Promise<{ area: stri
           </div>
         )}
 
-        {/* Slide 1: Decisiones + Tareas */}
+        {/* Slide 1: Problemas y Alertas */}
         {slide === 1 && (
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="w-0.5 h-4 rounded bg-amber" />
-              <span className="text-xs font-black uppercase tracking-widest text-slate-500">Momento 2 · Problemas, Alertas y Decisiones</span>
+              <span className="text-xs font-black uppercase tracking-widest text-slate-500">Momento 2 · Problemas, Alertas y Estado de Tareas</span>
             </div>
+
+            {/* Bloqueadas primero (alertas) */}
+            {tareasBloquedas.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <div className="text-xs font-bold text-red-600 uppercase tracking-wider mb-2">Bloqueadas — requieren atención</div>
+                {tareasBloquedas.map(t => (
+                  <div key={t.id} className="flex items-start gap-2.5 py-2.5 border-b border-red-100 last:border-0">
+                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 bg-red-500" />
+                    <div className="flex-1">
+                      <p className="text-sm text-ink font-medium">{t.texto}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {t.responsable || 'Sin asignar'}
+                        {t.fecha_compromiso && ` · ${fmtFecha(t.fecha_compromiso)}`}
+                      </p>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-red-100 text-red-600 flex-shrink-0">Bloqueada</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Tareas en proceso y pendientes */}
             <div className="grid grid-cols-2 gap-4">
-              {/* Decisiones */}
               <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
-                <div className="bg-red-500 px-3.5 py-2.5 flex items-center justify-between">
-                  <span className="text-white text-xs font-bold">Decisiones del comité</span>
-                  <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full">{decisiones.filter(d => !d.resuelta).length} pendientes</span>
+                <div className="bg-cobalt px-3.5 py-2.5 flex items-center justify-between">
+                  <span className="text-white text-xs font-bold">En proceso</span>
+                  <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full">{tareasEnProceso.length}</span>
                 </div>
                 <div className="p-3.5">
-                  {decisiones.map((dec, i) => {
-                    const u = urgColors[dec.urgencia] || urgColors.proxima
-                    return (
-                      <div key={dec.id} className={`flex gap-2.5 items-start py-2.5 border-b border-slate-200 last:border-0 ${dec.resuelta ? 'opacity-50' : ''}`}>
-                        <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-black text-white" style={{ background: dec.resuelta ? '#16A34A' : '#0B5ED7' }}>{i + 1}</div>
-                        <div className="flex-1">
-                          <p className={`text-sm text-ink font-medium ${dec.resuelta ? 'line-through' : ''}`}>{dec.texto}</p>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold mt-1 inline-block" style={{ background: u.bg, color: u.text }}>{u.label}</span>
-                        </div>
-                        {ce && !dec.resuelta && (
-                          <button onClick={() => resolveDecisionProj(dec.id, dec.texto)} className="text-xs px-3 py-1 rounded border border-slate-200 text-cobalt font-semibold hover:bg-cobalt-light flex-shrink-0">Resolver</button>
+                  {tareasEnProceso.map(t => (
+                    <div key={t.id} className="flex items-start gap-2.5 py-2.5 border-b border-slate-200 last:border-0">
+                      <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 bg-cobalt" />
+                      <div className="flex-1">
+                        <p className="text-sm text-ink font-medium">{t.texto}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{t.responsable || 'Sin asignar'}</p>
+                        {t.fecha_compromiso ? (
+                          <p className="text-xs text-cobalt font-semibold">{fmtFecha(t.fecha_compromiso)}</p>
+                        ) : (
+                          <p className="text-xs text-red-500 font-semibold">Sin fecha</p>
                         )}
                       </div>
-                    )
-                  })}
-                  {decisiones.length === 0 && <p className="text-xs text-slate-400 py-2">Sin decisiones pendientes.</p>}
+                    </div>
+                  ))}
+                  {tareasEnProceso.length === 0 && <p className="text-xs text-slate-400 py-2">Sin tareas en proceso.</p>}
                 </div>
               </div>
 
-              {/* Tareas */}
               <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
-                <div className="bg-amber px-3.5 py-2.5">
-                  <span className="text-white text-xs font-bold">Tareas activas</span>
+                <div className="bg-amber px-3.5 py-2.5 flex items-center justify-between">
+                  <span className="text-white text-xs font-bold">Pendientes</span>
+                  <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full">{tareasPendientes.length}</span>
                 </div>
                 <div className="p-3.5">
-                  {tareas.map(t => {
-                    const sc = statusColors[t.estado] || statusColors.pendiente
-                    return (
-                      <div key={t.id} className="flex items-start gap-2.5 py-2.5 border-b border-slate-200 last:border-0">
-                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1" style={{ background: sc.text }} />
-                        <div className="flex-1">
-                          <p className="text-sm text-ink font-medium">{t.texto}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">{t.responsable || 'Sin asignar'}</p>
-                          {t.fecha_compromiso ? (
-                            <p className="text-xs text-cobalt font-semibold">{new Date(t.fecha_compromiso + 'T12:00:00').toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })}</p>
-                          ) : (
-                            <p className="text-xs text-red-500 font-semibold">Sin fecha</p>
-                          )}
-                        </div>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold flex-shrink-0" style={{ background: sc.bg, color: sc.text }}>{sc.label}</span>
+                  {tareasPendientes.map(t => (
+                    <div key={t.id} className="flex items-start gap-2.5 py-2.5 border-b border-slate-200 last:border-0">
+                      <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 bg-slate-400" />
+                      <div className="flex-1">
+                        <p className="text-sm text-ink font-medium">{t.texto}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{t.responsable || 'Sin asignar'}</p>
+                        {t.fecha_compromiso ? (
+                          <p className="text-xs text-cobalt font-semibold">{fmtFecha(t.fecha_compromiso)}</p>
+                        ) : (
+                          <p className="text-xs text-red-500 font-semibold">Sin fecha</p>
+                        )}
                       </div>
-                    )
-                  })}
-                  {tareas.length === 0 && <p className="text-xs text-slate-400 py-2">Sin tareas.</p>}
+                    </div>
+                  ))}
+                  {tareasPendientes.length === 0 && <p className="text-xs text-slate-400 py-2">Sin tareas pendientes.</p>}
                 </div>
               </div>
             </div>
 
-            {/* Parking Lot */}
-            {parking.length > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3.5 mt-4">
-                <div className="text-xs font-bold text-amber uppercase tracking-wider mb-2">Parking Lot — temas que no corresponde tratar hoy</div>
-                {parking.map(p => (
-                  <div key={p.id} className="flex items-center gap-2 py-1 border-b border-amber-100 last:border-0 text-xs text-ink2">
-                    <span className="text-amber">▸</span>
-                    <span className="flex-1">{p.texto}</span>
+            {/* Completadas */}
+            {tareasCompletadas.length > 0 && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+                <div className="text-xs font-bold text-green-600 uppercase tracking-wider mb-2">Completadas esta semana</div>
+                {tareasCompletadas.map(t => (
+                  <div key={t.id} className="flex items-center gap-2 py-1.5 border-b border-green-100 last:border-0">
+                    <span className="text-green-500 text-sm">✓</span>
+                    <span className="flex-1 text-xs text-ink line-through opacity-60">{t.texto}</span>
+                    <span className="text-xs text-slate-400">{t.responsable}</span>
                   </div>
                 ))}
               </div>
@@ -337,7 +335,7 @@ export default function ProyectarPage({ params }: { params: Promise<{ area: stri
                       <p className="text-sm text-ink font-medium">{t.texto}</p>
                       <p className="text-xs text-slate-500 mt-0.5">
                         {t.responsable || 'Sin asignar'} · {t.fecha_compromiso
-                          ? new Date(t.fecha_compromiso + 'T12:00:00').toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })
+                          ? fmtFecha(t.fecha_compromiso)
                           : <span className="text-red-500 font-semibold">sin fecha — agregar antes de cerrar</span>
                         }
                       </p>
@@ -360,7 +358,7 @@ export default function ProyectarPage({ params }: { params: Promise<{ area: stri
                 </div>
                 <div className="p-3.5">
                   {minutaLines.length === 0 && (
-                    <p className="text-xs text-slate-400 italic py-2">La minuta se construye automáticamente. Los comentarios a KPIs, decisiones resueltas y tareas nuevas aparecerán aquí.</p>
+                    <p className="text-xs text-slate-400 italic py-2">La minuta se construye automáticamente. Los comentarios a KPIs y tareas nuevas aparecerán aquí.</p>
                   )}
                   {minutaLines.map((l, i) => {
                     const tc = tagColors[l.tag] || { bg: '#F8FAFC', text: '#64748B' }
@@ -385,7 +383,7 @@ export default function ProyectarPage({ params }: { params: Promise<{ area: stri
 
       {/* Bottom rules */}
       <div className="bg-ink px-5 py-2.5 flex items-center gap-4 flex-wrap">
-        {['Enviar notas a Felipe la noche anterior', 'Sin fecha = no es compromiso', 'Si se extiende → Parking Lot', 'Verde = en meta · Amarillo = alerta · Rojo = crítico'].map((r, i) => (
+        {['Enviar notas a Felipe la noche anterior', 'Sin fecha = no es compromiso', 'Verde = en meta · Amarillo = alerta · Rojo = crítico'].map((r, i) => (
           <span key={i} className="text-xs text-white/40">{i > 0 && '· '}{r}</span>
         ))}
       </div>
