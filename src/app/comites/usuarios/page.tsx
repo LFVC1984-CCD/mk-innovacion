@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/comites/hooks'
-import TopBar from '@/components/ui/TopBar'
 import { toast } from '@/components/ui/Toast'
 import { AREA_NAMES, AREA_COLORS, type AreaId } from '@/lib/types'
 
@@ -146,10 +145,7 @@ export default function UsuariosPage() {
   if (!isAdmin) return null
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <TopBar perfil={perfil} breadcrumbs={[{ label: 'Usuarios' }]} />
-
-      <div className="max-w-4xl mx-auto p-6">
+    <>
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-condensed font-black text-cobalt text-2xl uppercase tracking-wide">Usuarios</h1>
@@ -231,7 +227,6 @@ export default function UsuariosPage() {
             </div>
           ))}
         </div>
-      </div>
-    </div>
+    </>
   )
 }

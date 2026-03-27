@@ -1,19 +1,29 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { usePathname, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import ToastContainer from '@/components/ui/Toast'
 
 const NAV = [
-  { href: '/comites', label: 'Inicio', icon: '◉' },
-  { href: '/comites/proyectos', label: 'Proyectos', icon: '▦' },
-  { href: '/comites/equipos', label: 'Equipos', icon: '◫' },
-  { href: '/comites/financiero', label: 'Obras $', icon: '◈' },
-  { href: '/comites/garantias', label: 'Garantías', icon: '◇' },
-  { href: '/comites/historial', label: 'Historial', icon: '◷' },
+  { href: '/comites', label: 'Inicio', exact: true },
+  { href: '/comites/proyectos', label: 'Proyectos', exact: false },
+  { href: '/comites/equipos', label: 'Equipos', exact: false },
+  { href: '/comites/garantias', label: 'Garantías', exact: false },
+  { href: '/comites/historial', label: 'Historial', exact: false },
+  { href: '/comites/usuarios', label: 'Usuarios', exact: false },
 ]
 
 export default function ComitesLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const supabase = createClient()
+
+  async function handleLogout() {
+    if (!confirm('¿Cerrar sesión?')) return
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
 
   return (
     <div className="min-h-screen bg-[#F1F5F9]">
@@ -30,53 +40,32 @@ export default function ComitesLayout({ children }: { children: React.ReactNode 
           </Link>
           <nav className="hidden md:flex gap-1">
             {NAV.map(n => {
-              const active = n.href === '/comites' ? pathname === '/comites' : pathname.startsWith(n.href)
+              const active = n.exact ? pathname === n.href : pathname.startsWith(n.href)
               return (
                 <Link key={n.href} href={n.href}
-                  className={`relative px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
                     active
                       ? 'bg-cobalt border-cobalt text-white shadow-md shadow-cobalt/25'
                       : 'border-white/10 text-white/50 hover:text-white/90 hover:bg-white/8 hover:border-white/20'
                   }`}>
-                  {active && (
-                    <motion.div
-                      layoutId="nav-active"
-                      className="absolute inset-0 bg-cobalt rounded-lg"
-                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                      style={{ zIndex: -1 }}
-                    />
-                  )}
                   {n.label}
                 </Link>
               )
             })}
-            <Link href="/comites/usuarios"
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-                pathname.startsWith('/comites/usuarios')
-                  ? 'bg-cobalt border-cobalt text-white shadow-md shadow-cobalt/25'
-                  : 'border-white/10 text-white/50 hover:text-white/90 hover:bg-white/8 hover:border-white/20'
-              }`}>
-              Usuarios
-            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-lg text-[11px] font-semibold">
-            <span className="w-[7px] h-[7px] rounded-full bg-success animate-pulse" />
-            Portal MK
-          </div>
+          <button onClick={handleLogout}
+            className="flex items-center gap-1.5 bg-white/5 border border-white/10 text-white/70 px-3 py-1.5 rounded-lg text-[11px] font-semibold hover:bg-white/10 hover:text-white transition-all">
+            <span className="w-[7px] h-[7px] rounded-full bg-success" />
+            Cerrar sesión
+          </button>
         </div>
       </header>
-      {/* Content with fade-in */}
+      <ToastContainer />
+      {/* Content — no page transition animation to avoid flicker */}
       <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6">
-        <motion.div
-          key={pathname}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {children}
-        </motion.div>
+        {children}
       </main>
     </div>
   )

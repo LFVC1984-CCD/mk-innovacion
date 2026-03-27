@@ -10,7 +10,28 @@
       "mcp__claude_ai_Supabase__list_tables",
       "mcp__claude_ai_Supabase__apply_migration",
       "mcp__claude_ai_Supabase__get_publishable_keys",
-      "mcp__claude_ai_Supabase__execute_sql"
+      "mcp__claude_ai_Supabase__execute_sql",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && gh repo create mk-innovacion --private --source=. --push 2>&1)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && gh repo view mk-innovacion --json url 2>&1)",
+      "Bash(vercel --version 2>&1)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && npx vercel --version 2>&1)",
+      "Bash(vercel whoami:*)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && vercel --prod --yes 2>&1)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && vercel env add NEXT_PUBLIC_SUPABASE_URL production --value \"https://mgemludeasndspzorhbc.supabase.co\" --yes 2>&1)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production --value \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nZW1sdWRlYXNuZHNwem9yaGJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTk0NTUsImV4cCI6MjA4OTM3NTQ1NX0.ZnOhHVgeGcN1IdhXdFRwTnruXnlNgbQNkEX1cwLKDdg\" --yes 2>&1)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && vercel env add RESEND_API_KEY production --value \"re_JP5BpZCc_PVrmBkFLkSZmjVdeuqs8AuTu\" --yes 2>&1)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && vercel env add NEXT_PUBLIC_APP_URL production --value \"https://mk-innovacion.vercel.app\" --yes 2>&1)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && vercel deploy --prod --force --yes 2>&1)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && vercel ls 2>&1 | head -20)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && vercel inspect https://mk-innovacion-6f334ed4f-ccd2.vercel.app 2>&1)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && vercel env ls 2>&1)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && vercel env add NEXT_PUBLIC_SUPABASE_URL preview --value \"https://mgemludeasndspzorhbc.supabase.co\" --yes 2>&1 && vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY preview --value \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nZW1sdWRlYXNuZHNwem9yaGJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTk0NTUsImV4cCI6MjA4OTM3NTQ1NX0.ZnOhHVgeGcN1IdhXdFRwTnruXnlNgbQNkEX1cwLKDdg\" --yes 2>&1 && vercel env add RESEND_API_KEY preview --value \"re_JP5BpZCc_PVrmBkFLkSZmjVdeuqs8AuTu\" --yes 2>&1 && vercel env add NEXT_PUBLIC_APP_URL preview --value \"https://mk-innovacion.vercel.app\" --yes 2>&1)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && vercel deploy --prod --yes --no-wait 2>&1)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000 2>&1)",
+      "Bash(curl -s http://localhost:3000 2>&1 | head -20)",
+      "Bash(cd \"C:/ClaudeCode/mk-innovacion\" && npm run dev)",
+      "Bash(curl -s -X POST \"https://mgemludeasndspzorhbc.supabase.co/auth/v1/signup\" \\\\\n  -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nZW1sdWRlYXNuZHNwem9yaGJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTk0NTUsImV4cCI6MjA4OTM3NTQ1NX0.ZnOhHVgeGcN1IdhXdFRwTnruXnlNgbQNkEX1cwLKDdg\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d '{\"email\":\"felipe@mkingenieria.cl\",\"password\":\"MKadmin2025!\"}' 2>&1)",
+      "Bash(curl -s -X POST \"https://mgemludeasndspzorhbc.supabase.co/auth/v1/signup\" \\\\\n  -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nZW1sdWRlYXNuZHNwem9yaGJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTk0NTUsImV4cCI6MjA4OTM3NTQ1NX0.ZnOhHVgeGcN1IdhXdFRwTnruXnlNgbQNkEX1cwLKDdg\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d \"{\\\\\"email\\\\\":\\\\\"felipe@mkingenieria.cl\\\\\",\\\\\"password\\\\\":\\\\\"MKadmin2025\\\\\"}\" 2>&1)"
     ]
   }
 }

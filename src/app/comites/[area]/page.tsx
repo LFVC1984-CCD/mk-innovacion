@@ -2,9 +2,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth, useAreaData } from '@/lib/comites/hooks'
-import TopBar from '@/components/ui/TopBar'
 import { fmtFecha } from '@/lib/comites/data'
-import ToastContainer, { toast } from '@/components/ui/Toast'
+import { toast } from '@/components/ui/Toast'
 import { AREAS_LIST } from '@/lib/types'
 import type { AreaId } from '@/lib/types'
 import { AREA_PANELS } from '@/components/comites/areas'
@@ -97,16 +96,14 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <TopBar perfil={perfil} breadcrumbs={[
-        { label: 'Comités', href: '/comites' },
-        { label: areaInfo?.name || areaId },
-      ]} />
-      <ToastContainer />
-
-      <div className="max-w-[1060px] mx-auto px-5 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="font-condensed font-black text-xl text-ink">{areaInfo?.name || areaId}</h1>
+    <>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <Link href="/comites" className="text-[10px] text-slate hover:text-cobalt transition-colors">← Comités</Link>
+          </div>
+          <h1 className="font-condensed font-black text-2xl text-ink">{areaInfo?.name || areaId}</h1>
+        </div>
           <div className="flex gap-2">
             <Link href={`/comites/${areaId}/proyectar`} className="px-3 py-1.5 rounded text-xs font-semibold border border-slate-200 hover:border-cobalt hover:text-cobalt transition-all">
               Proyectar →
@@ -274,7 +271,6 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
             <AreaPanel />
           </div>
         )}
-      </div>
-    </div>
+    </>
   )
 }

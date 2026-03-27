@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useAuth, useAreaData } from '@/lib/comites/hooks'
-import ToastContainer, { toast } from '@/components/ui/Toast'
+import { toast } from '@/components/ui/Toast'
 import { fmtFecha, fmtFechaDate } from '@/lib/comites/data'
 import { AREAS_LIST } from '@/lib/types'
 import type { AreaId } from '@/lib/types'
@@ -387,7 +387,6 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
           <span key={i} className="text-xs text-white/40">{i > 0 && '· '}{r}</span>
         ))}
       </div>
-      <ToastContainer />
     </div>
   )
 }
