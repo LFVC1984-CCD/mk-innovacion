@@ -37,15 +37,15 @@ export default function Modal({ open, onClose, title, accent, children, footer }
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0F172A]/50 backdrop-blur-sm"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0F172A]/60 backdrop-blur-md"
           onClick={e => { if (e.target === overlayRef.current) onClose() }}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 12 }}
+            initial={{ opacity: 0, scale: 0.92, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 12 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-[560px] max-h-[90vh] overflow-y-auto"
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-[560px] max-h-[90vh] overflow-y-auto ring-1 ring-black/5"
           >
             {/* Header */}
             <div className="flex justify-between items-center p-6 pb-0">
@@ -93,7 +93,7 @@ export function Input({ ...props }: React.InputHTMLAttributes<HTMLInputElement>)
   return (
     <input
       {...props}
-      className="w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-[13px] font-sans bg-white outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]"
+      className="w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-[13px] font-sans bg-white outline-none focus:border-cobalt focus:shadow-[0_0_0_3px_rgba(11,94,215,0.1)] transition-all placeholder:text-[#CBD5E1]"
     />
   )
 }
@@ -102,7 +102,7 @@ export function Select({ children, ...props }: React.SelectHTMLAttributes<HTMLSe
   return (
     <select
       {...props}
-      className="w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-[13px] font-sans bg-white outline-none focus:border-cobalt transition-colors cursor-pointer"
+      className="w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-[13px] font-sans bg-white outline-none focus:border-cobalt focus:shadow-[0_0_0_3px_rgba(11,94,215,0.1)] transition-all cursor-pointer"
     >
       {children}
     </select>
