@@ -1,36 +1,48 @@
 'use client'
 import { useState, useEffect } from 'react'
-import Modal, { Field, Input, Select, Row2, Divider, ChipSelect, Btn } from './Modal'
-import type { Entidad } from '@/lib/comites/data'
+import Modal, { Field, Input, Select, Row2, Btn } from './Modal'
+import type { EntidadComputed, EntidadInput } from '@/lib/comites/use-garantias'
 
 interface Props {
   open: boolean
   onClose: () => void
-  editing?: Entidad | null
+  editing?: EntidadComputed | null
+  onSave: (input: EntidadInput, id?: string) => Promise<void>
+  onDelete: (id: string) => Promise<void>
 }
 
-const ALL_INSTRUMENTOS = ['Boleta de garantía', 'Póliza', 'Crédito comercial', 'Factoring']
-
-export default function EntidadModal({ open, onClose, editing }: Props) {
+export default function EntidadModal({ open, onClose, editing, onSave, onDelete }: Props) {
   const [nombre, setNombre] = useState('')
-  const [tipo, setTipo] = useState<'Banco' | 'Aseguradora'>('Banco')
-  const [linea, setLinea] = useState('')
-  const [instrumentos, setInstrumentos] = useState<string[]>([])
+  const [tipo, setTipo] = useState('banco')
   const [contacto, setContacto] = useState('')
   const [obs, setObs] = useState('')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (editing) {
       setNombre(editing.nombre)
       setTipo(editing.tipo)
-      setLinea(String(editing.linea))
-      setInstrumentos(editing.instrumentos)
+      setContacto(editing.contacto || '')
+      setObs(editing.observacion || '')
     } else {
-      setNombre(''); setTipo('Banco'); setLinea(''); setInstrumentos([]); setContacto(''); setObs('')
+      setNombre(''); setTipo('banco'); setContacto(''); setObs('')
     }
   }, [editing, open])
 
   const isEdit = !!editing
+
+  async function handleSave() {
+    setSaving(true)
+    await onSave({ nombre, tipo, contacto, observacion: obs }, editing?.id)
+    setSaving(false)
+  }
+
+  async function handleDelete() {
+    if (!editing || !confirm('¿Eliminar esta entidad?')) return
+    setSaving(true)
+    await onDelete(editing.id)
+    setSaving(false)
+  }
 
   return (
     <Modal
@@ -38,29 +50,27 @@ export default function EntidadModal({ open, onClose, editing }: Props) {
       onClose={onClose}
       title={isEdit ? 'Editar' : 'Nueva'}
       accent="Entidad"
-      footer={<><Btn onClick={onClose}>Cancelar</Btn><Btn variant="primary" onClick={onClose}>{isEdit ? 'Guardar cambios' : 'Crear entidad'}</Btn></>}
+      footer={
+        <>
+          {isEdit && <Btn variant="danger" onClick={handleDelete} disabled={saving}>Eliminar</Btn>}
+          <div className="flex-1" />
+          <Btn onClick={onClose}>Cancelar</Btn>
+          <Btn variant="primary" onClick={handleSave} disabled={saving}>{saving ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear entidad'}</Btn>
+        </>
+      }
     >
       <Row2>
         <Field label="Nombre de la entidad">
           <Input type="text" placeholder="Ej: BCI, Mapfre, Santander" value={nombre} onChange={e => setNombre(e.target.value)} />
         </Field>
         <Field label="Tipo">
-          <Select value={tipo} onChange={e => setTipo(e.target.value as 'Banco' | 'Aseguradora')}>
-            <option value="Banco">Banco</option>
-            <option value="Aseguradora">Aseguradora</option>
+          <Select value={tipo} onChange={e => setTipo(e.target.value)}>
+            <option value="banco">Banco</option>
+            <option value="aseguradora">Aseguradora</option>
           </Select>
         </Field>
       </Row2>
 
-      <Field label="Monto línea aprobada ($MM)">
-        <Input type="number" placeholder="0" value={linea} onChange={e => setLinea(e.target.value)} />
-      </Field>
-
-      <Divider label="Instrumentos disponibles" />
-      <p className="text-[11px] text-slate mb-2">Selecciona los instrumentos que ofrece esta entidad</p>
-      <ChipSelect options={ALL_INSTRUMENTOS} selected={instrumentos} onChange={setInstrumentos} />
-
-      <div className="mt-4" />
       <Field label="Contacto (opcional)">
         <Input type="text" placeholder="Nombre del ejecutivo o email" value={contacto} onChange={e => setContacto(e.target.value)} />
       </Field>

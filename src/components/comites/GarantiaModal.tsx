@@ -1,21 +1,44 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Modal, { Field, Input, Select, Row2, Row3, Divider, Btn } from './Modal'
-import { ENTIDADES, INSTRUMENTOS, DIVISAS, UF_REF } from '@/lib/comites/data'
-import type { Garantia, Divisa } from '@/lib/comites/data'
+import { DIVISAS, UF_REF } from '@/lib/comites/data'
+import type { Divisa } from '@/lib/comites/data'
+import type { GarantiaInput, GarantiaRow, EntidadComputed, ProyectoOption } from '@/lib/comites/use-garantias'
 
-const TIPOS_GARANTIA = ['Seriedad de la oferta', 'Fiel cumplimiento', 'Anticipo', 'Correcta ejecución', 'Otra']
-const ESTADOS = ['Solicitada', 'Vigente', 'Por vencer', 'En renovación', 'Vencida', 'Devuelta']
-const PROYECTOS = ['Estadio Nacional', 'Costanera Center', 'Hospital Talca', 'Torre Apoquindo', 'Puente Maipo', 'Edificio Providencia', 'Centro Logístico', 'Mall del Sur', 'Ruta 5 Norte']
+const TIPOS_GARANTIA = [
+  { value: 'seriedad_oferta', label: 'Seriedad de la oferta' },
+  { value: 'fiel_cumplimiento', label: 'Fiel cumplimiento' },
+  { value: 'anticipo', label: 'Anticipo' },
+  { value: 'correcta_ejecucion', label: 'Correcta ejecución' },
+  { value: 'otra', label: 'Otra' },
+]
+const ESTADOS = [
+  { value: 'solicitada', label: 'Solicitada' },
+  { value: 'vigente', label: 'Vigente' },
+  { value: 'por_vencer', label: 'Por vencer' },
+  { value: 'en_renovacion', label: 'En renovación' },
+  { value: 'vencida', label: 'Vencida' },
+  { value: 'devuelta', label: 'Devuelta' },
+]
+const INSTRUMENTOS = [
+  { value: 'boleta_garantia', label: 'Boleta de garantía' },
+  { value: 'poliza_garantia', label: 'Póliza' },
+  { value: 'credito_comercial', label: 'Crédito comercial' },
+  { value: 'factoring', label: 'Factoring' },
+]
 
 interface Props {
   open: boolean
   onClose: () => void
-  editing?: Garantia | null
+  editing?: (GarantiaRow & { dias: number | null; proyecto: string }) | null
+  proyectos: ProyectoOption[]
+  entidades: EntidadComputed[]
+  onSave: (input: GarantiaInput, id?: string) => Promise<void>
+  onDelete: (id: string) => Promise<void>
 }
 
-export default function GarantiaModal({ open, onClose, editing }: Props) {
-  const [proyecto, setProyecto] = useState('')
+export default function GarantiaModal({ open, onClose, editing, proyectos, entidades, onSave, onDelete }: Props) {
+  const [proyectoId, setProyectoId] = useState('')
   const [instrumento, setInstrumento] = useState('')
   const [tipo, setTipo] = useState('')
   const [entidad, setEntidad] = useState('')
@@ -24,27 +47,55 @@ export default function GarantiaModal({ open, onClose, editing }: Props) {
   const [fSolicitud, setFSolicitud] = useState('')
   const [fInicio, setFInicio] = useState('')
   const [fVencimiento, setFVencimiento] = useState('')
-  const [estado, setEstado] = useState('Solicitada')
+  const [estado, setEstado] = useState('solicitada')
   const [nDoc, setNDoc] = useState('')
   const [obs, setObs] = useState('')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (editing) {
-      setProyecto(editing.proyecto)
+      setProyectoId(editing.proyecto_id || '')
       setInstrumento(editing.instrumento)
       setTipo(editing.tipo)
       setEntidad(editing.entidad)
       setMonto(String(editing.monto))
-      setFInicio(editing.fechaInicio)
-      setFVencimiento(editing.fechaVencimiento)
+      setFSolicitud(editing.fecha_solicitud || '')
+      setFInicio(editing.fecha_inicio || '')
+      setFVencimiento(editing.fecha_vencimiento || '')
       setEstado(editing.estado)
+      setObs(editing.observacion || '')
     } else {
-      setProyecto(''); setInstrumento(''); setTipo(''); setEntidad(''); setMonto(''); setDivisa('CLP')
-      setFSolicitud(''); setFInicio(''); setFVencimiento(''); setEstado('Solicitada'); setNDoc(''); setObs('')
+      setProyectoId(''); setInstrumento(''); setTipo(''); setEntidad(''); setMonto(''); setDivisa('CLP')
+      setFSolicitud(''); setFInicio(''); setFVencimiento(''); setEstado('solicitada'); setNDoc(''); setObs('')
     }
   }, [editing, open])
 
   const isEdit = !!editing
+
+  async function handleSave() {
+    setSaving(true)
+    await onSave({
+      proyecto_id: proyectoId || null,
+      tipo,
+      instrumento,
+      entidad,
+      monto: Number(monto) || 0,
+      divisa,
+      fecha_solicitud: fSolicitud || null,
+      fecha_inicio: fInicio || null,
+      fecha_vencimiento: fVencimiento || null,
+      estado,
+      observacion: obs,
+    }, editing?.id)
+    setSaving(false)
+  }
+
+  async function handleDelete() {
+    if (!editing || !confirm('¿Eliminar esta garantía?')) return
+    setSaving(true)
+    await onDelete(editing.id)
+    setSaving(false)
+  }
 
   return (
     <Modal
@@ -52,12 +103,19 @@ export default function GarantiaModal({ open, onClose, editing }: Props) {
       onClose={onClose}
       title={isEdit ? 'Editar' : 'Nueva'}
       accent="Garantía"
-      footer={<><Btn onClick={onClose}>Cancelar</Btn><Btn variant="primary" onClick={onClose}>{isEdit ? 'Guardar cambios' : 'Crear garantía'}</Btn></>}
+      footer={
+        <>
+          {isEdit && <Btn variant="danger" onClick={handleDelete} disabled={saving}>Eliminar</Btn>}
+          <div className="flex-1" />
+          <Btn onClick={onClose}>Cancelar</Btn>
+          <Btn variant="primary" onClick={handleSave} disabled={saving}>{saving ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear garantía'}</Btn>
+        </>
+      }
     >
       <Field label="Proyecto asociado">
-        <Select value={proyecto} onChange={e => setProyecto(e.target.value)}>
+        <Select value={proyectoId} onChange={e => setProyectoId(e.target.value)}>
           <option value="">— Seleccionar proyecto —</option>
-          {PROYECTOS.map(p => <option key={p} value={p}>{p}</option>)}
+          {proyectos.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
         </Select>
       </Field>
 
@@ -65,13 +123,13 @@ export default function GarantiaModal({ open, onClose, editing }: Props) {
         <Field label="Instrumento">
           <Select value={instrumento} onChange={e => setInstrumento(e.target.value)}>
             <option value="">— Seleccionar —</option>
-            {INSTRUMENTOS.map(i => <option key={i.nombre} value={i.nombre}>{i.nombre}</option>)}
+            {INSTRUMENTOS.map(i => <option key={i.value} value={i.value}>{i.label}</option>)}
           </Select>
         </Field>
         <Field label="Tipo de garantía">
           <Select value={tipo} onChange={e => setTipo(e.target.value)}>
             <option value="">— Seleccionar —</option>
-            {TIPOS_GARANTIA.map(t => <option key={t} value={t}>{t}</option>)}
+            {TIPOS_GARANTIA.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </Select>
         </Field>
       </Row2>
@@ -79,7 +137,7 @@ export default function GarantiaModal({ open, onClose, editing }: Props) {
       <Field label="Entidad">
         <Select value={entidad} onChange={e => setEntidad(e.target.value)}>
           <option value="">— Seleccionar entidad —</option>
-          {ENTIDADES.map(e => <option key={e.nombre} value={e.nombre}>{e.nombre} ({e.tipo})</option>)}
+          {entidades.map(e => <option key={e.id} value={e.nombre}>{e.nombre} ({e.tipo})</option>)}
         </Select>
       </Field>
 
@@ -92,14 +150,13 @@ export default function GarantiaModal({ open, onClose, editing }: Props) {
         <Field label={divisa === 'UF' ? 'Monto (UF)' : `Monto (${divisa})`}>
           <Input type="number" placeholder="0" value={monto} onChange={e => setMonto(e.target.value)} />
         </Field>
-        {divisa === 'UF' && monto && (
+        {divisa === 'UF' && monto ? (
           <Field label={`Equivalente CLP (UF $${UF_REF.toLocaleString('es-CL')})`}>
             <div className="px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-[13px] bg-[#F8FAFC] text-slate font-semibold">
               ${(parseFloat(monto) * UF_REF).toLocaleString('es-CL', { maximumFractionDigits: 0 })}
             </div>
           </Field>
-        )}
-        {divisa !== 'UF' && <div />}
+        ) : <div />}
       </Row3>
 
       <Divider label="Fechas" />
@@ -112,7 +169,7 @@ export default function GarantiaModal({ open, onClose, editing }: Props) {
       <Row2>
         <Field label="Estado">
           <Select value={estado} onChange={e => setEstado(e.target.value)}>
-            {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
+            {ESTADOS.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
           </Select>
         </Field>
         <Field label="N° documento">

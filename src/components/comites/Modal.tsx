@@ -147,9 +147,11 @@ export function ChipSelect({ options, selected, onChange }: { options: string[];
   )
 }
 
-export function Btn({ children, variant = 'default', ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'default' | 'primary' }) {
+export function Btn({ children, variant = 'default', ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'default' | 'primary' | 'danger' }) {
   const cls = variant === 'primary'
     ? 'bg-cobalt border-cobalt text-white hover:bg-cobalt-dark'
+    : variant === 'danger'
+    ? 'bg-white border-red-300 text-danger hover:bg-red-50'
     : 'bg-white border-[#E2E8F0] hover:bg-[#F1F5F9]'
   return (
     <button

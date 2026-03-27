@@ -30,13 +30,12 @@ export async function updateSession(request: NextRequest) {
 
   const isLoginPage = request.nextUrl.pathname === '/login'
 
-  // TODO: re-enable auth redirect when migration is complete
-  // const isPublicPath = request.nextUrl.pathname === '/'
-  // if (!user && !isLoginPage && !isPublicPath) {
-  //   const url = request.nextUrl.clone()
-  //   url.pathname = '/login'
-  //   return NextResponse.redirect(url)
-  // }
+  const isPublicPath = request.nextUrl.pathname === '/'
+  if (!user && !isLoginPage && !isPublicPath) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
 
   if (user && isLoginPage) {
     const url = request.nextUrl.clone()
