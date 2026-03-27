@@ -7,20 +7,36 @@ import { toast } from '@/components/ui/Toast'
 import { fmtFecha, fmtFechaDate } from '@/lib/comites/data'
 import { createClient } from '@/lib/supabase/client'
 import { AREAS_LIST, TAREA_TIPO_LABELS, TAREA_TIPO_COLORS } from '@/lib/types'
-import type { AreaId } from '@/lib/types'
+import type { AreaId, TareaTipo } from '@/lib/types'
 import KPIDashboard from '@/components/comites/KPIDashboard'
-import TareaMatrix from '@/components/comites/TareaMatrix'
 import PDFExportButton from '@/components/comites/PDFExportButton'
 
 const MT = [5 * 60, 5 * 60, 5 * 60, 5 * 60]
-const ML = ['Momento 1 — Scoreboard', 'Momento 2 — Estado de Tareas', 'Momento 3 — Compromisos y Cierre', 'Momento 4 — Biblioteca de Minutas']
+const ML = ['Momento 1 — Scoreboard', 'Momento 2 — Estado de Tareas', 'Momento 3 — Compromisos', 'Momento 4 — Minutas']
 
 interface MinutaRow { id: string; fecha: string; texto_completo: string | null; enviada: boolean; created_at: string }
+
+// ── Bar component for charts ──
+function StatBar({ label, value, max, color, total }: { label: string; value: number; max: number; color: string; total: number }) {
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0
+  const pctTotal = total > 0 ? Math.round((value / total) * 100) : 0
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-xs font-semibold w-24 text-right">{label}</span>
+      <div className="flex-1 h-7 bg-[#F1F5F9] rounded-lg overflow-hidden relative">
+        <div className="h-full rounded-lg transition-all duration-700" style={{ width: `${pct}%`, background: color, minWidth: value > 0 ? 4 : 0 }} />
+        <span className="absolute inset-0 flex items-center px-3 text-xs font-bold" style={{ color: pct > 40 ? '#fff' : color }}>
+          {value} ({pctTotal}%)
+        </span>
+      </div>
+    </div>
+  )
+}
 
 export default function ProyectarPage({ params }: { params: { area: string } }) {
   const areaId = params.area
   const { loading: authLoading, canEdit } = useAuth()
-  const { kpis, tareas, loading, refresh, supabase } = useAreaData(areaId as AreaId)
+  const { kpis, tareas, loading, supabase } = useAreaData(areaId as AreaId)
   const { kpis: autoKpis, loading: autoLoading } = useAutoKpis(areaId as AreaId)
   const areaInfo = AREAS_LIST.find(a => a.id === areaId)
   const isRRHH = areaId === 'rrhh'
@@ -34,6 +50,9 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
   const [minutaExpanded, setMinutaExpanded] = useState<string | null>(null)
   const [pdfMode, setPdfMode] = useState(false)
   const slideRefs = useRef<(HTMLDivElement | null)[]>([null, null, null, null])
+
+  // Slide comments (persisted in minuta)
+  const [comments, setComments] = useState<Record<number, string>>({})
 
   const ce = canEdit(areaId)
 
@@ -49,6 +68,7 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
   function changeSlide(n: number) { setSlide(n); setTimerSec(MT[n]); setTimerMax(MT[n]); setTimerRunning(false) }
 
   const handleKey = useCallback((e: KeyboardEvent) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
     if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); if (slide < 3) changeSlide(slide + 1) }
     if (e.key === 'ArrowLeft' && slide > 0) changeSlide(slide - 1)
     if (e.key === 'Escape') window.history.back()
@@ -61,10 +81,12 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
     const lines: typeof minutaLines = []
     kpis.filter(k => k.comentario).forEach(k => lines.push({ tag: 'KPI', text: `${k.nombre}: ${k.comentario}` }))
     tareas.filter(t => t.from_decision).forEach(t => lines.push({ tag: 'Tarea', text: `${t.texto} · ${t.responsable || 'por asignar'}` }))
+    // Add slide comments
+    Object.entries(comments).forEach(([idx, txt]) => { if (txt.trim()) lines.push({ tag: `Slide ${Number(idx) + 1}`, text: txt }) })
     setMinutaLines(lines)
-  }, [kpis, tareas])
+  }, [kpis, tareas, comments])
 
-  // Load minutas for slide 3
+  // Load minutas
   useEffect(() => {
     const sb = createClient()
     sb.from('minutas').select('id, fecha, texto_completo, enviada, created_at')
@@ -81,11 +103,6 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
     toast('Reunión cerrada y minuta guardada')
   }
 
-  function copyMinuta() {
-    const txt = minutaLines.map(l => `[${l.tag}] ${l.text}`).join('\n')
-    navigator.clipboard?.writeText(txt).then(() => toast('Minuta copiada'))
-  }
-
   if (authLoading || loading || autoLoading) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-10 h-10 border-3 border-cobalt border-t-transparent rounded-full animate-spin" />
@@ -95,9 +112,40 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
   const timerMin = Math.floor(timerSec / 60)
   const timerS = timerSec % 60
   const timerPct = timerMax > 0 ? (timerSec / timerMax) * 100 : 0
-
-  // Helper: should slide N be visible?
   const show = (n: number) => slide === n || pdfMode
+
+  // ── Task stats for charts ──
+  const byEstado = {
+    bloqueada: tareas.filter(t => t.estado === 'bloqueada').length,
+    'en-proceso': tareas.filter(t => t.estado === 'en-proceso').length,
+    pendiente: tareas.filter(t => t.estado === 'pendiente').length,
+    completada: tareas.filter(t => t.estado === 'completada').length,
+  }
+  const totalTareas = tareas.length
+  const maxEstado = Math.max(...Object.values(byEstado), 1)
+
+  const tipoKeys: TareaTipo[] = ['seguimiento', 'acuerdo', 'accion_correctiva', 'solicitud']
+  const byTipo: Record<string, number> = {}
+  tipoKeys.forEach(t => { byTipo[t] = tareas.filter(ta => (ta.tipo || 'seguimiento') === t).length })
+  const maxTipo = Math.max(...Object.values(byTipo), 1)
+
+  const bloqueadas = tareas.filter(t => t.estado === 'bloqueada').slice(0, 3)
+  const sinFecha = tareas.filter(t => t.estado !== 'completada' && !t.fecha_compromiso).length
+
+  // ── Comment input component ──
+  function SlideComment({ slideIdx }: { slideIdx: number }) {
+    return (
+      <div className="mt-4 pt-3 border-t border-[#E2E8F0]">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-slate mb-1">Comentario de esta sección</div>
+        <textarea
+          value={comments[slideIdx] || ''}
+          onChange={e => setComments(prev => ({ ...prev, [slideIdx]: e.target.value }))}
+          placeholder="Agregar comentario para la minuta..."
+          className="w-full text-xs px-3 py-2 border border-[#E2E8F0] rounded-lg outline-none focus:border-cobalt focus:shadow-[0_0_0_3px_rgba(11,94,215,0.1)] resize-none h-14 transition-all"
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -129,24 +177,30 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
       </div>
 
       {/* Timer */}
-      <div className="flex items-center justify-between px-7 py-2 bg-[#F8FAFC] border-b border-[#E2E8F0]">
-        <span className="text-xs font-bold text-slate uppercase tracking-wider">{ML[slide]}</span>
-        <span className={`font-condensed font-black text-xl ${timerSec < 60 ? 'text-danger' : 'text-cobalt'}`}>{timerMin}:{String(timerS).padStart(2, '0')}</span>
-        <div className="flex gap-1.5">
-          <button onClick={() => setTimerRunning(!timerRunning)} className="px-3 py-1 border border-[#E2E8F0] rounded text-xs font-semibold hover:bg-[#F1F5F9]">{timerRunning ? 'Pausar' : 'Iniciar'}</button>
-          <button onClick={() => { setTimerSec(MT[slide]); setTimerRunning(false) }} className="px-3 py-1 border border-[#E2E8F0] rounded text-xs font-semibold hover:bg-[#F1F5F9]">Reset</button>
-        </div>
-      </div>
-      <div className="h-1 bg-[#F1F5F9]">
-        <div className="h-full transition-all duration-1000" style={{ width: `${timerPct}%`, background: timerSec < 60 ? '#DC2626' : timerSec < timerMax * 0.3 ? '#D97706' : '#E1BA10' }} />
-      </div>
+      {!pdfMode && (
+        <>
+          <div className="flex items-center justify-between px-7 py-2 bg-[#F8FAFC] border-b border-[#E2E8F0]">
+            <span className="text-xs font-bold text-slate uppercase tracking-wider">{ML[slide]}</span>
+            <span className={`font-condensed font-black text-xl ${timerSec < 60 ? 'text-danger' : 'text-cobalt'}`}>{timerMin}:{String(timerS).padStart(2, '0')}</span>
+            <div className="flex gap-1.5">
+              <button onClick={() => setTimerRunning(!timerRunning)} className="px-3 py-1 border border-[#E2E8F0] rounded text-xs font-semibold hover:bg-[#F1F5F9]">{timerRunning ? 'Pausar' : 'Iniciar'}</button>
+              <button onClick={() => { setTimerSec(MT[slide]); setTimerRunning(false) }} className="px-3 py-1 border border-[#E2E8F0] rounded text-xs font-semibold hover:bg-[#F1F5F9]">Reset</button>
+            </div>
+          </div>
+          <div className="h-1 bg-[#F1F5F9]">
+            <div className="h-full transition-all duration-1000" style={{ width: `${timerPct}%`, background: timerSec < 60 ? '#DC2626' : timerSec < timerMax * 0.3 ? '#D97706' : '#E1BA10' }} />
+          </div>
+        </>
+      )}
 
-      {/* ═══ SLIDES (all render, visibility controlled) ═══ */}
+      {/* ═══ SLIDES ═══ */}
       <div className="px-7 py-5">
 
-        {/* Slide 0: Scoreboard */}
+        {/* ── Slide 0: Scoreboard ── */}
         <div ref={el => { slideRefs.current[0] = el }} style={{ display: show(0) ? 'block' : 'none' }}>
-          <Hdr color={areaInfo?.color} text="Momento 1 · Scoreboard — Indicadores del período" />
+          <Hdr color={areaInfo?.color} text="Momento 1 · Scoreboard" />
+
+          {/* Auto KPIs */}
           {!isRRHH && autoKpis.length > 0 ? (
             <KPIDashboard kpis={autoKpis} areaColor={areaInfo?.color} />
           ) : (
@@ -160,85 +214,144 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
                       <span className="font-condensed font-black text-4xl" style={{ color }}>{k.valor}</span>
                       {k.meta && <span className="text-xs text-slate">meta: {k.meta}</span>}
                     </div>
-                    {ce && (
-                      <div className="mt-2 pt-2 border-t border-[#E2E8F0]">
-                        <input type="text" placeholder="Comentario para minuta..." defaultValue={k.comentario}
-                          onBlur={async (e) => { await supabase.from('kpis').update({ comentario: e.target.value }).eq('id', k.id); refresh() }}
-                          className="w-full text-xs px-2 py-1.5 border border-[#E2E8F0] rounded outline-none focus:border-cobalt" />
-                      </div>
-                    )}
                   </div>
                 )
               })}
             </div>
           )}
-          {tareas.filter(t => t.estado !== 'completada').length > 0 && (
-            <div className="bg-cobalt-light border border-blue-200 rounded-lg p-4 mt-5">
-              <div className="text-xs font-bold text-cobalt uppercase mb-2">Compromisos anteriores</div>
-              {tareas.filter(t => t.estado !== 'completada').map(t => (
-                <div key={t.id} className="flex items-center gap-2.5 py-1.5 border-b border-blue-200 last:border-0">
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: t.estado === 'en-proceso' ? '#0B5ED7' : t.estado === 'bloqueada' ? '#DC2626' : '#94A3B8' }} />
-                  <span className="flex-1 text-xs text-ink">{t.texto}</span>
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: TAREA_TIPO_COLORS[t.tipo || 'seguimiento'] + '15', color: TAREA_TIPO_COLORS[t.tipo || 'seguimiento'] }}>{TAREA_TIPO_LABELS[t.tipo || 'seguimiento']}</span>
-                  <span className="text-xs text-slate">{t.responsable}</span>
-                  {t.fecha_compromiso ? <span className="text-xs text-cobalt font-semibold">{fmtFecha(t.fecha_compromiso)}</span> : <span className="text-[10px] text-danger font-bold">sin fecha</span>}
+
+          {/* Quick task summary (gráfica, no lista) */}
+          <div className="grid grid-cols-2 gap-4 mt-5">
+            <div className="bg-[#F8FAFC] rounded-xl p-4 border border-[#E2E8F0]">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate mb-3">Tareas por estado ({totalTareas})</p>
+              <div className="space-y-2">
+                <StatBar label="Bloqueadas" value={byEstado.bloqueada} max={maxEstado} color="#DC2626" total={totalTareas} />
+                <StatBar label="En proceso" value={byEstado['en-proceso']} max={maxEstado} color="#0B5ED7" total={totalTareas} />
+                <StatBar label="Pendientes" value={byEstado.pendiente} max={maxEstado} color="#D97706" total={totalTareas} />
+                <StatBar label="Completadas" value={byEstado.completada} max={maxEstado} color="#16A34A" total={totalTareas} />
+              </div>
+            </div>
+            <div className="bg-[#F8FAFC] rounded-xl p-4 border border-[#E2E8F0]">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate mb-3">Tareas por tipo</p>
+              <div className="space-y-2">
+                {tipoKeys.map(t => byTipo[t] > 0 ? (
+                  <StatBar key={t} label={TAREA_TIPO_LABELS[t]} value={byTipo[t]} max={maxTipo} color={TAREA_TIPO_COLORS[t]} total={totalTareas} />
+                ) : null)}
+              </div>
+              {sinFecha > 0 && (
+                <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-danger font-bold">
+                  {sinFecha} tarea{sinFecha > 1 ? 's' : ''} sin fecha de compromiso
+                </div>
+              )}
+            </div>
+          </div>
+
+          {ce && <SlideComment slideIdx={0} />}
+        </div>
+
+        {/* ── Slide 1: Estado de Tareas (gráficas + alertas) ── */}
+        <div ref={el => { slideRefs.current[1] = el }} style={{ display: show(1) ? 'block' : 'none' }}>
+          <Hdr color="#D97706" text="Momento 2 · Estado de Tareas" />
+
+          {/* Alert: bloqueadas */}
+          {bloqueadas.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+              <p className="text-xs font-bold text-danger uppercase tracking-wider mb-2">Bloqueadas — requieren atención ({byEstado.bloqueada})</p>
+              {bloqueadas.map(t => (
+                <div key={t.id} className="flex items-center gap-2.5 py-2 border-b border-red-100 last:border-0">
+                  <div className="w-2 h-2 rounded-full bg-danger shrink-0" />
+                  <span className="flex-1 text-sm text-ink font-medium">{t.texto}</span>
+                  <span className="text-xs text-slate">{t.responsable || 'Sin asignar'}</span>
                 </div>
               ))}
+              {byEstado.bloqueada > 3 && <p className="text-[10px] text-danger mt-1">... y {byEstado.bloqueada - 3} más</p>}
             </div>
           )}
+
+          {/* Large stat cards */}
+          <div className="grid grid-cols-4 gap-3 mb-4">
+            {[
+              { label: 'Bloqueadas', value: byEstado.bloqueada, color: '#DC2626', bg: '#FEE2E2' },
+              { label: 'En proceso', value: byEstado['en-proceso'], color: '#0B5ED7', bg: '#EFF6FF' },
+              { label: 'Pendientes', value: byEstado.pendiente, color: '#D97706', bg: '#FEF3C7' },
+              { label: 'Completadas', value: byEstado.completada, color: '#16A34A', bg: '#DCFCE7' },
+            ].map(s => (
+              <div key={s.label} className="rounded-xl p-4 text-center" style={{ background: s.bg }}>
+                <p className="font-condensed text-5xl font-black" style={{ color: s.color }}>{s.value}</p>
+                <p className="text-xs font-bold mt-1" style={{ color: s.color }}>{s.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Tipo distribution */}
+          <div className="bg-[#F8FAFC] rounded-xl p-4 border border-[#E2E8F0]">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate mb-3">Distribución por tipo</p>
+            <div className="flex gap-3">
+              {tipoKeys.map(t => {
+                const count = byTipo[t]
+                const pct = totalTareas > 0 ? Math.round((count / totalTareas) * 100) : 0
+                return (
+                  <div key={t} className="flex-1 text-center">
+                    <div className="h-24 flex items-end justify-center mb-1">
+                      <div className="w-full max-w-[60px] rounded-t-lg transition-all duration-700"
+                        style={{ height: `${totalTareas > 0 ? Math.max((count / Math.max(...Object.values(byTipo))) * 100, count > 0 ? 8 : 0) : 0}%`, background: TAREA_TIPO_COLORS[t] }} />
+                    </div>
+                    <p className="font-condensed text-xl font-black" style={{ color: TAREA_TIPO_COLORS[t] }}>{count}</p>
+                    <p className="text-[10px] font-semibold text-slate">{TAREA_TIPO_LABELS[t]}</p>
+                    <p className="text-[9px] text-slate">{pct}%</p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {ce && <SlideComment slideIdx={1} />}
         </div>
 
-        {/* Slide 1: Tareas */}
-        <div ref={el => { slideRefs.current[1] = el }} style={{ display: show(1) ? 'block' : 'none' }}>
-          <Hdr color="#D97706" text="Momento 2 · Estado de Tareas — por tipo y estado" />
-          <TareaMatrix tareas={tareas} />
-        </div>
-
-        {/* Slide 2: Compromisos + Minuta */}
+        {/* ── Slide 2: Compromisos + Minuta ── */}
         <div ref={el => { slideRefs.current[2] = el }} style={{ display: show(2) ? 'block' : 'none' }}>
           <Hdr color="#16A34A" text="Momento 3 · Compromisos y cierre" />
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs font-bold uppercase text-slate mb-2">Compromisos — confirmar responsable y fecha</p>
-              {tareas.map(t => (
-                <div key={t.id} className="flex items-start gap-2.5 py-2 border-b border-[#F1F5F9] last:border-0">
-                  <div className={`w-4 h-4 rounded border-2 shrink-0 mt-0.5 flex items-center justify-center ${t.estado === 'completada' ? 'bg-success border-success' : 'border-[#CBD5E1]'}`}>
-                    {t.estado === 'completada' && <span className="text-white text-[9px] font-black">✓</span>}
-                  </div>
-                  <div>
-                    <p className="text-sm text-ink font-medium">{t.texto}</p>
-                    <p className="text-xs text-slate mt-0.5">{t.responsable || 'Sin asignar'} · {t.fecha_compromiso ? fmtFecha(t.fecha_compromiso) : <span className="text-danger font-semibold">sin fecha</span>}</p>
+              <p className="text-xs font-bold uppercase text-slate mb-2">Compromisos activos ({tareas.filter(t => t.estado !== 'completada').length})</p>
+              {tareas.filter(t => t.estado !== 'completada').slice(0, 8).map(t => (
+                <div key={t.id} className="flex items-start gap-2 py-1.5 border-b border-[#F1F5F9] last:border-0">
+                  <div className="w-2 h-2 rounded-full shrink-0 mt-1.5" style={{ background: t.estado === 'bloqueada' ? '#DC2626' : t.estado === 'en-proceso' ? '#0B5ED7' : '#94A3B8' }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-ink leading-snug truncate">{t.texto}</p>
+                    <p className="text-[10px] text-slate">{t.responsable || '—'} · {t.fecha_compromiso ? fmtFecha(t.fecha_compromiso) : <span className="text-danger font-bold">sin fecha</span>}</p>
                   </div>
                 </div>
               ))}
-              {tareas.length === 0 && <p className="text-xs text-slate">Sin compromisos.</p>}
-              <div className="mt-3 p-2.5 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-xs font-bold text-danger">Regla: sin fecha = no es compromiso</p>
-              </div>
+              {tareas.filter(t => t.estado !== 'completada').length > 8 && <p className="text-[10px] text-slate mt-1">... y {tareas.filter(t => t.estado !== 'completada').length - 8} más</p>}
+              {tareas.filter(t => t.estado !== 'completada').length === 0 && <p className="text-xs text-slate py-2">Sin compromisos pendientes.</p>}
             </div>
+
             <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
               <div className="hero-gradient px-3.5 py-2.5 flex items-center justify-between">
-                <span className="text-white text-xs font-bold uppercase">Minuta emergente</span>
+                <span className="text-white text-xs font-bold uppercase">Minuta</span>
                 <span className="text-[10px] bg-success text-white px-2 py-0.5 rounded-full font-bold">{minutaLines.length}</span>
               </div>
-              <div className="p-3.5">
-                {minutaLines.length === 0 && <p className="text-xs text-slate italic py-2">Los comentarios y tareas aparecerán aquí.</p>}
+              <div className="p-3.5 max-h-[200px] overflow-y-auto">
+                {minutaLines.length === 0 && <p className="text-xs text-slate italic py-2">Los comentarios aparecerán aquí.</p>}
                 {minutaLines.map((l, i) => (
-                  <div key={i} className="flex items-start gap-2 py-1.5 border-b border-[#F1F5F9] last:border-0">
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${l.tag === 'KPI' ? 'bg-cobalt-light text-cobalt' : 'bg-green-50 text-success'}`}>{l.tag}</span>
-                    <span className="text-xs text-ink flex-1">{l.text}</span>
+                  <div key={i} className="flex items-start gap-2 py-1 border-b border-[#F1F5F9] last:border-0">
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${l.tag === 'KPI' ? 'bg-cobalt-light text-cobalt' : 'bg-green-50 text-success'}`}>{l.tag}</span>
+                    <span className="text-[11px] text-ink flex-1">{l.text}</span>
                   </div>
                 ))}
               </div>
               <div className="px-3.5 py-2.5 border-t border-[#E2E8F0] flex gap-1.5">
                 <button onClick={saveMinuta} className="px-3 py-1.5 bg-cobalt text-white text-xs rounded-lg font-semibold btn-scale">Guardar y cerrar</button>
-                <button onClick={copyMinuta} className="px-3 py-1.5 border border-[#E2E8F0] text-xs rounded-lg font-semibold hover:bg-[#F1F5F9]">Copiar</button>
+                <button onClick={() => { const txt = minutaLines.map(l => `[${l.tag}] ${l.text}`).join('\n'); navigator.clipboard?.writeText(txt).then(() => toast('Copiada')) }}
+                  className="px-3 py-1.5 border border-[#E2E8F0] text-xs rounded-lg font-semibold hover:bg-[#F1F5F9]">Copiar</button>
               </div>
             </div>
           </div>
+          {ce && <SlideComment slideIdx={2} />}
         </div>
 
-        {/* Slide 3: Minutas (NO incluido en PDF) */}
+        {/* ── Slide 3: Minutas ── */}
         <div style={{ display: slide === 3 ? 'block' : 'none' }}>
           <Hdr color="#0B5ED7" text="Momento 4 · Biblioteca de Minutas" />
           {minutas.length === 0 ? (
@@ -249,12 +362,9 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
                 <div key={m.id} className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
                   <button onClick={() => setMinutaExpanded(minutaExpanded === m.id ? null : m.id)} className="w-full flex items-center gap-3 p-4 hover:bg-[#F8FAFC] text-left">
                     <div className="w-2.5 h-2.5 rounded-full bg-cobalt shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-bold">{fmtFecha(m.fecha)}</span>
-                      {m.enviada && <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-50 text-success">Enviada</span>}
-                      {m.texto_completo && <p className="text-[11px] text-slate truncate mt-0.5">{m.texto_completo.slice(0, 100)}</p>}
-                    </div>
-                    <span className="text-slate text-sm">{minutaExpanded === m.id ? '▲' : '▼'}</span>
+                    <span className="text-sm font-bold">{fmtFecha(m.fecha)}</span>
+                    {m.texto_completo && <span className="text-[11px] text-slate truncate flex-1">{m.texto_completo.slice(0, 80)}</span>}
+                    <span className="text-slate text-sm shrink-0">{minutaExpanded === m.id ? '▲' : '▼'}</span>
                   </button>
                   {minutaExpanded === m.id && m.texto_completo && (
                     <div className="px-5 pb-4 border-t border-[#F1F5F9]">
@@ -266,15 +376,16 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
             </div>
           )}
         </div>
-
       </div>
 
-      {/* Bottom bar */}
-      <div className="hero-gradient px-5 py-2.5 flex items-center gap-4 flex-wrap">
-        {['Enviar notas la noche anterior', 'Sin fecha = no es compromiso', 'Verde = meta · Amarillo = alerta · Rojo = crítico'].map((r, i) => (
-          <span key={i} className="text-xs text-white/40">{i > 0 && '· '}{r}</span>
-        ))}
-      </div>
+      {/* Bottom */}
+      {!pdfMode && (
+        <div className="hero-gradient px-5 py-2.5 flex items-center gap-4">
+          {['Sin fecha = no es compromiso', 'Verde = meta · Amarillo = alerta · Rojo = crítico'].map((r, i) => (
+            <span key={i} className="text-xs text-white/40">{i > 0 && '· '}{r}</span>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
