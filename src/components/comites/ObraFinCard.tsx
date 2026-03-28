@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react'
 import type { Proyecto } from '@/lib/types'
 import { ESTADO_COLORS } from '@/lib/types'
 import { fmtMM, fmtFecha } from '@/lib/comites/data'
+import AnimatedBar from './AnimatedBar'
+import MiniGauge from './MiniGauge'
 
 interface Props {
   proyecto: Proyecto
@@ -15,7 +17,7 @@ function NumField({ label, value, onChange }: {
 }) {
   return (
     <div>
-      <label className="block text-[9px] font-bold uppercase tracking-wide text-slate-400 mb-1">{label}</label>
+      <label className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">{label}</label>
       <input
         type="number"
         value={value || ''}
@@ -30,9 +32,9 @@ function NumField({ label, value, onChange }: {
 function ReadOnly({ label, value, color, sub }: { label: string; value: string; color?: string; sub?: string }) {
   return (
     <div>
-      <label className="block text-[9px] font-bold uppercase tracking-wide text-slate-400 mb-1">{label}</label>
+      <label className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">{label}</label>
       <div className="font-condensed text-lg font-extrabold leading-tight" style={{ color: color || '#0B5ED7' }}>{value}</div>
-      {sub && <div className="text-[9px] text-slate-400 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[10px] text-slate mt-0.5">{sub}</div>}
     </div>
   )
 }
@@ -129,7 +131,7 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
           </div>
 
           {/* ── VENTA ── */}
-          <p className="text-[9px] font-bold uppercase tracking-widest text-cobalt mt-2 mb-2">Venta</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-cobalt mt-2 mb-2">Venta</p>
           <div className="grid grid-cols-5 gap-2.5">
             <NumField label="Contrato ($MM)" value={lp.contrato} onChange={v => upd('contrato', v)} />
             <NumField label="NDC Aprobadas ($MM)" value={lp.ndc} onChange={v => upd('ndc', v)} />
@@ -139,7 +141,7 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
           </div>
 
           {/* ── COMPROMETIDO (desglose) ── */}
-          <p className="text-[9px] font-bold uppercase tracking-widest text-amber mt-4 mb-2">Comprometido (desglose)</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-amber mt-4 mb-2">Comprometido (desglose)</p>
           <div className="grid grid-cols-6 gap-2.5">
             <NumField label="OC ($MM)" value={lp.oc} onChange={v => upd('oc', v)} />
             <NumField label="SC ($MM)" value={lp.sc} onChange={v => upd('sc', v)} />
@@ -150,7 +152,7 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
           </div>
 
           {/* ── GASTO ── */}
-          <p className="text-[9px] font-bold uppercase tracking-widest text-danger mt-4 mb-2">Gasto</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-danger mt-4 mb-2">Gasto</p>
           <div className="grid grid-cols-4 gap-2.5">
             <NumField label="Gastado / Facturas ($MM)" value={lp.gastado} onChange={v => upd('gastado', v)} />
             <ReadOnly label="Mano de Obra" value={`$${lp.mano_obra} MM`} color="#64748B" sub="(ingresado arriba)" />
@@ -159,24 +161,25 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
           </div>
 
           {/* ── AVANCE ── */}
-          <p className="text-[9px] font-bold uppercase tracking-widest text-success mt-4 mb-2">Avance</p>
-          <div className="grid grid-cols-4 gap-2.5">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-success mt-4 mb-2">Avance</p>
+          <div className="grid grid-cols-4 gap-2.5 items-end">
             <NumField label="Avance Real (%)" value={lp.avance_real} onChange={v => upd('avance_real', v)} />
             <NumField label="Avance Prog. (%)" value={lp.avance_prog} onChange={v => upd('avance_prog', v)} />
-            <ReadOnly label="SPI" value={`${spi}`} color={spiColor} sub={spiLabel} />
-            <ReadOnly label="CPI" value={`${cpi}`} color={cpiColor} sub={cpiLabel} />
+            <div className="flex justify-center gap-4">
+              <MiniGauge value={spi} max={1.5} label="SPI" sublabel={spiLabel} color={spiColor} />
+              <MiniGauge value={cpi} max={1.5} label="CPI" sublabel={cpiLabel} color={cpiColor} />
+            </div>
           </div>
 
-          {/* Avance bar */}
+          {/* Animated avance bar */}
           <div className="mt-2">
-            <div className="h-2.5 bg-[#E2E8F0] rounded-full overflow-hidden relative">
-              <div className="absolute inset-y-0 left-0 rounded-full opacity-30" style={{ width: `${lp.avance_prog}%`, background: '#0B5ED7' }} />
-              <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${lp.avance_real}%`, background: lp.avance_real >= lp.avance_prog ? '#16A34A' : '#DC2626' }} />
-            </div>
-            <div className="flex justify-between text-[9px] text-slate-400 mt-1">
-              <span>Real {lp.avance_real}%</span>
-              <span>Programado {lp.avance_prog}%</span>
-            </div>
+            <AnimatedBar
+              value={lp.avance_real}
+              secondValue={lp.avance_prog}
+              secondColor="#0B5ED730"
+              color={lp.avance_real >= lp.avance_prog ? '#16A34A' : '#DC2626'}
+              showLabel
+            />
           </div>
 
           {/* ── KPIs RESUMEN ── */}
@@ -191,7 +194,7 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
 
           {/* Comentario */}
           <div className="mt-3">
-            <label className="block text-[9px] font-bold uppercase tracking-wide text-slate-400 mb-1">Comentario</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">Comentario</label>
             <input
               value={lp.comentario_financiero || ''}
               onChange={e => updLocal('comentario_financiero', e.target.value)}

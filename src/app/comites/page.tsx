@@ -142,7 +142,7 @@ export default function ComitesHomePage() {
       </motion.div>
 
       {/* Areas */}
-      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate mb-2.5">Áreas del Comité</p>
+      <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-2.5">Áreas del Comité</p>
 
       {dataLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

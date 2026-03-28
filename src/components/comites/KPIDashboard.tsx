@@ -39,7 +39,7 @@ export default function KPIDashboard({ kpis, areaColor = '#0B5ED7', dark = true 
               {/* Status dot */}
               <div className="flex items-center gap-1.5 mb-1">
                 <span className={`w-2 h-2 rounded-full ${kpi.status === 'bad' ? 'pulse-critical' : ''}`} style={{ background: sc.text }} />
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${dark ? 'text-white/40' : 'text-slate'}`}>
+                <span className={`text-[10px] font-bold uppercase tracking-wider ${dark ? 'text-white/40' : 'text-slate'}`}>
                   {kpi.nombre}
                 </span>
               </div>

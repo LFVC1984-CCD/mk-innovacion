@@ -77,8 +77,9 @@ export default function LoginPage() {
           transition={{ delay: 0.3, duration: 0.4 }}
           onSubmit={handleLogin}
         >
-          <label className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">Correo electrónico</label>
+          <label htmlFor="login-email" className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">Correo electrónico</label>
           <input
+            id="login-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -87,8 +88,9 @@ export default function LoginPage() {
             required
           />
 
-          <label className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">Contraseña</label>
+          <label htmlFor="login-password" className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">Contraseña</label>
           <input
+            id="login-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

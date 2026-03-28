@@ -31,10 +31,21 @@ export default function EntidadModal({ open, onClose, editing, onSave, onDelete 
 
   const isEdit = !!editing
 
+  const [errors, setErrors] = useState<string[]>([])
+
   async function handleSave() {
+    const errs: string[] = []
+    if (!nombre.trim()) errs.push('El nombre de la entidad es obligatorio')
+    if (errs.length > 0) { setErrors(errs); return }
+    setErrors([])
     setSaving(true)
-    await onSave({ nombre, tipo, contacto, observacion: obs }, editing?.id)
-    setSaving(false)
+    try {
+      await onSave({ nombre: nombre.trim(), tipo, contacto, observacion: obs }, editing?.id)
+    } catch (err) {
+      setErrors([err instanceof Error ? err.message : 'Error al guardar'])
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function handleDelete() {
@@ -59,6 +70,11 @@ export default function EntidadModal({ open, onClose, editing, onSave, onDelete 
         </>
       }
     >
+      {errors.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
+          {errors.map((e, i) => <p key={i} className="text-red-600 text-[13px]">{e}</p>)}
+        </div>
+      )}
       <Row2>
         <Field label="Nombre de la entidad">
           <Input type="text" placeholder="Ej: BCI, Mapfre, Santander" value={nombre} onChange={e => setNombre(e.target.value)} />

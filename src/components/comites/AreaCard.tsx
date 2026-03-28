@@ -39,7 +39,7 @@ export default function AreaCard({ area, index, editHref, presentHref }: Props) 
       initial={{ opacity: 0, y: 18, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: index * 0.07, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-white rounded-[14px] border border-[#E2E8F0] overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer group relative"
+      className="bg-white rounded-[14px] border-2 border-[#E2E8F0] overflow-hidden hover:shadow-xl hover:shadow-[#E8000D]/10 hover:-translate-y-1 hover:border-[#E8000D]/30 transition-all duration-200 cursor-pointer group relative"
     >
       {/* Top accent bar with gradient */}
       <div className="h-1.5 relative overflow-hidden">
@@ -51,9 +51,9 @@ export default function AreaCard({ area, index, editHref, presentHref }: Props) 
       {icon && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-          animate={{ opacity: 0.06, scale: 1, rotate: 0 }}
+          animate={{ opacity: 0.08, scale: 1, rotate: 0 }}
           transition={{ delay: index * 0.07 + 0.2, duration: 0.5 }}
-          className="absolute top-3 right-3 w-16 h-16 pointer-events-none group-hover:opacity-[0.1] transition-opacity duration-300"
+          className="absolute top-3 right-3 w-16 h-16 pointer-events-none group-hover:opacity-[0.22] group-hover:scale-110 transition-all duration-300"
           style={{ color: area.color }}
         >
           {icon}

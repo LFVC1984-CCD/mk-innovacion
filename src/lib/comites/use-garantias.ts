@@ -231,7 +231,7 @@ export function useGarantias() {
   }, [garantias])
 
   // ── CRUD: Garantías ──
-  const saveGarantia = useCallback(async (input: GarantiaInput, id?: string) => {
+  const saveGarantia = useCallback(async (input: GarantiaInput, id?: string): Promise<boolean> => {
     const row = {
       proyecto_id: input.proyecto_id || null,
       tipo: input.tipo,
@@ -245,54 +245,56 @@ export function useGarantias() {
       observacion: input.observacion || '',
       updated_at: new Date().toISOString(),
     }
-    if (id) {
-      await supabase.from('garantias').update(row).eq('id', id)
-    } else {
-      await supabase.from('garantias').insert(row)
-    }
+    const { error } = id
+      ? await supabase.from('garantias').update(row).eq('id', id)
+      : await supabase.from('garantias').insert(row)
+    if (error) { console.error('Error saving garantia:', error); throw new Error(error.message) }
     await load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return true
   }, [load])
 
-  const deleteGarantia = useCallback(async (id: string) => {
-    await supabase.from('garantias').delete().eq('id', id)
+  const deleteGarantia = useCallback(async (id: string): Promise<boolean> => {
+    const { error } = await supabase.from('garantias').delete().eq('id', id)
+    if (error) { console.error('Error deleting garantia:', error); throw new Error(error.message) }
     await load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return true
   }, [load])
 
   // ── CRUD: Entidades ──
-  const saveEntidad = useCallback(async (input: EntidadInput, id?: string) => {
+  const saveEntidad = useCallback(async (input: EntidadInput, id?: string): Promise<boolean> => {
     const row = { nombre: input.nombre, tipo: input.tipo, contacto: input.contacto || '', observacion: input.observacion || '' }
-    if (id) {
-      await supabase.from('entidades').update(row).eq('id', id)
-    } else {
-      await supabase.from('entidades').insert(row)
-    }
+    console.log('[saveEntidad]', id ? 'UPDATE' : 'INSERT', row, id)
+    const result = id
+      ? await supabase.from('entidades').update(row).eq('id', id)
+      : await supabase.from('entidades').insert(row)
+    console.log('[saveEntidad] result:', result)
+    if (result.error) { console.error('Error saving entidad:', result.error); throw new Error(result.error.message) }
     await load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return true
   }, [load])
 
-  const deleteEntidad = useCallback(async (id: string) => {
-    await supabase.from('entidades').delete().eq('id', id)
+  const deleteEntidad = useCallback(async (id: string): Promise<boolean> => {
+    const { error } = await supabase.from('entidades').delete().eq('id', id)
+    if (error) { console.error('Error deleting entidad:', error); throw new Error(error.message) }
     await load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return true
   }, [load])
 
   // ── CRUD: Líneas de crédito ──
-  const saveLinea = useCallback(async (linea: Omit<LineaCreditoRow, 'id' | 'created_at'>, id?: string) => {
-    if (id) {
-      await supabase.from('lineas_credito').update(linea).eq('id', id)
-    } else {
-      await supabase.from('lineas_credito').insert(linea)
-    }
+  const saveLinea = useCallback(async (linea: Omit<LineaCreditoRow, 'id' | 'created_at'>, id?: string): Promise<boolean> => {
+    const { error } = id
+      ? await supabase.from('lineas_credito').update(linea).eq('id', id)
+      : await supabase.from('lineas_credito').insert(linea)
+    if (error) { console.error('Error saving linea:', error); throw new Error(error.message) }
     await load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return true
   }, [load])
 
-  const deleteLinea = useCallback(async (id: string) => {
-    await supabase.from('lineas_credito').delete().eq('id', id)
+  const deleteLinea = useCallback(async (id: string): Promise<boolean> => {
+    const { error } = await supabase.from('lineas_credito').delete().eq('id', id)
+    if (error) { console.error('Error deleting linea:', error); throw new Error(error.message) }
     await load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return true
   }, [load])
 
   return {

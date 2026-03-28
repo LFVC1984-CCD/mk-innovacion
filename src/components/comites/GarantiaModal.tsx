@@ -72,22 +72,36 @@ export default function GarantiaModal({ open, onClose, editing, proyectos, entid
 
   const isEdit = !!editing
 
+  const [errors, setErrors] = useState<string[]>([])
+
   async function handleSave() {
+    const errs: string[] = []
+    if (!instrumento) errs.push('Selecciona un instrumento')
+    if (!tipo) errs.push('Selecciona un tipo de garantía')
+    if (!entidad) errs.push('Selecciona una entidad')
+    if (!monto || Number(monto) <= 0) errs.push('Ingresa un monto válido')
+    if (errs.length > 0) { setErrors(errs); return }
+    setErrors([])
     setSaving(true)
-    await onSave({
-      proyecto_id: proyectoId || null,
-      tipo,
-      instrumento,
-      entidad,
-      monto: Number(monto) || 0,
-      divisa,
-      fecha_solicitud: fSolicitud || null,
-      fecha_inicio: fInicio || null,
-      fecha_vencimiento: fVencimiento || null,
-      estado,
-      observacion: obs,
-    }, editing?.id)
-    setSaving(false)
+    try {
+      await onSave({
+        proyecto_id: proyectoId || null,
+        tipo,
+        instrumento,
+        entidad,
+        monto: Number(monto) || 0,
+        divisa,
+        fecha_solicitud: fSolicitud || null,
+        fecha_inicio: fInicio || null,
+        fecha_vencimiento: fVencimiento || null,
+        estado,
+        observacion: obs,
+      }, editing?.id)
+    } catch (err) {
+      setErrors([err instanceof Error ? err.message : 'Error al guardar'])
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function handleDelete() {
@@ -112,6 +126,11 @@ export default function GarantiaModal({ open, onClose, editing, proyectos, entid
         </>
       }
     >
+      {errors.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
+          {errors.map((e, i) => <p key={i} className="text-red-600 text-[13px]">{e}</p>)}
+        </div>
+      )}
       <Field label="Proyecto asociado">
         <Select value={proyectoId} onChange={e => setProyectoId(e.target.value)}>
           <option value="">— Seleccionar proyecto —</option>

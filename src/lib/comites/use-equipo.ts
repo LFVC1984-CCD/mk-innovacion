@@ -39,10 +39,10 @@ export function useEquipo() {
 
     if (m.id) {
       const { error } = await supabase.from('equipo').update(row).eq('id', m.id)
-      if (error) { console.error('Error updating miembro:', error); return false }
+      if (error) { console.error('Error updating miembro:', error); throw new Error(error.message) }
     } else {
       const { error } = await supabase.from('equipo').insert(row)
-      if (error) { console.error('Error inserting miembro:', error); return false }
+      if (error) { console.error('Error inserting miembro:', error); throw new Error(error.message) }
     }
     await load()
     return true
@@ -50,7 +50,7 @@ export function useEquipo() {
 
   async function remove(id: string): Promise<boolean> {
     const { error } = await supabase.from('equipo').delete().eq('id', id)
-    if (error) { console.error('Error deleting miembro:', error); return false }
+    if (error) { console.error('Error deleting miembro:', error); throw new Error(error.message) }
     await load()
     return true
   }

@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Perfil, KPI, Tarea, AreaId } from '@/lib/types'
 
+const supabase = createClient()
+
 export function useAuth() {
   const [perfil, setPerfil] = useState<Perfil | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   useEffect(() => {
     async function load() {
@@ -35,7 +36,6 @@ export function useAreaData(areaId: AreaId | null) {
   const [kpis, setKpis] = useState<KPI[]>([])
   const [tareas, setTareas] = useState<Tarea[]>([])
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   async function refresh() {
     if (!areaId) return

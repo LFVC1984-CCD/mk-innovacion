@@ -2,7 +2,7 @@ import dynamic from 'next/dynamic'
 import type { ComponentType } from 'react'
 import type { AreaId } from '@/lib/types'
 
-const Loading = () => <div className="py-8 text-center text-slate-400 text-sm">Cargando...</div>
+const Loading = () => <div className="py-8 text-center text-slate-500 text-sm">Cargando...</div>
 
 /**
  * Mapa de paneles especializados por área.

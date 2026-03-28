@@ -21,6 +21,6 @@ export default function ToastContainer() {
   }, [])
 
   return (
-    <div className={`toast ${show ? 'on' : ''}`}>{msg}</div>
+    <div role="status" aria-live="polite" className={`toast ${show ? 'on' : ''}`}>{msg}</div>
   )
 }

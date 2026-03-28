@@ -278,25 +278,25 @@ export default function FinanzasPanel() {
       {/* ── KPIs ── */}
       <div className="hero-gradient rounded-xl p-5 grid grid-cols-2 sm:grid-cols-5 gap-4 mb-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Ingresos Prog.</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Ingresos Prog.</p>
           <p className="font-condensed text-[26px] font-black text-green-400 leading-tight mt-1">{fmtMM(totalIng)}</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Egresos Prog.</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Egresos Prog.</p>
           <p className="font-condensed text-[26px] font-black text-red-400 leading-tight mt-1">{fmtMM(totalEg)}</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Saldo Neto</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Saldo Neto</p>
           <p className="font-condensed text-[26px] font-black leading-tight mt-1" style={{ color: totalIng - totalEg >= 0 ? '#E1BA10' : '#DC2626' }}>
             {totalIng - totalEg >= 0 ? '+' : ''}{fmtMM(totalIng - totalEg)}
           </p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Obras</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Obras</p>
           <p className="font-condensed text-[26px] font-black text-white leading-tight mt-1">{obras.length}</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Leads Pipeline</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Leads Pipeline</p>
           <p className="font-condensed text-[26px] font-black text-cobalt leading-tight mt-1">{fmtMM(leadsPipeline)}</p>
           <p className="text-[10px] text-white/30">{estudios.length} en estudio</p>
         </div>
@@ -327,7 +327,7 @@ export default function FinanzasPanel() {
           {/* Chart */}
           <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 mb-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate">Flujo de caja mensual ($MM)</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate">Flujo de caja mensual ($MM)</p>
               <div className="flex gap-3 text-[10px]">
                 <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-green-500" /> Ing real</span>
                 <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-green-500/30" /> Ing proy</span>
@@ -374,7 +374,7 @@ export default function FinanzasPanel() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
-                  <th className="text-left px-3.5 py-2 text-[10px] font-bold uppercase tracking-widest text-slate">Mes</th>
+                  <th className="text-left px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-slate">Mes</th>
                   <th className="text-right px-2 py-2 text-[10px] font-bold uppercase text-green-600">Ingresos</th>
                   <th className="text-right px-2 py-2 text-[10px] font-bold uppercase text-red-500">Egresos</th>
                   <th className="text-right px-2 py-2 text-[10px] font-bold uppercase text-slate">Saldo</th>
@@ -548,5 +548,5 @@ export default function FinanzasPanel() {
 }
 
 function L({ children }: { children: React.ReactNode }) {
-  return <label className="block text-[10px] font-bold uppercase tracking-widest text-slate mb-1">{children}</label>
+  return <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">{children}</label>
 }

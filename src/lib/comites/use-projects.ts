@@ -25,10 +25,10 @@ export function useProjects() {
     if (p.id) {
       const { id, ...rest } = p
       const { error } = await supabase.from('proyectos').update(rest).eq('id', id)
-      if (error) { console.error('Error updating project:', error); return false }
+      if (error) { console.error('Error updating project:', error); throw new Error(error.message) }
     } else {
       const { error } = await supabase.from('proyectos').insert(p)
-      if (error) { console.error('Error inserting project:', error); return false }
+      if (error) { console.error('Error inserting project:', error); throw new Error(error.message) }
     }
     await load()
     return true
@@ -36,7 +36,7 @@ export function useProjects() {
 
   async function remove(id: string): Promise<boolean> {
     const { error } = await supabase.from('proyectos').delete().eq('id', id)
-    if (error) { console.error('Error deleting project:', error); return false }
+    if (error) { console.error('Error deleting project:', error); throw new Error(error.message) }
     await load()
     return true
   }

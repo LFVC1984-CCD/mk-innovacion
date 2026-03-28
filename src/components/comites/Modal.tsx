@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useId } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Props {
@@ -13,18 +13,44 @@ interface Props {
 
 export default function Modal({ open, onClose, title, accent, children, footer }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const titleId = useId()
+  const prevFocusRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
+    if (!open) return
+
+    // Store previous focus to restore later
+    prevFocusRef.current = document.activeElement as HTMLElement
+
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') { onClose(); return }
+      // Focus trap
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        if (focusable.length === 0) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+      }
     }
-    if (open) {
-      document.addEventListener('keydown', onKey)
-      document.body.style.overflow = 'hidden'
-    }
+
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+
+    // Auto-focus first focusable element
+    requestAnimationFrame(() => {
+      const first = dialogRef.current?.querySelector<HTMLElement>('input, select, textarea, button')
+      first?.focus()
+    })
+
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = ''
+      prevFocusRef.current?.focus()
     }
   }, [open, onClose])
 
@@ -41,6 +67,10 @@ export default function Modal({ open, onClose, title, accent, children, footer }
           onClick={e => { if (e.target === overlayRef.current) onClose() }}
         >
           <motion.div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
             initial={{ opacity: 0, scale: 0.92, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
@@ -49,11 +79,12 @@ export default function Modal({ open, onClose, title, accent, children, footer }
           >
             {/* Header */}
             <div className="flex justify-between items-center p-6 pb-0">
-              <h2 className="font-condensed text-[22px] font-extrabold">
+              <h2 id={titleId} className="font-condensed text-[22px] font-extrabold">
                 {accent ? <>{title} <span className="text-cobalt">{accent}</span></> : title}
               </h2>
               <button
                 onClick={onClose}
+                aria-label="Cerrar"
                 className="w-8 h-8 rounded-lg border border-[#E2E8F0] bg-white flex items-center justify-center text-slate hover:bg-[#F1F5F9] hover:text-ink transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt"
               >
                 ×
@@ -80,10 +111,10 @@ export default function Modal({ open, onClose, title, accent, children, footer }
 
 // ── Reusable form fields ──
 
-export function Field({ label, children }: { label: string; children: React.ReactNode }) {
+export function Field({ label, children, htmlFor }: { label: string; children: React.ReactNode; htmlFor?: string }) {
   return (
     <div className="mb-3.5">
-      <label className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">{label}</label>
+      <label htmlFor={htmlFor} className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">{label}</label>
       {children}
     </div>
   )
@@ -110,16 +141,16 @@ export function Select({ children, ...props }: React.SelectHTMLAttributes<HTMLSe
 }
 
 export function Row2({ children }: { children: React.ReactNode }) {
-  return <div className="grid grid-cols-2 gap-2.5">{children}</div>
+  return <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">{children}</div>
 }
 
 export function Row3({ children }: { children: React.ReactNode }) {
-  return <div className="grid grid-cols-3 gap-2.5">{children}</div>
+  return <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">{children}</div>
 }
 
 export function Divider({ label }: { label: string }) {
   return (
-    <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate mt-4 mb-2 pb-1 border-b border-[#E2E8F0]">
+    <p className="text-[10px] font-bold uppercase tracking-wider text-slate mt-4 mb-2 pb-1 border-b border-[#E2E8F0]">
       {label}
     </p>
   )

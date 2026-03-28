@@ -3,41 +3,9 @@ import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtMoney } from '@/lib/comites/data'
-
-// ── Types ──
-
-type HerramientaEstado = 'activa' | 'en_evaluacion' | 'suspendida' | 'cancelada'
-type HerramientaCategoria = 'software' | 'plataforma' | 'hardware' | 'servicio_cloud' | 'licencia' | 'otro'
-
-interface HerramientaETI {
-  id: string
-  nombre: string
-  categoria: HerramientaCategoria
-  estado: HerramientaEstado
-  proveedor: string | null
-  costo_mensual_usd: number
-  costo_anual_usd: number
-  usuarios: number
-  responsable: string | null
-  fecha_contratacion: string | null
-  fecha_renovacion: string | null
-  descripcion: string | null
-  url: string | null
-  created_at?: string
-}
-
-interface ProyectoInnovacion {
-  id: string
-  nombre: string
-  estado: 'idea' | 'en_desarrollo' | 'piloto' | 'implementado' | 'descartado'
-  responsable: string | null
-  fecha_inicio: string | null
-  fecha_objetivo: string | null
-  descripcion: string | null
-  impacto_esperado: string | null
-  presupuesto_usd: number
-  created_at?: string
-}
+import type { HerramientaETI, HerramientaEstado, HerramientaCategoria, ProyectoInnovacion, EtapaInnovacion, TipoRutaInnovacion } from '@/lib/types'
+import { ETAPA_CONFIG, ETAPAS_DESARROLLO, ETAPAS_CONTRATACION } from '@/lib/types'
+import InnovacionGantt from '@/components/comites/InnovacionGantt'
 
 const EMPTY_HERRAMIENTA: Omit<HerramientaETI, 'id'> = {
   nombre: '', categoria: 'software', estado: 'activa', proveedor: null,
@@ -46,8 +14,9 @@ const EMPTY_HERRAMIENTA: Omit<HerramientaETI, 'id'> = {
 }
 
 const EMPTY_PROYECTO_INN: Omit<ProyectoInnovacion, 'id'> = {
-  nombre: '', estado: 'idea', responsable: null, fecha_inicio: null,
-  fecha_objetivo: null, descripcion: null, impacto_esperado: null, presupuesto_usd: 0,
+  nombre: '', estado: 'idea', etapa: 'necesidad', tipo_ruta: 'desarrollo_interno',
+  responsable: null, fecha_inicio: null, fecha_objetivo: null,
+  descripcion: null, impacto_esperado: null, presupuesto_usd: 0,
 }
 
 const ESTADO_HERR: Record<HerramientaEstado, { label: string; color: string }> = {
@@ -70,6 +39,26 @@ const ESTADO_PROY: Record<ProyectoInnovacion['estado'], { label: string; color: 
   descartado: { label: 'Descartado', color: '#94A3B8' },
 }
 
+interface MiembroETI {
+  id: string
+  nombre: string
+  cargo: string
+  rol: string
+  dedicacion: string
+  costo_mensual_usd: number
+  email: string
+  observacion: string
+  activo: boolean
+}
+
+const ROL_LABELS: Record<string, string> = {
+  gerente: 'Gerente', desarrollador: 'Desarrollador', consultor: 'Consultor',
+  analista: 'Analista', soporte: 'Soporte', miembro: 'Miembro',
+}
+const DEDIC_LABELS: Record<string, string> = {
+  completa: 'Completa', parcial: 'Parcial', por_proyecto: 'Por proyecto',
+}
+
 export default function ETIPanel() {
   const supabase = createClient()
   const { canEdit } = useAuth()
@@ -77,19 +66,24 @@ export default function ETIPanel() {
 
   const [herramientas, setHerramientas] = useState<HerramientaETI[]>([])
   const [proyectos, setProyectos] = useState<ProyectoInnovacion[]>([])
+  const [equipoETI, setEquipoETI] = useState<MiembroETI[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'herramientas' | 'innovacion'>('herramientas')
+  const [tab, setTab] = useState<'herramientas' | 'innovacion' | 'equipo'>('herramientas')
+  const [viewInn, setViewInn] = useState<'gantt' | 'cards' | 'tabla'>('gantt')
   const [modalHerr, setModalHerr] = useState<Partial<HerramientaETI> | null>(null)
   const [modalProy, setModalProy] = useState<Partial<ProyectoInnovacion> | null>(null)
+  const [modalMiembro, setModalMiembro] = useState<Partial<MiembroETI> | null>(null)
 
   async function load() {
     setLoading(true)
-    const [hRes, pRes] = await Promise.all([
+    const [hRes, pRes, eRes] = await Promise.all([
       supabase.from('herramientas_eti').select('*').order('nombre'),
       supabase.from('proyectos_innovacion').select('*').order('created_at', { ascending: false }),
+      supabase.from('equipo_eti').select('*').order('nombre'),
     ])
     setHerramientas((hRes.data || []) as HerramientaETI[])
     setProyectos((pRes.data || []) as ProyectoInnovacion[])
+    setEquipoETI((eRes.data || []) as MiembroETI[])
     setLoading(false)
   }
 
@@ -146,8 +140,27 @@ export default function ETIPanel() {
     load()
   }
 
+  // ── CRUD Equipo ETI ──
+  async function saveMiembro() {
+    if (!modalMiembro || !modalMiembro.nombre?.trim()) return
+    if ((modalMiembro as MiembroETI).id) {
+      const { id, ...rest } = modalMiembro as MiembroETI
+      await supabase.from('equipo_eti').update(rest).eq('id', id)
+    } else {
+      await supabase.from('equipo_eti').insert(modalMiembro)
+    }
+    setModalMiembro(null)
+    load()
+  }
+
+  async function deleteMiembro(id: string) {
+    if (!confirm('¿Eliminar este miembro?')) return
+    await supabase.from('equipo_eti').delete().eq('id', id)
+    load()
+  }
+
   if (loading) {
-    return <div className="py-8 text-center text-slate-400 text-sm">Cargando datos ETI...</div>
+    return <div className="py-8 text-center text-slate-500 text-sm">Cargando datos ETI...</div>
   }
 
   return (
@@ -155,26 +168,26 @@ export default function ETIPanel() {
       {/* Consolidado */}
       <div className="bg-[#0F172A] rounded-xl p-5 grid grid-cols-5 gap-4 mb-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Herramientas Activas</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Herramientas Activas</p>
           <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">{consol.activas}</p>
           <p className="text-[10px] text-white/30 mt-0.5">{consol.enEvaluacion > 0 && `${consol.enEvaluacion} en evaluación`}</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Costo Mensual</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Costo Mensual</p>
           <p className="font-condensed text-[28px] font-black text-amber leading-tight mt-1">
             ${fmtMoney(consol.costoMensual).replace('$', '')}
           </p>
           <p className="text-[10px] text-white/30 mt-0.5">USD/mes</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Gasto Anual Est.</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Gasto Anual Est.</p>
           <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: '#E1BA10' }}>
             ${fmtMoney(consol.totalCosto).replace('$', '')}
           </p>
           <p className="text-[10px] text-white/30 mt-0.5">USD/año (mensual×12 + anual)</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Usuarios Totales</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Usuarios Totales</p>
           <p className="font-condensed text-[28px] font-black text-cobalt leading-tight mt-1">{consol.totalUsuarios}</p>
           <p className="text-[10px] text-white/30 mt-0.5">
             {consol.totalUsuarios > 0 && consol.costoMensual > 0
@@ -183,7 +196,7 @@ export default function ETIPanel() {
           </p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Innovación</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Innovación</p>
           <p className="font-condensed text-[28px] font-black text-cyan-400 leading-tight mt-1">{consol.proyActivos}</p>
           <p className="text-[10px] text-white/30 mt-0.5">proyectos activos</p>
         </div>
@@ -191,31 +204,45 @@ export default function ETIPanel() {
 
       {/* Tabs */}
       <div className="flex items-center gap-1 mb-4">
-        <button onClick={() => setTab('herramientas')}
-          className={`px-3.5 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
-            tab === 'herramientas' ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] text-slate-500 hover:border-cobalt'
-          }`}>
-          Herramientas ({herramientas.length})
-        </button>
-        <button onClick={() => setTab('innovacion')}
-          className={`px-3.5 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
-            tab === 'innovacion' ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] text-slate-500 hover:border-cobalt'
-          }`}>
-          Innovación ({proyectos.length})
-        </button>
+        {([
+          { id: 'herramientas' as const, label: 'Herramientas', count: herramientas.length },
+          { id: 'innovacion' as const, label: 'Innovación', count: proyectos.length },
+          { id: 'equipo' as const, label: 'Equipo', count: equipoETI.length },
+        ]).map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`px-3.5 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
+              tab === t.id ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] text-slate-500 hover:border-cobalt'
+            }`}>
+            {t.label} ({t.count})
+          </button>
+        ))}
         <div className="flex-1" />
         {ce && tab === 'herramientas' && (
           <button onClick={() => setModalHerr({ ...EMPTY_HERRAMIENTA })} className="bg-cobalt text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold">+ Nueva herramienta</button>
         )}
         {ce && tab === 'innovacion' && (
-          <button onClick={() => setModalProy({ ...EMPTY_PROYECTO_INN })} className="bg-cobalt text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold">+ Nuevo proyecto</button>
+          <div className="flex items-center gap-2">
+            {/* View toggle */}
+            <div className="flex gap-0.5 bg-[#F1F5F9] rounded-lg p-0.5 border border-[#E2E8F0]">
+              {(['gantt', 'cards', 'tabla'] as const).map(v => (
+                <button key={v} onClick={() => setViewInn(v)}
+                  className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${viewInn === v ? 'bg-white text-ink shadow-sm' : 'text-slate hover:text-ink'}`}>
+                  {v === 'gantt' ? 'Gantt' : v === 'cards' ? 'Cards' : 'Tabla'}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setModalProy({ ...EMPTY_PROYECTO_INN })} className="bg-cobalt text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold">+ Nuevo proyecto</button>
+          </div>
+        )}
+        {ce && tab === 'equipo' && (
+          <button onClick={() => setModalMiembro({ nombre: '', cargo: '', rol: 'miembro', dedicacion: 'completa', costo_mensual_usd: 0, email: '', observacion: '', activo: true })} className="bg-cobalt text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold">+ Agregar miembro</button>
         )}
       </div>
 
       {/* ══ TAB HERRAMIENTAS ══ */}
       {tab === 'herramientas' && (
         herramientas.length === 0 ? (
-          <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-400 text-sm">
+          <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-500 text-sm">
             Sin herramientas registradas. Agrega licencias, suscripciones y plataformas.
           </div>
         ) : (
@@ -223,13 +250,13 @@ export default function ETIPanel() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-slate-50 border-b border-[#E2E8F0]">
-                  <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Herramienta</th>
-                  <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Cat.</th>
-                  <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Estado</th>
-                  <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">$/mes</th>
-                  <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">$/año</th>
-                  <th className="text-center px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Users</th>
-                  <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Resp.</th>
+                  <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Herramienta</th>
+                  <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Cat.</th>
+                  <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Estado</th>
+                  <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">$/mes</th>
+                  <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">$/año</th>
+                  <th className="text-center px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Users</th>
+                  <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Resp.</th>
                   {ce && <th className="w-16" />}
                 </tr>
               </thead>
@@ -240,17 +267,17 @@ export default function ETIPanel() {
                     <tr key={h.id} className="border-b border-slate-100 hover:bg-slate-50/50">
                       <td className="px-3.5 py-2.5 font-semibold text-ink">
                         {h.url ? <a href={h.url} target="_blank" rel="noopener noreferrer" className="text-cobalt hover:underline">{h.nombre}</a> : h.nombre}
-                        {h.proveedor && <span className="text-slate-400 font-normal ml-1">({h.proveedor})</span>}
+                        {h.proveedor && <span className="text-slate-500 font-normal ml-1">({h.proveedor})</span>}
                       </td>
                       <td className="px-3.5 py-2.5"><span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">{CAT_LABELS[h.categoria]}</span></td>
                       <td className="px-3.5 py-2.5"><span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: est.color + '15', color: est.color }}>{est.label}</span></td>
                       <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-ink">{h.costo_mensual_usd > 0 ? `$${h.costo_mensual_usd}` : '—'}</td>
-                      <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-slate-400">{h.costo_anual_usd > 0 ? `$${h.costo_anual_usd}` : '—'}</td>
+                      <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-slate-500">{h.costo_anual_usd > 0 ? `$${h.costo_anual_usd}` : '—'}</td>
                       <td className="px-3.5 py-2.5 text-center">{h.usuarios || '—'}</td>
                       <td className="px-3.5 py-2.5 text-slate-500">{h.responsable || '—'}</td>
                       {ce && (
                         <td className="px-2 py-2.5 text-right">
-                          <button onClick={() => setModalHerr({ ...h })} className="text-slate-400 hover:text-cobalt text-[10px] mr-1">editar</button>
+                          <button onClick={() => setModalHerr({ ...h })} className="text-slate-500 hover:text-cobalt text-[10px] mr-1">editar</button>
                           <button onClick={() => deleteHerr(h.id)} className="text-slate-300 hover:text-red-500 text-sm">×</button>
                         </td>
                       )}
@@ -275,43 +302,145 @@ export default function ETIPanel() {
       {/* ══ TAB INNOVACIÓN ══ */}
       {tab === 'innovacion' && (
         proyectos.length === 0 ? (
-          <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-400 text-sm">
+          <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-500 text-sm">
             Sin proyectos de innovación. Agrega ideas, pilotos y desarrollos en curso.
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {proyectos.map(p => {
-              const est = ESTADO_PROY[p.estado]
-              return (
-                <div key={p.id} className="bg-white rounded-xl border border-[#E2E8F0] p-4" style={{ borderLeftWidth: 3, borderLeftColor: est.color }}>
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h4 className="text-[13px] font-bold text-ink">{p.nombre}</h4>
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full mt-0.5 inline-block" style={{ background: est.color + '15', color: est.color }}>{est.label}</span>
-                    </div>
-                    {ce && (
-                      <div className="flex gap-1">
-                        <button onClick={() => setModalProy({ ...p })} className="text-slate-400 hover:text-cobalt text-[10px]">editar</button>
-                        <button onClick={() => deleteProy(p.id)} className="text-slate-300 hover:text-red-500 text-sm">×</button>
+          <>
+            {/* Gantt view */}
+            {viewInn === 'gantt' && (
+              <InnovacionGantt proyectos={proyectos} onEdit={ce ? (p) => setModalProy({ ...p }) : undefined} />
+            )}
+
+            {/* Table view */}
+            {viewInn === 'tabla' && (
+              <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
+                <table className="w-full text-xs min-w-[700px]">
+                  <thead><tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                    <th className="text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Proyecto</th>
+                    <th className="text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Etapa</th>
+                    <th className="text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Ruta</th>
+                    <th className="text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Responsable</th>
+                    <th className="text-right px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Presupuesto</th>
+                    <th className="text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Inicio</th>
+                    <th className="text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Meta</th>
+                    {ce && <th className="w-16" />}
+                  </tr></thead>
+                  <tbody>
+                    {proyectos.map(p => {
+                      const etapaCfg = ETAPA_CONFIG[p.etapa] || ETAPA_CONFIG.necesidad
+                      return (
+                        <tr key={p.id} className="border-b border-[#F1F5F9] hover:bg-[#F8FAFC] cursor-pointer" onClick={() => ce && setModalProy({ ...p })}>
+                          <td className="px-3 py-2.5 font-bold text-ink">{p.nombre}</td>
+                          <td className="px-3 py-2.5"><span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: etapaCfg.color + '15', color: etapaCfg.color }}>{etapaCfg.label}</span></td>
+                          <td className="px-3 py-2.5 text-[11px] text-slate">{p.tipo_ruta === 'contratacion_servicio' ? 'Contratación' : 'Desarrollo'}</td>
+                          <td className="px-3 py-2.5 text-slate">{p.responsable || '—'}</td>
+                          <td className="px-3 py-2.5 text-right font-condensed font-bold text-amber">{p.presupuesto_usd > 0 ? `$${p.presupuesto_usd}` : '—'}</td>
+                          <td className="px-3 py-2.5 text-slate">{p.fecha_inicio || '—'}</td>
+                          <td className="px-3 py-2.5"><span className={p.fecha_objetivo && new Date(p.fecha_objetivo) < new Date() ? 'text-danger font-bold' : 'text-slate'}>{p.fecha_objetivo || '—'}</span></td>
+                          {ce && <td className="px-2 py-2.5 text-right"><button onClick={e => { e.stopPropagation(); deleteProy(p.id) }} className="text-slate-300 hover:text-red-500 text-sm">×</button></td>}
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Cards view */}
+            {viewInn === 'cards' && (
+              <div className="grid grid-cols-2 gap-3">
+                {proyectos.map(p => {
+                  const etapaCfg = ETAPA_CONFIG[p.etapa] || ETAPA_CONFIG.necesidad
+                  const etapas = p.tipo_ruta === 'contratacion_servicio' ? ETAPAS_CONTRATACION : ETAPAS_DESARROLLO
+                  const currentIdx = etapas.indexOf(p.etapa)
+                  const pctProgreso = etapas.length > 1 ? Math.round((currentIdx / (etapas.length - 1)) * 100) : 0
+                  return (
+                    <div key={p.id} className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md transition-shadow cursor-pointer" style={{ borderLeftWidth: 3, borderLeftColor: etapaCfg.color }}
+                      onClick={() => ce && setModalProy({ ...p })}>
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h4 className="text-[13px] font-bold text-ink">{p.nombre}</h4>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: etapaCfg.color + '15', color: etapaCfg.color }}>{etapaCfg.label}</span>
+                            <span className="text-[9px] text-slate px-1.5 py-0.5 rounded bg-[#F1F5F9] font-semibold">
+                              {p.tipo_ruta === 'contratacion_servicio' ? 'Contratación' : 'Desarrollo'}
+                            </span>
+                          </div>
+                        </div>
+                        {ce && <button onClick={e => { e.stopPropagation(); deleteProy(p.id) }} className="text-slate-300 hover:text-red-500 text-sm">×</button>}
                       </div>
-                    )}
-                  </div>
-                  {p.descripcion && <p className="text-xs text-slate-500 mb-2 line-clamp-2">{p.descripcion}</p>}
-                  {p.impacto_esperado && (
-                    <div className="bg-cyan-50 rounded p-2 mb-2">
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-cyan-600">Impacto esperado</span>
-                      <p className="text-xs text-ink mt-0.5">{p.impacto_esperado}</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex-1 h-1.5 bg-[#F1F5F9] rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all" style={{ width: `${pctProgreso}%`, background: etapaCfg.color }} />
+                        </div>
+                        <span className="text-[10px] font-bold" style={{ color: etapaCfg.color }}>{pctProgreso}%</span>
+                      </div>
+                      {p.descripcion && <p className="text-xs text-slate-500 mb-2 line-clamp-2">{p.descripcion}</p>}
+                      <div className="flex items-center gap-3 text-[10px] text-slate-500">
+                        {p.responsable && <span>{p.responsable}</span>}
+                        {p.presupuesto_usd > 0 && <span className="font-bold text-amber">${p.presupuesto_usd} USD</span>}
+                        {p.fecha_objetivo && <span className={new Date(p.fecha_objetivo) < new Date() ? 'text-danger font-bold' : ''}>Meta: {p.fecha_objetivo}</span>}
+                      </div>
                     </div>
-                  )}
-                  <div className="flex items-center gap-3 text-[10px] text-slate-400">
-                    {p.responsable && <span>{p.responsable}</span>}
-                    {p.presupuesto_usd > 0 && <span className="font-bold text-amber">${p.presupuesto_usd} USD</span>}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
         )
+      )}
+
+      {/* ══ TAB EQUIPO ══ */}
+      {tab === 'equipo' && (
+        <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Nombre</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Cargo</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Rol</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Dedicación</th>
+                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">USD/mes</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Email</th>
+                {ce && <th className="w-20" />}
+              </tr>
+            </thead>
+            <tbody>
+              {equipoETI.map(m => (
+                <tr key={m.id} className="border-b border-[#F1F5F9] hover:bg-[#F8FAFC] transition-colors">
+                  <td className="px-3.5 py-2.5 font-bold text-ink">
+                    {m.nombre}
+                    {!m.activo && <span className="ml-1.5 text-[9px] text-slate bg-slate-100 px-1.5 py-0.5 rounded">Inactivo</span>}
+                  </td>
+                  <td className="px-3.5 py-2.5 text-slate">{m.cargo || '—'}</td>
+                  <td className="px-3.5 py-2.5">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cobalt/10 text-cobalt">{ROL_LABELS[m.rol] || m.rol}</span>
+                  </td>
+                  <td className="px-3.5 py-2.5 text-slate">{DEDIC_LABELS[m.dedicacion] || m.dedicacion}</td>
+                  <td className="px-3.5 py-2.5 text-right font-condensed font-bold">{m.costo_mensual_usd > 0 ? `$${m.costo_mensual_usd}` : '—'}</td>
+                  <td className="px-3.5 py-2.5 text-slate text-[11px]">{m.email || '—'}</td>
+                  {ce && (
+                    <td className="px-2 py-2.5 text-right">
+                      <button onClick={() => setModalMiembro({ ...m })} className="text-slate-500 hover:text-cobalt text-[10px] mr-1">editar</button>
+                      <button onClick={() => deleteMiembro(m.id)} className="text-slate-300 hover:text-red-500 text-sm">×</button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+              {equipoETI.length === 0 && (
+                <tr><td colSpan={ce ? 7 : 6} className="px-3.5 py-8 text-center text-slate text-sm">Sin miembros registrados.</td></tr>
+              )}
+            </tbody>
+            <tfoot>
+              <tr className="bg-[#F8FAFC] border-t border-[#E2E8F0]">
+                <td className="px-3.5 py-2.5 font-bold" colSpan={4}>Total equipo: {equipoETI.filter(m => m.activo).length} activos</td>
+                <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-cobalt">${equipoETI.filter(m => m.activo).reduce((s, m) => s + m.costo_mensual_usd, 0)}</td>
+                <td colSpan={ce ? 2 : 1} />
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       )}
 
       {/* ══ MODAL HERRAMIENTA ══ */}
@@ -320,51 +449,51 @@ export default function ETIPanel() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-[560px] max-h-[85vh] overflow-y-auto mx-4" onClick={e => e.stopPropagation()}>
             <div className="px-5 py-3.5 border-b border-[#E2E8F0] flex items-center justify-between">
               <h3 className="font-condensed font-bold text-lg text-ink">{(modalHerr as HerramientaETI).id ? 'Editar herramienta' : 'Nueva herramienta'}</h3>
-              <button onClick={() => setModalHerr(null)} className="text-slate-400 hover:text-ink text-lg">×</button>
+              <button onClick={() => setModalHerr(null)} className="text-slate-500 hover:text-ink text-lg">×</button>
             </div>
             <div className="px-5 py-4 grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Nombre</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Nombre</label>
                 <input value={modalHerr.nombre || ''} onChange={e => setModalHerr(p => ({ ...p!, nombre: e.target.value }))} className="inp" placeholder="Ej: Microsoft 365" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Categoría</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Categoría</label>
                 <select value={modalHerr.categoria || 'software'} onChange={e => setModalHerr(p => ({ ...p!, categoria: e.target.value as HerramientaCategoria }))} className="inp">
                   {Object.entries(CAT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Estado</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Estado</label>
                 <select value={modalHerr.estado || 'activa'} onChange={e => setModalHerr(p => ({ ...p!, estado: e.target.value as HerramientaEstado }))} className="inp">
                   {Object.entries(ESTADO_HERR).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Proveedor</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Proveedor</label>
                 <input value={modalHerr.proveedor || ''} onChange={e => setModalHerr(p => ({ ...p!, proveedor: e.target.value }))} className="inp" placeholder="Empresa" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Responsable</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Responsable</label>
                 <input value={modalHerr.responsable || ''} onChange={e => setModalHerr(p => ({ ...p!, responsable: e.target.value }))} className="inp" placeholder="Nombre" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Costo mensual (USD)</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Costo mensual (USD)</label>
                 <input type="number" value={modalHerr.costo_mensual_usd || ''} onChange={e => setModalHerr(p => ({ ...p!, costo_mensual_usd: parseFloat(e.target.value) || 0 }))} className="inp" placeholder="0" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Costo anual (USD)</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Costo anual (USD)</label>
                 <input type="number" value={modalHerr.costo_anual_usd || ''} onChange={e => setModalHerr(p => ({ ...p!, costo_anual_usd: parseFloat(e.target.value) || 0 }))} className="inp" placeholder="0" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Usuarios</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Usuarios</label>
                 <input type="number" value={modalHerr.usuarios || ''} onChange={e => setModalHerr(p => ({ ...p!, usuarios: parseInt(e.target.value) || 0 }))} className="inp" placeholder="0" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">URL</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">URL</label>
                 <input value={modalHerr.url || ''} onChange={e => setModalHerr(p => ({ ...p!, url: e.target.value }))} className="inp" placeholder="https://..." />
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Descripción / uso</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Descripción / uso</label>
                 <textarea value={modalHerr.descripcion || ''} onChange={e => setModalHerr(p => ({ ...p!, descripcion: e.target.value }))} className="inp min-h-[60px]" placeholder="Para qué se usa, qué área la ocupa" />
               </div>
             </div>
@@ -382,43 +511,114 @@ export default function ETIPanel() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-[560px] max-h-[85vh] overflow-y-auto mx-4" onClick={e => e.stopPropagation()}>
             <div className="px-5 py-3.5 border-b border-[#E2E8F0] flex items-center justify-between">
               <h3 className="font-condensed font-bold text-lg text-ink">{(modalProy as ProyectoInnovacion).id ? 'Editar proyecto' : 'Nuevo proyecto'}</h3>
-              <button onClick={() => setModalProy(null)} className="text-slate-400 hover:text-ink text-lg">×</button>
+              <button onClick={() => setModalProy(null)} className="text-slate-500 hover:text-ink text-lg">×</button>
             </div>
             <div className="px-5 py-4 grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Nombre</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Nombre</label>
                 <input value={modalProy.nombre || ''} onChange={e => setModalProy(p => ({ ...p!, nombre: e.target.value }))} className="inp" placeholder="Nombre del proyecto" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Estado</label>
-                <select value={modalProy.estado || 'idea'} onChange={e => setModalProy(p => ({ ...p!, estado: e.target.value as ProyectoInnovacion['estado'] }))} className="inp">
-                  {Object.entries(ESTADO_PROY).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Ruta</label>
+                <select value={modalProy.tipo_ruta || 'desarrollo_interno'} onChange={e => setModalProy(p => ({ ...p!, tipo_ruta: e.target.value as TipoRutaInnovacion }))} className="inp">
+                  <option value="desarrollo_interno">Desarrollo interno</option>
+                  <option value="contratacion_servicio">Contratación de servicio</option>
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Responsable</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Etapa actual</label>
+                <select value={modalProy.etapa || 'necesidad'} onChange={e => setModalProy(p => ({ ...p!, etapa: e.target.value as EtapaInnovacion }))} className="inp">
+                  {((modalProy.tipo_ruta || 'desarrollo_interno') === 'contratacion_servicio' ? ETAPAS_CONTRATACION : ETAPAS_DESARROLLO).map(e => (
+                    <option key={e} value={e}>{ETAPA_CONFIG[e].label}</option>
+                  ))}
+                  <option value="descartado">Descartado</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Responsable</label>
                 <input value={modalProy.responsable || ''} onChange={e => setModalProy(p => ({ ...p!, responsable: e.target.value }))} className="inp" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Presupuesto (USD)</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Presupuesto (USD)</label>
                 <input type="number" value={modalProy.presupuesto_usd || ''} onChange={e => setModalProy(p => ({ ...p!, presupuesto_usd: parseFloat(e.target.value) || 0 }))} className="inp" placeholder="0" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Fecha objetivo</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Fecha inicio</label>
+                <input type="date" value={modalProy.fecha_inicio || ''} onChange={e => setModalProy(p => ({ ...p!, fecha_inicio: e.target.value || null }))} className="inp" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Fecha objetivo</label>
                 <input type="date" value={modalProy.fecha_objetivo || ''} onChange={e => setModalProy(p => ({ ...p!, fecha_objetivo: e.target.value || null }))} className="inp" />
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Descripción</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Descripción</label>
                 <textarea value={modalProy.descripcion || ''} onChange={e => setModalProy(p => ({ ...p!, descripcion: e.target.value }))} className="inp min-h-[60px]" placeholder="Qué se quiere lograr" />
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Impacto esperado</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Impacto esperado</label>
                 <textarea value={modalProy.impacto_esperado || ''} onChange={e => setModalProy(p => ({ ...p!, impacto_esperado: e.target.value }))} className="inp min-h-[60px]" placeholder="Ahorro, eficiencia, calidad, etc." />
               </div>
             </div>
             <div className="px-5 py-3.5 border-t border-[#E2E8F0] flex justify-end gap-2">
               <button onClick={() => setModalProy(null)} className="px-4 py-2 border border-[#E2E8F0] rounded-lg text-xs font-semibold">Cancelar</button>
               <button onClick={saveProy} className="px-4 py-2 bg-cobalt text-white rounded-lg text-xs font-bold">Guardar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ MODAL MIEMBRO ETI ══ */}
+      {modalMiembro && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setModalMiembro(null)}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-[480px] max-h-[85vh] overflow-y-auto mx-4" onClick={e => e.stopPropagation()}>
+            <div className="px-5 py-3.5 border-b border-[#E2E8F0] flex items-center justify-between">
+              <h3 className="font-condensed font-bold text-lg text-ink">{(modalMiembro as MiembroETI).id ? 'Editar miembro' : 'Agregar miembro'}</h3>
+              <button onClick={() => setModalMiembro(null)} className="text-slate-500 hover:text-ink text-lg">×</button>
+            </div>
+            <div className="px-5 py-4 grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Nombre</label>
+                <input value={modalMiembro.nombre || ''} onChange={e => setModalMiembro(p => ({ ...p!, nombre: e.target.value }))} className="inp" placeholder="Nombre completo" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Cargo</label>
+                <input value={modalMiembro.cargo || ''} onChange={e => setModalMiembro(p => ({ ...p!, cargo: e.target.value }))} className="inp" placeholder="Ej: Desarrollador Senior" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Rol</label>
+                <select value={modalMiembro.rol || 'miembro'} onChange={e => setModalMiembro(p => ({ ...p!, rol: e.target.value }))} className="inp">
+                  {Object.entries(ROL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Dedicación</label>
+                <select value={modalMiembro.dedicacion || 'completa'} onChange={e => setModalMiembro(p => ({ ...p!, dedicacion: e.target.value }))} className="inp">
+                  {Object.entries(DEDIC_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Costo mensual (USD)</label>
+                <input type="number" value={modalMiembro.costo_mensual_usd || ''} onChange={e => setModalMiembro(p => ({ ...p!, costo_mensual_usd: parseFloat(e.target.value) || 0 }))} className="inp" placeholder="0" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Email</label>
+                <input value={modalMiembro.email || ''} onChange={e => setModalMiembro(p => ({ ...p!, email: e.target.value }))} className="inp" placeholder="email@empresa.com" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Estado</label>
+                <select value={modalMiembro.activo ? 'true' : 'false'} onChange={e => setModalMiembro(p => ({ ...p!, activo: e.target.value === 'true' }))} className="inp">
+                  <option value="true">Activo</option>
+                  <option value="false">Inactivo</option>
+                </select>
+              </div>
+              <div className="col-span-2">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Observación</label>
+                <input value={modalMiembro.observacion || ''} onChange={e => setModalMiembro(p => ({ ...p!, observacion: e.target.value }))} className="inp" placeholder="Notas adicionales" />
+              </div>
+            </div>
+            <div className="px-5 py-3.5 border-t border-[#E2E8F0] flex justify-end gap-2">
+              <button onClick={() => setModalMiembro(null)} className="px-4 py-2 border border-[#E2E8F0] rounded-lg text-xs font-semibold">Cancelar</button>
+              <button onClick={saveMiembro} className="px-4 py-2 bg-cobalt text-white rounded-lg text-xs font-bold">Guardar</button>
             </div>
           </div>
         </div>

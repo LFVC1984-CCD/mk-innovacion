@@ -51,8 +51,7 @@ export default function ProyectosPage() {
 
   async function handleDelete(p: Proyecto) {
     if (!confirm(`¿Eliminar proyecto "${p.nombre}"?`)) return
-    const ok = await remove(p.id)
-    if (ok) toast('Proyecto eliminado')
+    try { await remove(p.id); toast('Proyecto eliminado') } catch { toast('Error al eliminar proyecto') }
   }
 
   if (authLoading || loading) {
@@ -144,7 +143,7 @@ export default function ProyectosPage() {
       <ProyectoModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSave={async (p) => { const ok = await save(p); if (ok) toast('Proyecto guardado'); return ok }}
+        onSave={async (p) => { try { await save(p); toast('Proyecto guardado'); return true } catch { toast('Error al guardar proyecto'); return false } }}
         proyecto={editing}
       />
     </>

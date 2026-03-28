@@ -276,7 +276,7 @@ export default function AmpliadoPage() {
               {/* KPIs */}
               {snap.kpis.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate mb-2">Indicadores</p>
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-2">Indicadores</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                     {snap.kpis.map(k => (
                       <div key={k.id} className="bg-[#F8FAFC] rounded-lg p-3 border border-[#F1F5F9]">
@@ -295,7 +295,7 @@ export default function AmpliadoPage() {
               {/* Tareas activas */}
               {snap.tareas.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate mb-2">Tareas activas</p>
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-2">Tareas activas</p>
                   <div className="space-y-1">
                     {snap.tareas.map(t => {
                       const estadoCfg: Record<string, { color: string; label: string }> = {
@@ -320,7 +320,7 @@ export default function AmpliadoPage() {
               {/* Nuevos acuerdos */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-gold">Acuerdos nuevos</p>
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-gold">Acuerdos nuevos</p>
                   <button onClick={() => addAcuerdo(snap.id)}
                     className="text-[11px] font-bold text-cobalt hover:underline">
                     + Agregar acuerdo

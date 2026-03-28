@@ -4,40 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useProjects } from '@/lib/comites/use-projects'
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtFecha, fmtMM } from '@/lib/comites/data'
-
-// ── Types ──
-
-type CausaEstado = 'activa' | 'en_negociacion' | 'en_arbitraje' | 'resuelta_favor' | 'resuelta_contra' | 'desistida'
-type CausaTipo = 'reclamo' | 'arbitraje' | 'demanda' | 'mediacion' | 'multa' | 'otro'
-type DocTipo = 'contrato' | 'poder' | 'demanda' | 'resolucion' | 'informe' | 'correspondencia' | 'otro'
-
-interface CausaLegal {
-  id: string
-  proyecto_id: string | null
-  titulo: string
-  tipo: CausaTipo
-  estado: CausaEstado
-  contraparte: string | null
-  monto_reclamado: number
-  monto_provision: number
-  fecha_inicio: string | null
-  fecha_audiencia: string | null
-  abogado_responsable: string | null
-  descripcion: string | null
-  riesgo: 'alto' | 'medio' | 'bajo'
-  updated_at?: string
-}
-
-interface DocumentoLegal {
-  id: string
-  causa_id: string | null
-  nombre: string
-  tipo: DocTipo
-  descripcion: string | null
-  url: string | null
-  fecha: string | null
-  created_at?: string
-}
+import type { CausaLegal, CausaEstado, CausaTipo, DocumentoLegal, DocTipo } from '@/lib/types'
 
 // ── Config ──
 
@@ -201,22 +168,22 @@ export default function LegalPanel() {
       {/* ── Consolidado ── */}
       <div className="hero-gradient rounded-xl p-5 grid grid-cols-2 sm:grid-cols-5 gap-4 mb-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Causas Activas</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Causas Activas</p>
           <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">{consol.activas}</p>
           {consol.altoRiesgo > 0 && <p className="text-[10px] text-red-400 mt-0.5">{consol.altoRiesgo} riesgo alto</p>}
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Monto Reclamado</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Monto Reclamado</p>
           <p className="font-condensed text-[28px] font-black text-amber leading-tight mt-1">{fmtMM(consol.totalReclamado)}</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Provisión</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Provisión</p>
           <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.totalProvision > 0 ? '#DC2626' : '#16A34A' }}>
             {fmtMM(consol.totalProvision)}
           </p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Próx. Audiencia</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Próx. Audiencia</p>
           {consol.proxAudiencia ? (
             <p className="font-condensed text-lg font-black text-white leading-tight mt-1">{fmtFecha(consol.proxAudiencia.fecha_audiencia)}</p>
           ) : (
@@ -224,14 +191,14 @@ export default function LegalPanel() {
           )}
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Documentos</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Documentos</p>
           <p className="font-condensed text-[28px] font-black text-cobalt leading-tight mt-1">{consol.totalDocs}</p>
         </div>
       </div>
 
       {/* ── Header + New ── */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate">Causas ({causas.length})</p>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate">Causas ({causas.length})</p>
         {ce && (
           <button onClick={() => setModalCausa({ proyecto_id: null, titulo: '', tipo: 'reclamo', estado: 'activa', contraparte: null, monto_reclamado: 0, monto_provision: 0, fecha_inicio: null, fecha_audiencia: null, abogado_responsable: null, descripcion: null, riesgo: 'medio' })}
             className="bg-cobalt text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark transition-colors btn-scale">
@@ -283,15 +250,15 @@ export default function LegalPanel() {
                     {isExp && (
                       <div className="px-4 pb-4 border-t border-[#E2E8F0]">
                         <div className="grid grid-cols-4 gap-3 py-3 text-[11px]">
-                          <div><span className="text-[9px] font-bold uppercase tracking-widest text-slate block mb-0.5">Abogado</span><span className="text-ink font-semibold">{c.abogado_responsable || '—'}</span></div>
-                          <div><span className="text-[9px] font-bold uppercase tracking-widest text-slate block mb-0.5">Inicio</span><span className="text-ink font-semibold">{c.fecha_inicio ? fmtFecha(c.fecha_inicio) : '—'}</span></div>
-                          <div><span className="text-[9px] font-bold uppercase tracking-widest text-slate block mb-0.5">Audiencia</span><span className={`font-semibold ${c.fecha_audiencia && new Date(c.fecha_audiencia) <= new Date(Date.now() + 30*86400000) ? 'text-danger' : 'text-ink'}`}>{c.fecha_audiencia ? fmtFecha(c.fecha_audiencia) : '—'}</span></div>
-                          <div><span className="text-[9px] font-bold uppercase tracking-widest text-slate block mb-0.5">Provisión</span><span className="font-condensed font-bold" style={{ color: c.monto_provision > 0 ? '#DC2626' : '#64748B' }}>{c.monto_provision > 0 ? fmtMM(c.monto_provision) : '—'}</span></div>
+                          <div><span className="text-[10px] font-bold uppercase tracking-wider text-slate block mb-0.5">Abogado</span><span className="text-ink font-semibold">{c.abogado_responsable || '—'}</span></div>
+                          <div><span className="text-[10px] font-bold uppercase tracking-wider text-slate block mb-0.5">Inicio</span><span className="text-ink font-semibold">{c.fecha_inicio ? fmtFecha(c.fecha_inicio) : '—'}</span></div>
+                          <div><span className="text-[10px] font-bold uppercase tracking-wider text-slate block mb-0.5">Audiencia</span><span className={`font-semibold ${c.fecha_audiencia && new Date(c.fecha_audiencia) <= new Date(Date.now() + 30*86400000) ? 'text-danger' : 'text-ink'}`}>{c.fecha_audiencia ? fmtFecha(c.fecha_audiencia) : '—'}</span></div>
+                          <div><span className="text-[10px] font-bold uppercase tracking-wider text-slate block mb-0.5">Provisión</span><span className="font-condensed font-bold" style={{ color: c.monto_provision > 0 ? '#DC2626' : '#64748B' }}>{c.monto_provision > 0 ? fmtMM(c.monto_provision) : '—'}</span></div>
                         </div>
 
                         {c.descripcion && (
                           <div className="bg-[#F8FAFC] rounded-lg p-3 mb-3">
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-slate block mb-1">Contexto</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate block mb-1">Contexto</span>
                             <p className="text-xs text-ink leading-relaxed whitespace-pre-wrap">{c.descripcion}</p>
                           </div>
                         )}
@@ -299,7 +266,7 @@ export default function LegalPanel() {
                         {/* ── Documentos de esta causa ── */}
                         <div className="mb-3">
                           <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-slate">Documentos ({causaDocs.length})</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate">Documentos ({causaDocs.length})</span>
                             {ce && (
                               <button onClick={() => { setAddingDocFor(addingDocFor === c.id ? null : c.id); setNewDoc({ tipo: 'contrato', nombre: '', url: '' }) }}
                                 className="text-[10px] font-bold text-cobalt hover:underline">
@@ -365,7 +332,7 @@ export default function LegalPanel() {
 
           {causasCerradas.length > 0 && (
             <>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate mb-2">Cerradas / Resueltas ({causasCerradas.length})</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate mb-2">Cerradas / Resueltas ({causasCerradas.length})</p>
               <div className="space-y-2 opacity-70">
                 {causasCerradas.map(c => {
                   const est = ESTADO_CFG[c.estado]
@@ -498,5 +465,5 @@ export default function LegalPanel() {
 
 // ── Small label ──
 function L({ children }: { children: React.ReactNode }) {
-  return <label className="block text-[10px] font-bold uppercase tracking-widest text-slate mb-1">{children}</label>
+  return <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">{children}</label>
 }

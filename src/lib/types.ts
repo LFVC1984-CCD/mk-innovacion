@@ -284,3 +284,131 @@ export const AREAS_LIST: { id: AreaId; name: string; color: string; freq: string
   { id: 'obras', name: 'Obras Activas', color: '#16A34A', freq: 'Semanal' },
   { id: 'eti', name: 'Eficiencia, Tecnología e Innovación', color: '#0891B2', freq: 'Quincenal' },
 ]
+
+// ── Legal ──
+
+export type CausaEstado = 'activa' | 'en_negociacion' | 'en_arbitraje' | 'resuelta_favor' | 'resuelta_contra' | 'desistida'
+export type CausaTipo = 'reclamo' | 'arbitraje' | 'demanda' | 'mediacion' | 'multa' | 'otro'
+export type DocTipo = 'contrato' | 'poder' | 'demanda' | 'resolucion' | 'informe' | 'correspondencia' | 'otro'
+
+export interface CausaLegal {
+  id: string
+  proyecto_id: string | null
+  titulo: string
+  tipo: CausaTipo
+  estado: CausaEstado
+  contraparte: string | null
+  monto_reclamado: number
+  monto_provision: number
+  fecha_inicio: string | null
+  fecha_audiencia: string | null
+  abogado_responsable: string | null
+  descripcion: string | null
+  riesgo: 'alto' | 'medio' | 'bajo'
+  updated_at?: string
+}
+
+export interface DocumentoLegal {
+  id: string
+  causa_id: string | null
+  nombre: string
+  tipo: DocTipo
+  descripcion: string | null
+  url: string | null
+  fecha: string | null
+  created_at?: string
+}
+
+// ── Prevención ──
+
+export type TipoEvento = 'accidente_trabajo' | 'accidente_trayecto' | 'incidente' | 'cuasi_accidente' | 'enfermedad_profesional'
+export type Gravedad = 'leve' | 'moderado' | 'grave' | 'fatal'
+
+export interface EventoSeguridad {
+  id: string
+  proyecto_id: string | null
+  tipo: TipoEvento
+  gravedad: Gravedad
+  fecha: string | null
+  descripcion: string | null
+  dias_perdidos: number
+  trabajador: string | null
+  accion_correctiva: string | null
+  cerrado: boolean
+  created_at?: string
+}
+
+export interface EstadisticaMensual {
+  id: string
+  proyecto_id: string | null
+  mes: string
+  hh_trabajadas: number
+  capacitaciones_horas: number
+  inspecciones: number
+  charlas_realizadas: number
+  created_at?: string
+}
+
+// ── ETI ──
+
+export type HerramientaEstado = 'activa' | 'en_evaluacion' | 'suspendida' | 'cancelada'
+export type HerramientaCategoria = 'software' | 'plataforma' | 'hardware' | 'servicio_cloud' | 'licencia' | 'otro'
+
+export interface HerramientaETI {
+  id: string
+  nombre: string
+  categoria: HerramientaCategoria
+  estado: HerramientaEstado
+  proveedor: string | null
+  costo_mensual_usd: number
+  costo_anual_usd: number
+  usuarios: number
+  responsable: string | null
+  fecha_contratacion: string | null
+  fecha_renovacion: string | null
+  descripcion: string | null
+  url: string | null
+  created_at?: string
+}
+
+export type EtapaInnovacion =
+  | 'necesidad' | 'diseno' | 'mvp' | 'validacion' | 'ajustes'
+  | 'desarrollo' | 'implementacion' | 'replicar'
+  | 'contratacion' | 'descartado'
+
+export type TipoRutaInnovacion = 'desarrollo_interno' | 'contratacion_servicio'
+
+export const ETAPAS_DESARROLLO: EtapaInnovacion[] = [
+  'necesidad', 'diseno', 'mvp', 'validacion', 'ajustes', 'desarrollo', 'implementacion', 'replicar',
+]
+export const ETAPAS_CONTRATACION: EtapaInnovacion[] = [
+  'necesidad', 'contratacion', 'validacion', 'ajustes', 'implementacion', 'replicar',
+]
+
+export const ETAPA_CONFIG: Record<EtapaInnovacion, { label: string; color: string; short: string }> = {
+  necesidad:      { label: 'Necesidad',      color: '#64748B', short: 'NEC' },
+  diseno:         { label: 'Diseño',         color: '#7C3AED', short: 'DIS' },
+  mvp:            { label: 'MVP',            color: '#0B5ED7', short: 'MVP' },
+  validacion:     { label: 'Validación',     color: '#D97706', short: 'VAL' },
+  ajustes:        { label: 'Ajustes',        color: '#0891B2', short: 'AJU' },
+  desarrollo:     { label: 'Desarrollo',     color: '#2563EB', short: 'DEV' },
+  implementacion: { label: 'Implementación', color: '#16A34A', short: 'IMP' },
+  replicar:       { label: 'Replicar',       color: '#059669', short: 'REP' },
+  contratacion:   { label: 'Contratación',   color: '#E1BA10', short: 'CON' },
+  descartado:     { label: 'Descartado',     color: '#94A3B8', short: '✕' },
+}
+
+export interface ProyectoInnovacion {
+  id: string
+  nombre: string
+  estado: 'idea' | 'en_desarrollo' | 'piloto' | 'implementado' | 'descartado'
+  etapa: EtapaInnovacion
+  tipo_ruta: TipoRutaInnovacion
+  responsable: string | null
+  fecha_inicio: string | null
+  fecha_objetivo: string | null
+  descripcion: string | null
+  impacto_esperado: string | null
+  presupuesto_usd: number
+  created_at?: string
+}

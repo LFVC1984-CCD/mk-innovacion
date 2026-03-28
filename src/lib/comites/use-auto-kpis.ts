@@ -39,26 +39,34 @@ export function useAutoKpis(areaId: AreaId | string) {
       const data: Record<string, unknown[]> = {}
 
       if (areaId === 'legal') {
-        const { data: causas } = await supabase.from('causas_legal').select('*')
-        const { data: docs } = await supabase.from('documentos_legal').select('id, causa_id')
+        const [{ data: causas }, { data: docs }] = await Promise.all([
+          supabase.from('causas_legal').select('*'),
+          supabase.from('documentos_legal').select('id, causa_id'),
+        ])
         data.causas = (causas || []).map((c: Record<string, unknown>) => ({ ...c, monto_reclamado: Number(c.monto_reclamado) || 0, monto_provision: Number(c.monto_provision) || 0 }))
         data.docs = docs || []
       }
       if (areaId === 'prevencion') {
-        const { data: eventos } = await supabase.from('eventos_seguridad').select('*')
-        const { data: stats } = await supabase.from('estadisticas_seguridad').select('*')
+        const [{ data: eventos }, { data: stats }] = await Promise.all([
+          supabase.from('eventos_seguridad').select('*'),
+          supabase.from('estadisticas_seguridad').select('*'),
+        ])
         data.eventos = (eventos || []).map((e: Record<string, unknown>) => ({ ...e, dias_perdidos: Number(e.dias_perdidos) || 0 }))
         data.stats = (stats || []).map((s: Record<string, unknown>) => ({ ...s, hh_trabajadas: Number(s.hh_trabajadas) || 0, capacitaciones_horas: Number(s.capacitaciones_horas) || 0 }))
       }
       if (areaId === 'eti') {
-        const { data: herr } = await supabase.from('herramientas_eti').select('*')
-        const { data: innov } = await supabase.from('proyectos_innovacion').select('*')
+        const [{ data: herr }, { data: innov }] = await Promise.all([
+          supabase.from('herramientas_eti').select('*'),
+          supabase.from('proyectos_innovacion').select('*'),
+        ])
         data.herramientas = (herr || []).map((h: Record<string, unknown>) => ({ ...h, costo_mensual_usd: Number(h.costo_mensual_usd) || 0, costo_anual_usd: Number(h.costo_anual_usd) || 0, usuarios: Number(h.usuarios) || 0 }))
         data.innovacion = (innov || []).map((p: Record<string, unknown>) => ({ ...p, presupuesto_usd: Number(p.presupuesto_usd) || 0 }))
       }
       if (areaId === 'finanzas') {
-        const { data: flujo } = await supabase.from('flujo_financiero').select('*')
-        const { data: lc } = await supabase.from('lineas_credito').select('*')
+        const [{ data: flujo }, { data: lc }] = await Promise.all([
+          supabase.from('flujo_financiero').select('*'),
+          supabase.from('lineas_credito').select('*'),
+        ])
         data.flujo = (flujo || []).map((l: Record<string, unknown>) => ({ ...l, monto: Number(l.monto) || 0 }))
         data.lineas_credito = (lc || []).map((l: Record<string, unknown>) => ({ ...l, monto: Number(l.monto) || 0 }))
       }

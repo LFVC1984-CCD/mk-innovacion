@@ -38,7 +38,7 @@ export default function TopBar({ perfil, breadcrumbs }: Props) {
               <span key={i} className="flex items-center gap-1.5">
                 <span className="text-slate-300">/</span>
                 {bc.href ? (
-                  <Link href={bc.href} className="text-slate-400 hover:text-cobalt">{bc.label}</Link>
+                  <Link href={bc.href} className="text-slate-500 hover:text-cobalt">{bc.label}</Link>
                 ) : (
                   <span className="text-ink font-semibold">{bc.label}</span>
                 )}

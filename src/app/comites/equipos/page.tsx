@@ -70,7 +70,7 @@ export default function EquiposPage() {
   }, [projects])
 
   if (authLoading || loading || projLoading) {
-    return <div className="min-h-[60vh] flex items-center justify-center text-slate-400 text-sm">Cargando...</div>
+    return <div className="min-h-[60vh] flex items-center justify-center text-slate-500 text-sm">Cargando...</div>
   }
 
   return (
@@ -123,7 +123,7 @@ export default function EquiposPage() {
           uniqueCargos={uniqueCargos}
           projColorMap={projColorMap}
           onEdit={m => { setEditing(m); setModalOpen(true) }}
-          onDelete={async m => { if (confirm(`¿Eliminar a "${m.nombre}"?`)) { const ok = await remove(m.id); if (ok) toast('Miembro eliminado') } }}
+          onDelete={async m => { if (confirm(`¿Eliminar a "${m.nombre}"?`)) { try { await remove(m.id); toast('Miembro eliminado') } catch { toast('Error al eliminar miembro') } } }}
         />
       ) : (
         <CalendarioView equipo={equipo} projects={projects} />
@@ -132,7 +132,7 @@ export default function EquiposPage() {
       <MiembroModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSave={async (m) => { const ok = await save(m); if (ok) toast('Miembro guardado'); return ok }}
+        onSave={async (m) => { try { await save(m); toast('Miembro guardado'); return true } catch { toast('Error al guardar miembro'); return false } }}
         miembro={editing}
         proyectos={projects}
       />
@@ -217,7 +217,7 @@ function ListadoView({
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-400 text-sm">
+        <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-500 text-sm">
           Sin profesionales en este filtro.
         </div>
       ) : (
@@ -273,12 +273,12 @@ function CalendarioView({ equipo, projects }: { equipo: Miembro[]; projects: Pro
     <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
       {/* Header */}
       <div className="flex border-b border-[#E2E8F0] sticky top-0 bg-white z-10">
-        <div className="w-[200px] shrink-0 p-3 text-[10px] font-bold uppercase text-slate-400 border-r border-[#E2E8F0]">
+        <div className="w-[200px] shrink-0 p-3 text-[10px] font-bold uppercase text-slate-500 border-r border-[#E2E8F0]">
           Profesional
         </div>
         <div className="flex flex-1 min-w-[720px]">
           {months.map((m, i) => (
-            <div key={i} className="flex-1 p-2 text-center text-[10px] font-bold uppercase text-slate-400 border-r border-[#E2E8F0] last:border-r-0">
+            <div key={i} className="flex-1 p-2 text-center text-[10px] font-bold uppercase text-slate-500 border-r border-[#E2E8F0] last:border-r-0">
               {m.label}
             </div>
           ))}
@@ -287,7 +287,7 @@ function CalendarioView({ equipo, projects }: { equipo: Miembro[]; projects: Pro
 
       {/* Rows */}
       {visible.length === 0 ? (
-        <div className="p-8 text-center text-slate-400 text-sm">Sin profesionales para mostrar</div>
+        <div className="p-8 text-center text-slate-500 text-sm">Sin profesionales para mostrar</div>
       ) : (
         visible.map(m => {
           const proj = m.proyecto_id ? projMap.get(m.proyecto_id) : null
@@ -348,7 +348,7 @@ function CalendarioView({ equipo, projects }: { equipo: Miembro[]; projects: Pro
                     {barWidth > 8 ? m.proyecto_nombre : ''}
                   </div>
                 ) : m.proyecto_nombre ? (
-                  <div className="absolute top-2.5 left-1 text-[9px] text-slate-400 italic">
+                  <div className="absolute top-2.5 left-1 text-[9px] text-slate-500 italic">
                     {m.proyecto_nombre} (sin fechas)
                   </div>
                 ) : (

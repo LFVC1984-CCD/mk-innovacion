@@ -49,7 +49,7 @@ export default function EstudiosPanel() {
   }, [projects])
 
   if (loading) {
-    return <div className="py-8 text-center text-slate-400 text-sm">Cargando pipeline...</div>
+    return <div className="py-8 text-center text-slate-500 text-sm">Cargando pipeline...</div>
   }
 
   return (
@@ -57,12 +57,12 @@ export default function EstudiosPanel() {
       {/* Consolidado */}
       <div className="bg-[#0F172A] rounded-xl p-5 grid grid-cols-4 gap-4 mb-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Pipeline Total</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Pipeline Total</p>
           <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">{fmtMM(consol.totalMonto)}</p>
           <p className="text-[10px] text-white/30 mt-0.5">{consol.total} proyecto{consol.total !== 1 ? 's' : ''} en estudio</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Margen Estimado</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Margen Estimado</p>
           <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.totalMargen >= 0 ? '#E1BA10' : '#DC2626' }}>
             {fmtMM(Math.round(consol.totalMargen))}
           </p>
@@ -71,14 +71,14 @@ export default function EstudiosPanel() {
           </p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Tasa Adjudicación</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Tasa Adjudicación</p>
           <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: tasaAdj >= 30 ? '#16A34A' : tasaAdj >= 15 ? '#D97706' : '#DC2626' }}>
             {tasaAdj}%
           </p>
           <p className="text-[10px] text-white/30 mt-0.5">Adjudicados / (Adj + No adj)</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Por Estado</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Por Estado</p>
           <div className="mt-1.5 space-y-1">
             {ESTUDIO_ESTADOS.map(est => {
               const d = consol.porEstado[est]
@@ -97,7 +97,7 @@ export default function EstudiosPanel() {
 
       {/* Pipeline tabla */}
       {pipeline.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-400 text-sm">
+        <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-500 text-sm">
           Sin proyectos en estudio. Agrega proyectos desde el Maestro de Proyectos.
         </div>
       ) : (
@@ -105,13 +105,13 @@ export default function EstudiosPanel() {
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-slate-50 border-b border-[#E2E8F0]">
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Proyecto</th>
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Mandante</th>
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Estado</th>
-                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Monto ($MM)</th>
-                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Margen Est.</th>
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Oferta</th>
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Obs.</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Proyecto</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Mandante</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Estado</th>
+                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Monto ($MM)</th>
+                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Margen Est.</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Oferta</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Obs.</th>
               </tr>
             </thead>
             <tbody>
@@ -136,14 +136,14 @@ export default function EstudiosPanel() {
                     <td className="px-3.5 py-2.5 text-right">
                       {p.margen_estudio_pct > 0 ? (
                         <span className="font-condensed font-bold" style={{ color: p.margen_estudio_pct >= 15 ? '#16A34A' : '#D97706' }}>
-                          {p.margen_estudio_pct}% <span className="text-slate-400 font-normal">({fmtMM(Math.round(margenEst))})</span>
+                          {p.margen_estudio_pct}% <span className="text-slate-500 font-normal">({fmtMM(Math.round(margenEst))})</span>
                         </span>
                       ) : '—'}
                     </td>
                     <td className="px-3.5 py-2.5 text-slate-500">
                       {p.fecha_oferta ? fmtFecha(p.fecha_oferta) : <span className="text-red-400 font-semibold">sin fecha</span>}
                     </td>
-                    <td className="px-3.5 py-2.5 text-slate-400 max-w-[180px] truncate" title={p.observacion || ''}>
+                    <td className="px-3.5 py-2.5 text-slate-500 max-w-[180px] truncate" title={p.observacion || ''}>
                       {p.observacion || '—'}
                     </td>
                   </tr>
@@ -171,7 +171,7 @@ export default function EstudiosPanel() {
       {/* Resultados recientes */}
       {resultados.length > 0 && (
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
             Resultados recientes
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -184,7 +184,7 @@ export default function EstudiosPanel() {
                   style={{ borderLeftWidth: 3, borderLeftColor: ESTADO_COLORS[p.estado] }}
                 >
                   <p className="text-xs font-semibold text-ink truncate" title={p.nombre}>{p.nombre}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{p.mandante || '—'}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">{p.mandante || '—'}</p>
                   <div className="flex items-center justify-between mt-2">
                     <span
                       className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
@@ -196,7 +196,7 @@ export default function EstudiosPanel() {
                       <span className="font-condensed font-bold text-xs text-green-600">{fmtMM(p.monto_adjudicado)}</span>
                     )}
                     {!isAdj && p.monto_licitacion > 0 && (
-                      <span className="font-condensed font-bold text-xs text-slate-400">{fmtMM(p.monto_licitacion)}</span>
+                      <span className="font-condensed font-bold text-xs text-slate-500">{fmtMM(p.monto_licitacion)}</span>
                     )}
                   </div>
                 </div>

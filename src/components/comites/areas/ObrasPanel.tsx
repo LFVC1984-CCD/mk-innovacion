@@ -68,7 +68,7 @@ export default function ObrasPanel() {
   }
 
   if (loading || eqLoading) {
-    return <div className="py-8 text-center text-slate-400 text-sm">Cargando datos financieros...</div>
+    return <div className="py-8 text-center text-slate-500 text-sm">Cargando datos financieros...</div>
   }
 
   return (
@@ -77,7 +77,7 @@ export default function ObrasPanel() {
       {obras.length > 0 && (
         <div className="bg-[#0F172A] rounded-xl p-5 grid grid-cols-5 gap-4 mb-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Contratos Totales</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Contratos Totales</p>
             <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">{fmtMM(consol.tC)}</p>
             <p className="text-[10px] text-white/30 mt-0.5">
               {consol.activas} activa{consol.activas !== 1 ? 's' : ''}
@@ -85,24 +85,24 @@ export default function ObrasPanel() {
             </p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Flujo Financiero</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Flujo Financiero</p>
             <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.flujoFin >= 0 ? '#E1BA10' : '#DC2626' }}>
               {consol.flujoFin >= 0 ? '+' : ''}{fmtMM(consol.flujoFin)}
             </p>
             <p className="text-[10px] text-white/30 mt-0.5">Facturado - Gasto Real</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Por Facturar</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Por Facturar</p>
             <p className="font-condensed text-[28px] font-black text-amber leading-tight mt-1">{fmtMM(consol.saldoFact)}</p>
             <p className="text-[10px] text-white/30 mt-0.5">{consol.pctF}% facturado</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Saldo Proveedores</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Saldo Proveedores</p>
             <p className="font-condensed text-[28px] font-black text-danger leading-tight mt-1">{fmtMM(consol.saldoProv)}</p>
             <p className="text-[10px] text-white/30 mt-0.5">Comp - Gastado - MO</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Margen Consolidado</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Margen Consolidado</p>
             <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.margen >= 0 ? '#E1BA10' : '#DC2626' }}>
               {consol.margen >= 0 ? '+' : ''}{fmtMM(consol.margen)}
             </p>
@@ -113,14 +113,14 @@ export default function ObrasPanel() {
 
       {/* Obras list */}
       {obras.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-400 text-sm">
+        <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-500 text-sm">
           Sin obras con datos financieros. Agrega proyectos con estado Adjudicado o Activo desde el Maestro de Proyectos.
         </div>
       ) : (
         <>
           {activas.length > 0 && (
             <>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
                 Obras Activas ({activas.length})
               </p>
               {activas.map(p => (
@@ -136,7 +136,7 @@ export default function ObrasPanel() {
 
           {conSaldo.length > 0 && (
             <>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 mt-5">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2 mt-5">
                 Cerradas con Saldo ({conSaldo.length})
               </p>
               {conSaldo.map(p => (

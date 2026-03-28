@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { useAuth, useAreaData } from '@/lib/comites/hooks'
 import { useAutoKpis } from '@/lib/comites/use-auto-kpis'
 import { toast } from '@/components/ui/Toast'
@@ -11,20 +12,25 @@ import type { AreaId } from '@/lib/types'
 import KPIDashboard from '@/components/comites/KPIDashboard'
 import PDFExportButton from '@/components/comites/PDFExportButton'
 
-const MT = [5 * 60, 5 * 60, 5 * 60, 5 * 60]
 const ML = ['Momento 1 — Scoreboard', 'Momento 2 — Estado de Tareas', 'Momento 3 — Compromisos', 'Momento 4 — Minutas']
 
 interface MinutaRow { id: string; fecha: string; texto_completo: string | null; enviada: boolean; created_at: string }
 
-// ── Bar component for charts ──
-function StatBar({ label, value, max, color, total }: { label: string; value: number; max: number; color: string; total: number }) {
+// ── Animated Bar for task charts ──
+function StatBar({ label, value, max, color, total, delay = 0 }: { label: string; value: number; max: number; color: string; total: number; delay?: number }) {
   const pct = max > 0 ? Math.round((value / max) * 100) : 0
   const pctTotal = total > 0 ? Math.round((value / total) * 100) : 0
   return (
     <div className="flex items-center gap-3">
       <span className="text-xs font-semibold w-24 text-right">{label}</span>
       <div className="flex-1 h-7 bg-[#F1F5F9] rounded-lg overflow-hidden relative">
-        <div className="h-full rounded-lg transition-all duration-700" style={{ width: `${pct}%`, background: color, minWidth: value > 0 ? 4 : 0 }} />
+        <motion.div
+          className="h-full rounded-lg"
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
+          style={{ background: color, minWidth: value > 0 ? 4 : 0 }}
+        />
         <span className="absolute inset-0 flex items-center px-3 text-xs font-bold" style={{ color: pct > 40 ? '#fff' : color }}>
           {value} ({pctTotal}%)
         </span>
@@ -42,9 +48,6 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
   const isRRHH = areaId === 'rrhh'
 
   const [slide, setSlide] = useState(0)
-  const [timerSec, setTimerSec] = useState(MT[0])
-  const [timerMax, setTimerMax] = useState(MT[0])
-  const [timerRunning, setTimerRunning] = useState(false)
   const [minutaLines, setMinutaLines] = useState<{ tag: string; text: string }[]>([])
   const [minutas, setMinutas] = useState<MinutaRow[]>([])
   const [minutaExpanded, setMinutaExpanded] = useState<string | null>(null)
@@ -56,16 +59,7 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
 
   const ce = canEdit(areaId)
 
-  // Timer
-  useEffect(() => {
-    if (!timerRunning) return
-    const int = setInterval(() => {
-      setTimerSec(s => { if (s <= 0) { setTimerRunning(false); toast('Tiempo agotado'); return 0 } return s - 1 })
-    }, 1000)
-    return () => clearInterval(int)
-  }, [timerRunning])
-
-  function changeSlide(n: number) { setSlide(n); setTimerSec(MT[n]); setTimerMax(MT[n]); setTimerRunning(false) }
+  function changeSlide(n: number) { setSlide(n) }
 
   const handleKey = useCallback((e: KeyboardEvent) => {
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
@@ -81,7 +75,6 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
     const lines: typeof minutaLines = []
     kpis.filter(k => k.comentario).forEach(k => lines.push({ tag: 'KPI', text: `${k.nombre}: ${k.comentario}` }))
     tareas.filter(t => t.from_decision).forEach(t => lines.push({ tag: 'Tarea', text: `${t.texto} · ${t.responsable || 'por asignar'}` }))
-    // Add slide comments
     Object.entries(comments).forEach(([idx, txt]) => { if (txt.trim()) lines.push({ tag: `Slide ${Number(idx) + 1}`, text: txt }) })
     setMinutaLines(lines)
   }, [kpis, tareas, comments])
@@ -109,12 +102,9 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
     </div>
   )
 
-  const timerMin = Math.floor(timerSec / 60)
-  const timerS = timerSec % 60
-  const timerPct = timerMax > 0 ? (timerSec / timerMax) * 100 : 0
   const show = (n: number) => slide === n || pdfMode
 
-  // ── Task stats for charts ──
+  // ── Task stats ──
   const byEstado = {
     bloqueada: tareas.filter(t => t.estado === 'bloqueada').length,
     'en-proceso': tareas.filter(t => t.estado === 'en-proceso').length,
@@ -123,14 +113,13 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
   }
   const totalTareas = tareas.length
   const maxEstado = Math.max(...Object.values(byEstado), 1)
-
   const bloqueadas = tareas.filter(t => t.estado === 'bloqueada').slice(0, 3)
 
-  // ── Comment input component ──
+  // ── Comment input ──
   function SlideComment({ slideIdx }: { slideIdx: number }) {
     return (
       <div className="mt-4 pt-3 border-t border-[#E2E8F0]">
-        <div className="text-[10px] font-bold uppercase tracking-widest text-slate mb-1">Comentario de esta sección</div>
+        <div className="text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Comentario de esta sección</div>
         <textarea
           value={comments[slideIdx] || ''}
           onChange={e => setComments(prev => ({ ...prev, [slideIdx]: e.target.value }))}
@@ -149,7 +138,7 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
           <h1 className="font-condensed font-black text-3xl text-white uppercase tracking-wide">
             {areaInfo?.name} <span className="text-gold">·</span>
           </h1>
-          <p className="text-white/40 text-xs uppercase tracking-widest mt-0.5">Comité · {fmtFechaDate(new Date())} · MK Ingeniería</p>
+          <p className="text-white/40 text-xs uppercase tracking-wider mt-0.5">Comité · {fmtFechaDate(new Date())} · MK Ingeniería</p>
         </div>
         <div className="flex items-center gap-2.5">
           <button onClick={() => slide > 0 && changeSlide(slide - 1)} className="px-3 py-1.5 rounded text-xs font-semibold bg-white/10 border border-white/20 text-white hover:bg-white/20">←</button>
@@ -170,27 +159,22 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
         </div>
       </div>
 
-      {/* Timer */}
+      {/* Slide label bar (replaces timer) */}
       {!pdfMode && (
-        <>
-          <div className="flex items-center justify-between px-7 py-2 bg-[#F8FAFC] border-b border-[#E2E8F0]">
-            <span className="text-xs font-bold text-slate uppercase tracking-wider">{ML[slide]}</span>
-            <span className={`font-condensed font-black text-xl ${timerSec < 60 ? 'text-danger' : 'text-cobalt'}`}>{timerMin}:{String(timerS).padStart(2, '0')}</span>
-            <div className="flex gap-1.5">
-              <button onClick={() => setTimerRunning(!timerRunning)} className="px-3 py-1 border border-[#E2E8F0] rounded text-xs font-semibold hover:bg-[#F1F5F9]">{timerRunning ? 'Pausar' : 'Iniciar'}</button>
-              <button onClick={() => { setTimerSec(MT[slide]); setTimerRunning(false) }} className="px-3 py-1 border border-[#E2E8F0] rounded text-xs font-semibold hover:bg-[#F1F5F9]">Reset</button>
-            </div>
+        <div className="flex items-center justify-between px-7 py-2.5 bg-[#F8FAFC] border-b border-[#E2E8F0]">
+          <span className="text-xs font-bold text-slate uppercase tracking-wider">{ML[slide]}</span>
+          <div className="flex gap-0.5">
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className={`h-1 rounded-full transition-all duration-500 ${i <= slide ? 'bg-cobalt' : 'bg-[#E2E8F0]'}`} style={{ width: i === slide ? 48 : 24 }} />
+            ))}
           </div>
-          <div className="h-1 bg-[#F1F5F9]">
-            <div className="h-full transition-all duration-1000" style={{ width: `${timerPct}%`, background: timerSec < 60 ? '#DC2626' : timerSec < timerMax * 0.3 ? '#D97706' : '#E1BA10' }} />
-          </div>
-        </>
+        </div>
       )}
 
       {/* ═══ SLIDES ═══ */}
       <div className="px-7 py-5">
 
-        {/* ── Slide 0: Solo KPIs (4-8 tarjetas) + comentario ── */}
+        {/* ── Slide 0: Scoreboard ── */}
         <div ref={el => { slideRefs.current[0] = el }} style={{ display: show(0) ? 'block' : 'none' }}>
           <Hdr color={areaInfo?.color} text="Momento 1 · Scoreboard" />
 
@@ -216,7 +200,7 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
           {ce && <SlideComment slideIdx={0} />}
         </div>
 
-        {/* ── Slide 1: Solo 4 estados de tareas ── */}
+        {/* ── Slide 1: Estado de Tareas ── */}
         <div ref={el => { slideRefs.current[1] = el }} style={{ display: show(1) ? 'block' : 'none' }}>
           <Hdr color="#D97706" text="Momento 2 · Estado de Tareas" />
 
@@ -227,24 +211,54 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
               { label: 'En proceso', value: byEstado['en-proceso'], color: '#0B5ED7', bg: '#EFF6FF' },
               { label: 'Abiertas', value: byEstado.pendiente, color: '#D97706', bg: '#FEF3C7' },
               { label: 'Completadas', value: byEstado.completada, color: '#16A34A', bg: '#DCFCE7' },
-            ].map(s => (
-              <div key={s.label} className="rounded-xl p-5 text-center" style={{ background: s.bg }}>
+            ].map((s, i) => (
+              <motion.div
+                key={s.label}
+                initial={{ opacity: 0, y: 16, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: i * 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="rounded-xl p-5 text-center"
+                style={{ background: s.bg }}
+              >
                 <p className="font-condensed text-6xl font-black leading-none" style={{ color: s.color }}>{s.value}</p>
                 <p className="text-xs font-bold mt-2" style={{ color: s.color }}>{s.label}</p>
                 <p className="text-[10px] text-slate mt-0.5">{totalTareas > 0 ? Math.round((s.value / totalTareas) * 100) : 0}%</p>
-              </div>
+              </motion.div>
             ))}
           </div>
 
-          {/* Horizontal bar chart */}
+          {/* Animated horizontal bar chart */}
           <div className="bg-[#F8FAFC] rounded-xl p-5 border border-[#E2E8F0]">
             <div className="space-y-3">
-              <StatBar label="Bloqueadas" value={byEstado.bloqueada} max={maxEstado} color="#DC2626" total={totalTareas} />
-              <StatBar label="En proceso" value={byEstado['en-proceso']} max={maxEstado} color="#0B5ED7" total={totalTareas} />
-              <StatBar label="Abiertas" value={byEstado.pendiente} max={maxEstado} color="#D97706" total={totalTareas} />
-              <StatBar label="Completadas" value={byEstado.completada} max={maxEstado} color="#16A34A" total={totalTareas} />
+              <StatBar label="Bloqueadas" value={byEstado.bloqueada} max={maxEstado} color="#DC2626" total={totalTareas} delay={0} />
+              <StatBar label="En proceso" value={byEstado['en-proceso']} max={maxEstado} color="#0B5ED7" total={totalTareas} delay={0.1} />
+              <StatBar label="Abiertas" value={byEstado.pendiente} max={maxEstado} color="#D97706" total={totalTareas} delay={0.2} />
+              <StatBar label="Completadas" value={byEstado.completada} max={maxEstado} color="#16A34A" total={totalTareas} delay={0.3} />
             </div>
           </div>
+
+          {/* Stacked bar */}
+          {totalTareas > 0 && (
+            <div className="mt-4">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate mb-2">Distribución</p>
+              <div className="h-4 rounded-full overflow-hidden flex">
+                {[
+                  { pct: byEstado.bloqueada / totalTareas * 100, color: '#DC2626' },
+                  { pct: byEstado['en-proceso'] / totalTareas * 100, color: '#0B5ED7' },
+                  { pct: byEstado.pendiente / totalTareas * 100, color: '#D97706' },
+                  { pct: byEstado.completada / totalTareas * 100, color: '#16A34A' },
+                ].map((s, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${s.pct}%` }}
+                    transition={{ duration: 0.8, delay: 0.3 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ background: s.color, minWidth: s.pct > 0 ? 3 : 0 }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Top 3 bloqueadas alert */}
           {bloqueadas.length > 0 && (
@@ -349,7 +363,7 @@ function Hdr({ color, text }: { color?: string; text: string }) {
   return (
     <div className="flex items-center gap-2 mb-4">
       <div className="w-0.5 h-4 rounded" style={{ background: color || '#64748B' }} />
-      <span className="text-xs font-black uppercase tracking-widest text-slate">{text}</span>
+      <span className="text-xs font-black uppercase tracking-wider text-slate">{text}</span>
     </div>
   )
 }

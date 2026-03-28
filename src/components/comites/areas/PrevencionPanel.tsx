@@ -4,36 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useProjects } from '@/lib/comites/use-projects'
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtFecha } from '@/lib/comites/data'
-
-// ── Types ──
-
-type TipoEvento = 'accidente_trabajo' | 'accidente_trayecto' | 'incidente' | 'cuasi_accidente' | 'enfermedad_profesional'
-type Gravedad = 'leve' | 'moderado' | 'grave' | 'fatal'
-
-interface EventoSeguridad {
-  id: string
-  proyecto_id: string | null
-  tipo: TipoEvento
-  gravedad: Gravedad
-  fecha: string | null
-  descripcion: string | null
-  dias_perdidos: number
-  trabajador: string | null
-  accion_correctiva: string | null
-  cerrado: boolean
-  created_at?: string
-}
-
-interface EstadisticaMensual {
-  id: string
-  proyecto_id: string | null
-  mes: string // YYYY-MM
-  hh_trabajadas: number
-  capacitaciones_horas: number
-  inspecciones: number
-  charlas_realizadas: number
-  created_at?: string
-}
+import type { EventoSeguridad, EstadisticaMensual, TipoEvento, Gravedad } from '@/lib/types'
 
 const EMPTY_EVENTO: Omit<EventoSeguridad, 'id'> = {
   proyecto_id: null, tipo: 'incidente', gravedad: 'leve', fecha: null,
@@ -144,7 +115,7 @@ export default function PrevencionPanel() {
   }
 
   if (loading) {
-    return <div className="py-8 text-center text-slate-400 text-sm">Cargando datos de seguridad...</div>
+    return <div className="py-8 text-center text-slate-500 text-sm">Cargando datos de seguridad...</div>
   }
 
   const eventosAbiertos = eventos.filter(e => !e.cerrado)
@@ -155,35 +126,35 @@ export default function PrevencionPanel() {
       {/* Consolidado */}
       <div className="bg-[#0F172A] rounded-xl p-5 grid grid-cols-5 gap-4 mb-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Accidentes</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Accidentes</p>
           <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.accidentes === 0 ? '#16A34A' : '#DC2626' }}>
             {consol.accidentes}
           </p>
           <p className="text-[10px] text-white/30 mt-0.5">{consol.diasPerdidos} días perdidos</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Tasa Frecuencia</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Tasa Frecuencia</p>
           <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.tasaFrec === 0 ? '#16A34A' : consol.tasaFrec < 5 ? '#D97706' : '#DC2626' }}>
             {consol.tasaFrec}
           </p>
           <p className="text-[10px] text-white/30 mt-0.5">Acc × 10⁶ / HH</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Tasa Gravedad</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Tasa Gravedad</p>
           <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.tasaGrav === 0 ? '#16A34A' : consol.tasaGrav < 50 ? '#D97706' : '#DC2626' }}>
             {consol.tasaGrav}
           </p>
           <p className="text-[10px] text-white/30 mt-0.5">Días × 10⁶ / HH</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">HH Trabajadas</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">HH Trabajadas</p>
           <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">
             {consol.totalHH > 0 ? `${(consol.totalHH / 1000).toFixed(0)}K` : '0'}
           </p>
           <p className="text-[10px] text-white/30 mt-0.5">{consol.totalCapacitacion}h capacitación</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Sin Cerrar</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Sin Cerrar</p>
           <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.sinCerrar === 0 ? '#16A34A' : '#D97706' }}>
             {consol.sinCerrar}
           </p>
@@ -197,12 +168,12 @@ export default function PrevencionPanel() {
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-slate-50 border-b border-[#E2E8F0]">
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Obra</th>
-                <th className="text-center px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-red-400">Accidentes</th>
-                <th className="text-center px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Incidentes</th>
-                <th className="text-center px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Días Perd.</th>
-                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">HH</th>
-                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Tasa Frec.</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Obra</th>
+                <th className="text-center px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-red-400">Accidentes</th>
+                <th className="text-center px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Incidentes</th>
+                <th className="text-center px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Días Perd.</th>
+                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">HH</th>
+                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Tasa Frec.</th>
               </tr>
             </thead>
             <tbody>
@@ -230,7 +201,7 @@ export default function PrevencionPanel() {
 
       {/* Header eventos */}
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
           Eventos registrados ({eventos.length})
         </p>
         {ce && (
@@ -242,7 +213,7 @@ export default function PrevencionPanel() {
 
       {/* Eventos */}
       {eventos.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-400 text-sm">
+        <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-500 text-sm">
           Sin eventos de seguridad registrados.
         </div>
       ) : (
@@ -261,7 +232,7 @@ export default function PrevencionPanel() {
           )}
           {eventosCerrados.length > 0 && (
             <>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Cerrados ({eventosCerrados.length})</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Cerrados ({eventosCerrados.length})</p>
               {eventosCerrados.map(e => (
                 <EventoRow key={e.id} evento={e} proyectoName={proyectoName(e.proyecto_id)}
                   expanded={expanded === e.id} onToggle={() => setExpanded(expanded === e.id ? null : e.id)}
@@ -283,46 +254,46 @@ export default function PrevencionPanel() {
               <h3 className="font-condensed font-bold text-lg text-ink">
                 {(modalEvento as EventoSeguridad).id ? 'Editar evento' : 'Registrar evento'}
               </h3>
-              <button onClick={() => setModalEvento(null)} className="text-slate-400 hover:text-ink text-lg">×</button>
+              <button onClick={() => setModalEvento(null)} className="text-slate-500 hover:text-ink text-lg">×</button>
             </div>
             <div className="px-5 py-4 grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Tipo</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Tipo</label>
                 <select value={modalEvento.tipo || 'incidente'} onChange={e => setModalEvento(p => ({ ...p!, tipo: e.target.value as TipoEvento }))} className="inp">
                   {Object.entries(TIPO_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Gravedad</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Gravedad</label>
                 <select value={modalEvento.gravedad || 'leve'} onChange={e => setModalEvento(p => ({ ...p!, gravedad: e.target.value as Gravedad }))} className="inp">
                   {Object.entries(GRAVEDAD_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Proyecto</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Proyecto</label>
                 <select value={modalEvento.proyecto_id || ''} onChange={e => setModalEvento(p => ({ ...p!, proyecto_id: e.target.value || null }))} className="inp">
                   <option value="">General</option>
                   {projects.filter(p => ['adjudicado', 'activo'].includes(p.estado)).map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Fecha</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Fecha</label>
                 <input type="date" value={modalEvento.fecha || ''} onChange={e => setModalEvento(p => ({ ...p!, fecha: e.target.value || null }))} className="inp" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Trabajador</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Trabajador</label>
                 <input value={modalEvento.trabajador || ''} onChange={e => setModalEvento(p => ({ ...p!, trabajador: e.target.value }))} className="inp" placeholder="Nombre" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Días perdidos</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Días perdidos</label>
                 <input type="number" value={modalEvento.dias_perdidos || ''} onChange={e => setModalEvento(p => ({ ...p!, dias_perdidos: parseInt(e.target.value) || 0 }))} className="inp" placeholder="0" />
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Descripción</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Descripción</label>
                 <textarea value={modalEvento.descripcion || ''} onChange={e => setModalEvento(p => ({ ...p!, descripcion: e.target.value }))} className="inp min-h-[60px]" placeholder="Qué pasó, dónde, circunstancias" />
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Acción correctiva</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Acción correctiva</label>
                 <textarea value={modalEvento.accion_correctiva || ''} onChange={e => setModalEvento(p => ({ ...p!, accion_correctiva: e.target.value }))} className="inp min-h-[60px]" placeholder="Medidas tomadas o por tomar" />
               </div>
             </div>
@@ -363,19 +334,19 @@ function EventoRow({ evento: e, proyectoName, expanded, onToggle, onEdit, onDele
         {e.dias_perdidos > 0 && (
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-500 shrink-0">{e.dias_perdidos}d perdidos</span>
         )}
-        <span className="text-slate-400 text-sm">{expanded ? '▾' : '▸'}</span>
+        <span className="text-slate-500 text-sm">{expanded ? '▾' : '▸'}</span>
       </div>
       {expanded && (
         <div className="px-4 pb-3 border-t border-[#E2E8F0] pt-3">
           {e.descripcion && (
             <div className="bg-slate-50 rounded-lg p-2.5 mb-2">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Descripción</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Descripción</span>
               <p className="text-xs text-ink mt-1 whitespace-pre-wrap">{e.descripcion}</p>
             </div>
           )}
           {e.accion_correctiva && (
             <div className="bg-blue-50 rounded-lg p-2.5 mb-2">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-cobalt">Acción correctiva</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-cobalt">Acción correctiva</span>
               <p className="text-xs text-ink mt-1 whitespace-pre-wrap">{e.accion_correctiva}</p>
             </div>
           )}
