@@ -2,38 +2,25 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRRHH } from '@/lib/comites/use-rrhh'
-import type { Dotacion, DotacionInput, DocRRHH, DocRRHHInput, Capacitacion, CapacitacionInput } from '@/lib/comites/use-rrhh'
+import type { MetricaRRHH, MetricaRRHHInput, DocRRHH, DocRRHHInput, Capacitacion, CapacitacionInput, Auditoria, AuditoriaInput } from '@/lib/comites/use-rrhh'
 import { useProjects } from '@/lib/comites/use-projects'
 import { useAuth } from '@/lib/comites/hooks'
-import { fmtMoney } from '@/lib/comites/data'
 import Modal, { Field, Input, Select, Row2, Btn } from '@/components/comites/Modal'
-import ViewToggle from '@/components/comites/ViewToggle'
 import SummaryCard from '@/components/comites/SummaryCard'
 import { toast } from '@/components/ui/Toast'
 
 // ── Config ──
 
-const TIPO_DOT: Record<string, { label: string; color: string }> = {
-  constructta: { label: 'Constructta', color: '#0B5ED7' },
-  subcontrato: { label: 'Subcontrato', color: '#D97706' },
-}
-const ESTADO_DOT: Record<string, { label: string; color: string }> = {
-  activo: { label: 'Activo', color: '#16A34A' },
-  inactivo: { label: 'Inactivo', color: '#94A3B8' },
-  vacaciones: { label: 'Vacaciones', color: '#0891B2' },
-  licencia: { label: 'Licencia', color: '#D97706' },
-  desvinculado: { label: 'Desvinculado', color: '#DC2626' },
-}
-const TIPO_DOC: Record<string, string> = {
-  procedimiento: 'Procedimiento', reglamento: 'Reglamento', certificacion: 'Certificacion',
-  politica: 'Politica', contrato_marco: 'Contrato marco', otro: 'Otro',
-}
 const ESTADO_DOC: Record<string, { label: string; color: string }> = {
   vigente: { label: 'Vigente', color: '#16A34A' },
   por_vencer: { label: 'Por vencer', color: '#D97706' },
   vencido: { label: 'Vencido', color: '#DC2626' },
   en_revision: { label: 'En revision', color: '#0B5ED7' },
   borrador: { label: 'Borrador', color: '#94A3B8' },
+}
+const TIPO_DOC: Record<string, string> = {
+  procedimiento: 'Procedimiento', reglamento: 'Reglamento', certificacion: 'Certificacion',
+  politica: 'Politica', contrato_marco: 'Contrato marco', otro: 'Otro',
 }
 const TIPO_CAP: Record<string, string> = {
   induccion: 'Induccion', tecnica: 'Tecnica', seguridad: 'Seguridad',
@@ -44,40 +31,34 @@ const ESTADO_CAP: Record<string, { label: string; color: string }> = {
   completada: { label: 'Completada', color: '#16A34A' },
   cancelada: { label: 'Cancelada', color: '#DC2626' },
 }
+const RESULTADO_AUD: Record<string, { label: string; color: string }> = {
+  aprobada: { label: 'Aprobada', color: '#16A34A' },
+  aprobada_observaciones: { label: 'Aprobada c/obs', color: '#D97706' },
+  reprobada: { label: 'Reprobada', color: '#DC2626' },
+  pendiente: { label: 'Pendiente', color: '#94A3B8' },
+  en_proceso: { label: 'En proceso', color: '#0B5ED7' },
+}
+const TIPO_AUD: Record<string, string> = {
+  interna: 'Interna', externa: 'Externa', mutual: 'Mutual', ist: 'IST', achs: 'ACHS', otro: 'Otro',
+}
 
-type SubTab = 'dotacion' | 'documentacion' | 'capacitaciones'
+function fmtMes(mes: string): string {
+  const [y, m] = mes.split('-')
+  const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+  return `${meses[parseInt(m) - 1]} ${y.slice(2)}`
+}
+
+type SubTab = 'dotacion' | 'auditorias' | 'documentacion' | 'capacitaciones'
 
 export default function RRHHPanel() {
-  const { dotacion, docs, capacitaciones, loading, saveDotacion, removeDotacion, saveDoc, removeDoc, saveCapacitacion, removeCapacitacion } = useRRHH()
+  const { metricas, docs, capacitaciones, auditorias, loading, saveMetrica, removeMetrica, saveDoc, removeDoc, saveCapacitacion, removeCapacitacion, saveAuditoria, removeAuditoria } = useRRHH()
   const { projects } = useProjects()
   const { canEdit } = useAuth()
   const ce = canEdit('rrhh')
   const [subTab, setSubTab] = useState<SubTab>('dotacion')
 
-  // ── Dotación stats ──
-  const dotStats = useMemo(() => {
-    const activos = dotacion.filter(d => d.estado === 'activo')
-    const constructta = activos.filter(d => d.tipo === 'constructta').length
-    const subcontratos = activos.filter(d => d.tipo === 'subcontrato').length
-    const costoMensual = activos.reduce((s, d) => s + d.costo_mensual, 0)
-    return { total: activos.length, constructta, subcontratos, costoMensual }
-  }, [dotacion])
-
-  // ── Docs stats ──
-  const docStats = useMemo(() => {
-    const vigentes = docs.filter(d => d.estado === 'vigente').length
-    const porVencer = docs.filter(d => d.estado === 'por_vencer').length
-    const vencidos = docs.filter(d => d.estado === 'vencido').length
-    return { total: docs.length, vigentes, porVencer, vencidos }
-  }, [docs])
-
-  // ── Capacitaciones stats ──
-  const capStats = useMemo(() => {
-    const completadas = capacitaciones.filter(c => c.estado === 'completada')
-    const programadas = capacitaciones.filter(c => c.estado === 'programada').length
-    const horasTotal = completadas.reduce((s, c) => s + c.horas, 0)
-    return { total: capacitaciones.length, completadas: completadas.length, programadas, horasTotal }
-  }, [capacitaciones])
+  // ── Último mes de métricas para consolidado ──
+  const ultimo = metricas[0] // ya ordenado desc
 
   if (loading) {
     return <div className="py-8 text-center text-slate-500 text-sm">Cargando...</div>
@@ -88,7 +69,8 @@ export default function RRHHPanel() {
       {/* Sub-tabs */}
       <div className="flex gap-1 mb-5 border-b border-[#E2E8F0] pb-0">
         {([
-          { id: 'dotacion' as const, label: 'Dotacion', count: dotStats.total },
+          { id: 'dotacion' as const, label: 'Dotacion', count: metricas.length },
+          { id: 'auditorias' as const, label: 'Auditorias', count: auditorias.length },
           { id: 'documentacion' as const, label: 'Documentacion', count: docs.length },
           { id: 'capacitaciones' as const, label: 'Capacitaciones', count: capacitaciones.length },
         ]).map(t => (
@@ -112,19 +94,24 @@ export default function RRHHPanel() {
       <AnimatePresence mode="wait">
         {subTab === 'dotacion' && (
           <motion.div key="dotacion" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
-            <DotacionTab dotacion={dotacion} stats={dotStats} projects={projects} canEdit={ce}
-              onSave={saveDotacion} onRemove={removeDotacion} />
+            <DotacionTab metricas={metricas} ultimo={ultimo} canEdit={ce}
+              onSave={saveMetrica} onRemove={removeMetrica} />
+          </motion.div>
+        )}
+        {subTab === 'auditorias' && (
+          <motion.div key="auditorias" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+            <AuditoriasTab auditorias={auditorias} canEdit={ce}
+              onSave={saveAuditoria} onRemove={removeAuditoria} />
           </motion.div>
         )}
         {subTab === 'documentacion' && (
           <motion.div key="documentacion" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
-            <DocumentacionTab docs={docs} stats={docStats} canEdit={ce}
-              onSave={saveDoc} onRemove={removeDoc} />
+            <DocumentacionTab docs={docs} canEdit={ce} onSave={saveDoc} onRemove={removeDoc} />
           </motion.div>
         )}
         {subTab === 'capacitaciones' && (
           <motion.div key="capacitaciones" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
-            <CapacitacionesTab capacitaciones={capacitaciones} stats={capStats} projects={projects} canEdit={ce}
+            <CapacitacionesTab capacitaciones={capacitaciones} projects={projects} canEdit={ce}
               onSave={saveCapacitacion} onRemove={removeCapacitacion} />
           </motion.div>
         )}
@@ -134,161 +121,225 @@ export default function RRHHPanel() {
 }
 
 // ══════════════════════════════════════
-//  DOTACIÓN
+//  DOTACIÓN — Métricas consolidadas mensuales
 // ══════════════════════════════════════
 
-function DotacionTab({ dotacion, stats, projects, canEdit, onSave, onRemove }: {
-  dotacion: Dotacion[]; stats: { total: number; constructta: number; subcontratos: number; costoMensual: number }
-  projects: { id: string; nombre: string }[]; canEdit: boolean
-  onSave: (d: DotacionInput & { id?: string }) => Promise<void>; onRemove: (id: string) => Promise<void>
+function DotacionTab({ metricas, ultimo, canEdit, onSave, onRemove }: {
+  metricas: MetricaRRHH[]; ultimo: MetricaRRHH | undefined; canEdit: boolean
+  onSave: (m: MetricaRRHHInput & { id?: string }) => Promise<void>; onRemove: (id: string) => Promise<void>
 }) {
-  const [view, setView] = useState<'tabla' | 'cards'>('tabla')
   const [modal, setModal] = useState(false)
-  const [editing, setEditing] = useState<Dotacion | null>(null)
-  const [filtro, setFiltro] = useState<'activos' | 'todos'>('activos')
-  const [searchDot, setSearchDot] = useState('')
-
-  const filtered = useMemo(() => {
-    let list = filtro === 'activos' ? dotacion.filter(d => d.estado === 'activo') : dotacion
-    if (searchDot) {
-      const s = searchDot.toLowerCase()
-      list = list.filter(d => d.nombre.toLowerCase().includes(s) || (d.cargo || '').toLowerCase().includes(s) || (d.empresa_sc || '').toLowerCase().includes(s))
-    }
-    return list
-  }, [dotacion, filtro, searchDot])
+  const [editing, setEditing] = useState<MetricaRRHH | null>(null)
 
   return (
     <>
-      {/* Consolidado */}
-      <div className="bg-[#0F172A] rounded-xl p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+      {/* Consolidado último mes */}
+      <div className="bg-[#0F172A] rounded-xl p-5 grid grid-cols-2 sm:grid-cols-5 gap-4 mb-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Personal Activo</p>
-          <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">{stats.total}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Constructta</p>
-          <p className="font-condensed text-[28px] font-black text-[#0B5ED7] leading-tight mt-1">{stats.constructta}</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Constructora</p>
+          <p className="font-condensed text-[28px] font-black text-[#0B5ED7] leading-tight mt-1">{ultimo?.dotacion_constructora ?? '—'}</p>
+          <p className="text-[10px] text-white/30 mt-0.5">{ultimo ? fmtMes(ultimo.mes) : 'Sin datos'}</p>
         </div>
         <div>
           <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Subcontratos</p>
-          <p className="font-condensed text-[28px] font-black text-[#D97706] leading-tight mt-1">{stats.subcontratos}</p>
+          <p className="font-condensed text-[28px] font-black text-[#D97706] leading-tight mt-1">{ultimo?.dotacion_subcontrato ?? '—'}</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Costo Mensual</p>
-          <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">{fmtMoney(stats.costoMensual)}</p>
-          <p className="text-[10px] text-white/30 mt-0.5">CLP</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Total vigentes</p>
+          <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">{ultimo?.trabajadores_vigentes ?? '—'}</p>
+        </div>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Tasa Asistencia</p>
+          <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: (ultimo?.tasa_asistencia ?? 0) >= 90 ? '#16A34A' : (ultimo?.tasa_asistencia ?? 0) >= 80 ? '#D97706' : '#DC2626' }}>
+            {ultimo?.tasa_asistencia ? `${ultimo.tasa_asistencia}%` : '—'}
+          </p>
+        </div>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Movimientos</p>
+          <p className="text-[13px] text-white/60 mt-1.5">
+            <span className="text-[#16A34A] font-bold">+{ultimo?.contrataciones ?? 0}</span> ing · <span className="text-[#DC2626] font-bold">-{ultimo?.desvinculaciones ?? 0}</span> salidas
+          </p>
+          <p className="text-[10px] text-white/30 mt-0.5">{ultimo?.licencias_medicas ?? 0} lic · {ultimo?.vacaciones ?? 0} vac</p>
         </div>
       </div>
 
       {/* Controls */}
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate">{metricas.length} mes{metricas.length !== 1 ? 'es' : ''} registrado{metricas.length !== 1 ? 's' : ''}</p>
+        {canEdit && (
+          <button onClick={() => { setEditing(null); setModal(true) }}
+            className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors">
+            + Registrar mes
+          </button>
+        )}
+      </div>
+
+      {/* Tabla histórica */}
+      <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
+        <table className="w-full text-xs min-w-[750px]">
+          <thead>
+            <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
+              <th className="text-left p-3">Mes</th>
+              <th className="text-right p-3">Constructora</th>
+              <th className="text-right p-3">Subcontrato</th>
+              <th className="text-right p-3">Total</th>
+              <th className="text-right p-3">Asistencia</th>
+              <th className="text-right p-3">Lic. med.</th>
+              <th className="text-right p-3">Vac.</th>
+              <th className="text-right p-3">Ingresos</th>
+              <th className="text-right p-3">Salidas</th>
+              <th className="text-left p-3">Obs.</th>
+            </tr>
+          </thead>
+          <tbody>
+            {metricas.map(m => (
+              <tr key={m.id} onClick={() => { setEditing(m); setModal(true) }}
+                className="border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors cursor-pointer">
+                <td className="p-3 font-bold">{fmtMes(m.mes)}</td>
+                <td className="p-3 text-right font-condensed font-bold text-[#0B5ED7]">{m.dotacion_constructora}</td>
+                <td className="p-3 text-right font-condensed font-bold text-[#D97706]">{m.dotacion_subcontrato}</td>
+                <td className="p-3 text-right font-condensed font-bold text-ink">{m.trabajadores_vigentes}</td>
+                <td className="p-3 text-right font-bold" style={{ color: m.tasa_asistencia >= 90 ? '#16A34A' : m.tasa_asistencia >= 80 ? '#D97706' : '#DC2626' }}>
+                  {m.tasa_asistencia > 0 ? `${m.tasa_asistencia}%` : '—'}
+                </td>
+                <td className="p-3 text-right">{m.licencias_medicas || '—'}</td>
+                <td className="p-3 text-right">{m.vacaciones || '—'}</td>
+                <td className="p-3 text-right text-[#16A34A] font-bold">{m.contrataciones > 0 ? `+${m.contrataciones}` : '—'}</td>
+                <td className="p-3 text-right text-[#DC2626] font-bold">{m.desvinculaciones > 0 ? `-${m.desvinculaciones}` : '—'}</td>
+                <td className="p-3 text-[11px] text-slate max-w-[120px] truncate">{m.observacion || '—'}</td>
+              </tr>
+            ))}
+            {metricas.length === 0 && <tr><td colSpan={10} className="p-8 text-center text-slate">Sin registros mensuales. Agrega el primer mes.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Modal */}
+      <MetricaModal open={modal} onClose={() => setModal(false)} editing={editing}
+        onSave={async (input, id) => { await onSave({ ...input, id }); setModal(false); toast(id ? 'Mes actualizado' : 'Mes registrado') }}
+        onDelete={async (id) => { await onRemove(id); setModal(false); toast('Registro eliminado') }} />
+    </>
+  )
+}
+
+// ══════════════════════════════════════
+//  AUDITORÍAS
+// ══════════════════════════════════════
+
+function AuditoriasTab({ auditorias, canEdit, onSave, onRemove }: {
+  auditorias: Auditoria[]; canEdit: boolean
+  onSave: (a: AuditoriaInput & { id?: string }) => Promise<void>; onRemove: (id: string) => Promise<void>
+}) {
+  const [modal, setModal] = useState(false)
+  const [editing, setEditing] = useState<Auditoria | null>(null)
+  const [filtro, setFiltro] = useState<string>('todas')
+  const [searchAud, setSearchAud] = useState('')
+
+  const stats = useMemo(() => {
+    const aprobadas = auditorias.filter(a => a.resultado === 'aprobada' || a.resultado === 'aprobada_observaciones').length
+    const reprobadas = auditorias.filter(a => a.resultado === 'reprobada').length
+    const pendientes = auditorias.filter(a => a.resultado === 'pendiente' || a.resultado === 'en_proceso').length
+    const hallazgosAbiertos = auditorias.reduce((s, a) => s + (a.hallazgos - a.hallazgos_cerrados), 0)
+    return { aprobadas, reprobadas, pendientes, hallazgosAbiertos }
+  }, [auditorias])
+
+  const filtered = useMemo(() => {
+    let list = filtro === 'todas' ? auditorias
+      : filtro === 'pendientes' ? auditorias.filter(a => a.resultado === 'pendiente' || a.resultado === 'en_proceso')
+      : auditorias.filter(a => a.resultado === filtro)
+    if (searchAud) {
+      const s = searchAud.toLowerCase()
+      list = list.filter(a => a.nombre.toLowerCase().includes(s) || (a.auditor || '').toLowerCase().includes(s))
+    }
+    return list
+  }, [auditorias, filtro, searchAud])
+
+  return (
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
+        <SummaryCard value={`${auditorias.length}`} label="Total auditorias" color="#1E293B" />
+        <SummaryCard value={`${stats.aprobadas}`} label="Aprobadas" color="#16A34A" />
+        <SummaryCard value={`${stats.pendientes}`} label="Pendientes" color="#0B5ED7" />
+        <SummaryCard value={`${stats.hallazgosAbiertos}`} label="Hallazgos abiertos" color={stats.hallazgosAbiertos > 0 ? '#DC2626' : '#16A34A'} />
+      </div>
+
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <div className="flex gap-1.5">
-          {(['activos', 'todos'] as const).map(f => (
-            <button key={f} onClick={() => setFiltro(f)}
+          {([
+            { key: 'todas', label: 'Todas', count: auditorias.length },
+            { key: 'pendientes', label: 'Pendientes', count: stats.pendientes },
+            { key: 'aprobada', label: 'Aprobadas', count: stats.aprobadas },
+            { key: 'reprobada', label: 'Reprobadas', count: stats.reprobadas },
+          ]).map(f => (
+            <button key={f.key} onClick={() => setFiltro(f.key)}
               className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
-                filtro === f ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] text-slate hover:border-cobalt'
+                filtro === f.key ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] text-slate hover:border-cobalt hover:text-cobalt'
               }`}>
-              {f === 'activos' ? 'Activos' : 'Todos'}
-              <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${filtro === f ? 'bg-white/20' : 'bg-slate-100'}`}>
-                {f === 'activos' ? dotacion.filter(d => d.estado === 'activo').length : dotacion.length}
-              </span>
+              {f.label}
+              <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${filtro === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{f.count}</span>
             </button>
           ))}
         </div>
         <div className="flex gap-2 items-center">
-          <input type="text" placeholder="Buscar nombre, cargo..." value={searchDot} onChange={e => setSearchDot(e.target.value)}
+          <input type="text" placeholder="Buscar auditoria..." value={searchAud} onChange={e => setSearchAud(e.target.value)}
             className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
-          <ViewToggle view={view} onChange={v => setView(v as typeof view)} options={['tabla', 'cards']} />
           {canEdit && (
             <button onClick={() => { setEditing(null); setModal(true) }}
               className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors">
-              + Agregar persona
+              + Nueva auditoria
             </button>
           )}
         </div>
       </div>
 
-      {/* Tabla */}
-      {view === 'tabla' && (
-        <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
-          <table className="w-full text-xs min-w-[750px]">
-            <thead>
-              <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
-                <th className="text-left p-3">Nombre</th>
-                <th className="text-left p-3">Cargo</th>
-                <th className="text-left p-3">Tipo</th>
-                <th className="text-left p-3">Obra / Area</th>
-                <th className="text-left p-3">Estado</th>
-                <th className="text-right p-3">Costo</th>
-                <th className="text-left p-3">Fuente</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(d => {
-                const obra = d.obra_id ? projects.find(p => p.id === d.obra_id)?.nombre : null
-                const est = ESTADO_DOT[d.estado]
-                const tip = TIPO_DOT[d.tipo]
-                return (
-                  <tr key={d.id} onClick={() => { setEditing(d); setModal(true) }}
-                    className="border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors cursor-pointer">
-                    <td className="p-3 font-bold">{d.nombre}</td>
-                    <td className="p-3 text-slate">{d.cargo || '—'}</td>
-                    <td className="p-3">
-                      <span className="px-2 py-0.5 rounded text-[9px] font-extrabold"
-                        style={{ background: tip.color + '18', color: tip.color }}>{tip.label}</span>
-                    </td>
-                    <td className="p-3 text-[11px]">{obra || d.area || '—'}{d.empresa_sc ? ` (${d.empresa_sc})` : ''}</td>
-                    <td className="p-3">
-                      <span className="px-2 py-0.5 rounded text-[9px] font-extrabold"
-                        style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
-                    </td>
-                    <td className="p-3 text-right font-condensed font-bold">{d.costo_mensual > 0 ? fmtMoney(d.costo_mensual) : '—'}</td>
-                    <td className="p-3 text-[10px] text-slate">{d.fuente === 'manual' ? '—' : d.fuente}</td>
-                  </tr>
-                )
-              })}
-              {filtered.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-slate">Sin registros.</td></tr>}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
+        <table className="w-full text-xs min-w-[700px]">
+          <thead>
+            <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
+              <th className="text-left p-3">Auditoria</th>
+              <th className="text-left p-3">Tipo</th>
+              <th className="text-left p-3">Fecha</th>
+              <th className="text-left p-3">Resultado</th>
+              <th className="text-right p-3">Puntaje</th>
+              <th className="text-right p-3">Hallazgos</th>
+              <th className="text-left p-3">Auditor</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(a => {
+              const res = RESULTADO_AUD[a.resultado]
+              const abiertos = a.hallazgos - a.hallazgos_cerrados
+              return (
+                <tr key={a.id} onClick={() => { setEditing(a); setModal(true) }}
+                  className="border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors cursor-pointer">
+                  <td className="p-3 font-bold">{a.nombre}</td>
+                  <td className="p-3 text-[11px]">{TIPO_AUD[a.tipo] || a.tipo}</td>
+                  <td className="p-3 text-[11px] text-slate">{a.fecha || '—'}</td>
+                  <td className="p-3">
+                    <span className="px-2 py-0.5 rounded text-[9px] font-extrabold"
+                      style={{ background: res.color + '18', color: res.color }}>{res.label}</span>
+                  </td>
+                  <td className="p-3 text-right font-bold">{a.puntaje != null ? `${a.puntaje}%` : '—'}</td>
+                  <td className="p-3 text-right">
+                    {a.hallazgos > 0 ? (
+                      <span>
+                        <span className="font-bold">{a.hallazgos_cerrados}/{a.hallazgos}</span>
+                        {abiertos > 0 && <span className="text-danger font-bold ml-1">({abiertos} abiertos)</span>}
+                      </span>
+                    ) : '—'}
+                  </td>
+                  <td className="p-3 text-[11px] text-slate">{a.auditor || '—'}</td>
+                </tr>
+              )
+            })}
+            {filtered.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-slate">{searchAud ? 'Sin resultados.' : 'Sin auditorias en este filtro.'}</td></tr>}
+          </tbody>
+        </table>
+      </div>
 
-      {/* Cards */}
-      {view === 'cards' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-          {filtered.map(d => {
-            const est = ESTADO_DOT[d.estado]
-            const tip = TIPO_DOT[d.tipo]
-            const obra = d.obra_id ? projects.find(p => p.id === d.obra_id)?.nombre : null
-            return (
-              <div key={d.id} onClick={() => { setEditing(d); setModal(true) }}
-                className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md hover:border-[#CBD5E1] transition-all cursor-pointer">
-                <div className="flex items-start justify-between mb-1">
-                  <h3 className="text-sm font-bold text-ink">{d.nombre}</h3>
-                  <span className="px-2 py-0.5 rounded text-[9px] font-extrabold shrink-0"
-                    style={{ background: tip.color + '18', color: tip.color }}>{tip.label}</span>
-                </div>
-                <p className="text-[11px] text-slate">{d.cargo || '—'}</p>
-                {obra && <p className="text-[11px] text-cobalt">{obra}</p>}
-                {d.empresa_sc && <p className="text-[11px] text-amber-600">{d.empresa_sc}</p>}
-                <div className="flex items-center justify-between mt-2">
-                  <span className="px-2 py-0.5 rounded text-[9px] font-extrabold"
-                    style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
-                  {d.costo_mensual > 0 && <span className="font-condensed font-bold text-xs">{fmtMoney(d.costo_mensual)}</span>}
-                </div>
-              </div>
-            )
-          })}
-          {filtered.length === 0 && (
-            <div className="col-span-full bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate text-sm">Sin registros.</div>
-          )}
-        </div>
-      )}
-
-      {/* Modal */}
-      <DotacionModal open={modal} onClose={() => setModal(false)} editing={editing} projects={projects}
-        onSave={async (input, id) => { await onSave({ ...input, id }); setModal(false); toast(id ? 'Actualizado' : 'Persona agregada') }}
-        onDelete={async (id) => { await onRemove(id); setModal(false); toast('Eliminado') }} />
+      <AuditoriaModal open={modal} onClose={() => setModal(false)} editing={editing}
+        onSave={async (input, id) => { await onSave({ ...input, id }); setModal(false); toast(id ? 'Auditoria actualizada' : 'Auditoria registrada') }}
+        onDelete={async (id) => { await onRemove(id); setModal(false); toast('Eliminada') }} />
     </>
   )
 }
@@ -297,15 +348,21 @@ function DotacionTab({ dotacion, stats, projects, canEdit, onSave, onRemove }: {
 //  DOCUMENTACIÓN
 // ══════════════════════════════════════
 
-function DocumentacionTab({ docs, stats, canEdit, onSave, onRemove }: {
-  docs: DocRRHH[]; stats: { total: number; vigentes: number; porVencer: number; vencidos: number }
-  canEdit: boolean
+function DocumentacionTab({ docs, canEdit, onSave, onRemove }: {
+  docs: DocRRHH[]; canEdit: boolean
   onSave: (d: DocRRHHInput & { id?: string }) => Promise<void>; onRemove: (id: string) => Promise<void>
 }) {
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<DocRRHH | null>(null)
   const [filtroDoc, setFiltroDoc] = useState<string>('todos')
   const [searchDoc, setSearchDoc] = useState('')
+
+  const stats = useMemo(() => {
+    const vigentes = docs.filter(d => d.estado === 'vigente').length
+    const porVencer = docs.filter(d => d.estado === 'por_vencer').length
+    const vencidos = docs.filter(d => d.estado === 'vencido').length
+    return { vigentes, porVencer, vencidos }
+  }, [docs])
 
   const docsFiltrados = useMemo(() => {
     let list = filtroDoc === 'todos' ? docs : docs.filter(d => d.estado === filtroDoc)
@@ -319,7 +376,7 @@ function DocumentacionTab({ docs, stats, canEdit, onSave, onRemove }: {
   return (
     <>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
-        <SummaryCard value={`${stats.total}`} label="Total documentos" color="#1E293B" />
+        <SummaryCard value={`${docs.length}`} label="Total documentos" color="#1E293B" />
         <SummaryCard value={`${stats.vigentes}`} label="Vigentes" color="#16A34A" />
         <SummaryCard value={`${stats.porVencer}`} label="Por vencer" color="#D97706" />
         <SummaryCard value={`${stats.vencidos}`} label="Vencidos" color="#DC2626" />
@@ -400,15 +457,21 @@ function DocumentacionTab({ docs, stats, canEdit, onSave, onRemove }: {
 //  CAPACITACIONES
 // ══════════════════════════════════════
 
-function CapacitacionesTab({ capacitaciones, stats, projects, canEdit, onSave, onRemove }: {
-  capacitaciones: Capacitacion[]; stats: { total: number; completadas: number; programadas: number; horasTotal: number }
-  projects: { id: string; nombre: string }[]; canEdit: boolean
+function CapacitacionesTab({ capacitaciones, projects, canEdit, onSave, onRemove }: {
+  capacitaciones: Capacitacion[]; projects: { id: string; nombre: string }[]; canEdit: boolean
   onSave: (c: CapacitacionInput & { id?: string }) => Promise<void>; onRemove: (id: string) => Promise<void>
 }) {
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<Capacitacion | null>(null)
   const [filtroCap, setFiltroCap] = useState<string>('todas')
   const [searchCap, setSearchCap] = useState('')
+
+  const stats = useMemo(() => {
+    const completadas = capacitaciones.filter(c => c.estado === 'completada').length
+    const programadas = capacitaciones.filter(c => c.estado === 'programada').length
+    const horasTotal = capacitaciones.filter(c => c.estado === 'completada').reduce((s, c) => s + c.horas, 0)
+    return { completadas, programadas, horasTotal }
+  }, [capacitaciones])
 
   const capFiltradas = useMemo(() => {
     let list = filtroCap === 'todas' ? capacitaciones : capacitaciones.filter(c => c.estado === filtroCap)
@@ -422,7 +485,7 @@ function CapacitacionesTab({ capacitaciones, stats, projects, canEdit, onSave, o
   return (
     <>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
-        <SummaryCard value={`${stats.total}`} label="Total capacitaciones" color="#1E293B" />
+        <SummaryCard value={`${capacitaciones.length}`} label="Total capacitaciones" color="#1E293B" />
         <SummaryCard value={`${stats.completadas}`} label="Completadas" color="#16A34A" />
         <SummaryCard value={`${stats.programadas}`} label="Programadas" color="#0B5ED7" />
         <SummaryCard value={`${stats.horasTotal}h`} label="Horas realizadas" color="#D97706" />
@@ -504,25 +567,23 @@ function CapacitacionesTab({ capacitaciones, stats, projects, canEdit, onSave, o
 //  MODALS
 // ══════════════════════════════════════
 
-function DotacionModal({ open, onClose, editing, projects, onSave, onDelete }: {
-  open: boolean; onClose: () => void; editing: Dotacion | null
-  projects: { id: string; nombre: string }[]
-  onSave: (input: DotacionInput, id?: string) => Promise<void>
+function MetricaModal({ open, onClose, editing, onSave, onDelete }: {
+  open: boolean; onClose: () => void; editing: MetricaRRHH | null
+  onSave: (input: MetricaRRHHInput, id?: string) => Promise<void>
   onDelete: (id: string) => Promise<void>
 }) {
-  const [nombre, setNombre] = useState('')
-  const [rut, setRut] = useState('')
-  const [cargo, setCargo] = useState('')
-  const [area, setArea] = useState('')
-  const [obraId, setObraId] = useState('')
-  const [tipo, setTipo] = useState<DotacionInput['tipo']>('constructta')
-  const [empresaSc, setEmpresaSc] = useState('')
-  const [estado, setEstado] = useState<DotacionInput['estado']>('activo')
-  const [fechaIng, setFechaIng] = useState('')
-  const [costo, setCosto] = useState('')
+  const [mes, setMes] = useState('')
+  const [dotConst, setDotConst] = useState('')
+  const [dotSub, setDotSub] = useState('')
+  const [vigentes, setVigentes] = useState('')
+  const [asistencia, setAsistencia] = useState('')
+  const [tasa, setTasa] = useState('')
+  const [licencias, setLicencias] = useState('')
+  const [vacaciones, setVacaciones] = useState('')
+  const [desvinc, setDesvinc] = useState('')
+  const [contrat, setContrat] = useState('')
   const [obs, setObs] = useState('')
   const [saving, setSaving] = useState(false)
-  const [errors, setErrors] = useState<string[]>([])
   const isEdit = !!editing
 
   const [prevOpen, setPrevOpen] = useState(false)
@@ -530,77 +591,134 @@ function DotacionModal({ open, onClose, editing, projects, onSave, onDelete }: {
   if (open !== prevOpen || (editing?.id ?? null) !== prevId) {
     setPrevOpen(open); setPrevId(editing?.id ?? null)
     if (open && editing) {
-      setNombre(editing.nombre); setRut(editing.rut || ''); setCargo(editing.cargo || '')
-      setArea(editing.area || ''); setObraId(editing.obra_id || ''); setTipo(editing.tipo)
-      setEmpresaSc(editing.empresa_sc || ''); setEstado(editing.estado)
-      setFechaIng(editing.fecha_ingreso || ''); setCosto(String(editing.costo_mensual || ''))
+      setMes(editing.mes); setDotConst(String(editing.dotacion_constructora))
+      setDotSub(String(editing.dotacion_subcontrato)); setVigentes(String(editing.trabajadores_vigentes))
+      setAsistencia(String(editing.asistencia_promedio || '')); setTasa(String(editing.tasa_asistencia || ''))
+      setLicencias(String(editing.licencias_medicas || '')); setVacaciones(String(editing.vacaciones || ''))
+      setDesvinc(String(editing.desvinculaciones || '')); setContrat(String(editing.contrataciones || ''))
       setObs(editing.observacion || '')
     } else if (open) {
-      setNombre(''); setRut(''); setCargo(''); setArea(''); setObraId(''); setTipo('constructta')
-      setEmpresaSc(''); setEstado('activo'); setFechaIng(''); setCosto(''); setObs('')
+      const now = new Date(); setMes(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`)
+      setDotConst(''); setDotSub(''); setVigentes(''); setAsistencia(''); setTasa('')
+      setLicencias(''); setVacaciones(''); setDesvinc(''); setContrat(''); setObs('')
     }
-    setErrors([])
   }
 
   async function handleSave() {
-    if (!nombre.trim()) { setErrors(['Nombre es obligatorio']); return }
-    setErrors([]); setSaving(true)
+    if (!mes) return; setSaving(true)
     try {
+      const dc = Number(dotConst) || 0; const ds = Number(dotSub) || 0
       await onSave({
-        nombre: nombre.trim(), rut: rut.trim() || null, cargo: cargo.trim() || null,
-        area: area.trim() || null, obra_id: obraId || null, tipo, empresa_sc: empresaSc.trim() || null,
-        estado, fecha_ingreso: fechaIng || null, fecha_termino: null,
-        costo_mensual: Number(costo) || 0, fuente: 'manual', observacion: obs.trim() || null,
+        mes, dotacion_constructora: dc, dotacion_subcontrato: ds,
+        trabajadores_vigentes: Number(vigentes) || (dc + ds),
+        asistencia_promedio: Number(asistencia) || 0, tasa_asistencia: Number(tasa) || 0,
+        licencias_medicas: Number(licencias) || 0, vacaciones: Number(vacaciones) || 0,
+        desvinculaciones: Number(desvinc) || 0, contrataciones: Number(contrat) || 0,
+        observacion: obs.trim() || null, fuente: 'manual',
       }, editing?.id)
     } finally { setSaving(false) }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={isEdit ? 'Editar' : 'Nueva'} accent="Persona"
+    <Modal open={open} onClose={onClose} title={isEdit ? 'Editar' : 'Registrar'} accent="Mes"
       footer={<>
         {isEdit && <Btn variant="danger" onClick={async () => { if (editing && confirm('Eliminar?')) { setSaving(true); try { await onDelete(editing.id) } finally { setSaving(false) } } }} disabled={saving}>Eliminar</Btn>}
         <div className="flex-1" />
         <Btn onClick={onClose}>Cancelar</Btn>
-        <Btn variant="primary" onClick={handleSave} disabled={saving}>{saving ? 'Guardando...' : isEdit ? 'Guardar' : 'Agregar'}</Btn>
+        <Btn variant="primary" onClick={handleSave} disabled={saving}>{saving ? 'Guardando...' : isEdit ? 'Guardar' : 'Registrar'}</Btn>
       </>}>
-      {errors.length > 0 && <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">{errors.map((e, i) => <p key={i} className="text-red-600 text-[13px]">{e}</p>)}</div>}
+      <Field label="Mes"><Input type="month" value={mes} onChange={e => setMes(e.target.value)} /></Field>
       <Row2>
-        <Field label="Nombre"><Input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre completo" /></Field>
-        <Field label="RUT"><Input value={rut} onChange={e => setRut(e.target.value)} placeholder="12.345.678-9" /></Field>
+        <Field label="Dotacion Constructora"><Input type="number" value={dotConst} onChange={e => setDotConst(e.target.value)} placeholder="0" /></Field>
+        <Field label="Dotacion Subcontrato"><Input type="number" value={dotSub} onChange={e => setDotSub(e.target.value)} placeholder="0" /></Field>
       </Row2>
       <Row2>
-        <Field label="Cargo"><Input value={cargo} onChange={e => setCargo(e.target.value)} /></Field>
+        <Field label="Total vigentes"><Input type="number" value={vigentes} onChange={e => setVigentes(e.target.value)} placeholder="Auto: suma" /></Field>
+        <Field label="Tasa asistencia (%)"><Input type="number" value={tasa} onChange={e => setTasa(e.target.value)} placeholder="95" /></Field>
+      </Row2>
+      <Row2>
+        <Field label="Licencias medicas"><Input type="number" value={licencias} onChange={e => setLicencias(e.target.value)} placeholder="0" /></Field>
+        <Field label="Vacaciones"><Input type="number" value={vacaciones} onChange={e => setVacaciones(e.target.value)} placeholder="0" /></Field>
+      </Row2>
+      <Row2>
+        <Field label="Contrataciones (+)"><Input type="number" value={contrat} onChange={e => setContrat(e.target.value)} placeholder="0" /></Field>
+        <Field label="Desvinculaciones (-)"><Input type="number" value={desvinc} onChange={e => setDesvinc(e.target.value)} placeholder="0" /></Field>
+      </Row2>
+      <Field label="Observacion"><Input value={obs} onChange={e => setObs(e.target.value)} /></Field>
+    </Modal>
+  )
+}
+
+function AuditoriaModal({ open, onClose, editing, onSave, onDelete }: {
+  open: boolean; onClose: () => void; editing: Auditoria | null
+  onSave: (input: AuditoriaInput, id?: string) => Promise<void>
+  onDelete: (id: string) => Promise<void>
+}) {
+  const [nombre, setNombre] = useState('')
+  const [tipo, setTipo] = useState<AuditoriaInput['tipo']>('interna')
+  const [fecha, setFecha] = useState('')
+  const [resultado, setResultado] = useState<AuditoriaInput['resultado']>('pendiente')
+  const [puntaje, setPuntaje] = useState('')
+  const [hallazgos, setHallazgos] = useState('')
+  const [cerrados, setCerrados] = useState('')
+  const [auditor, setAuditor] = useState('')
+  const [obs, setObs] = useState('')
+  const [url, setUrl] = useState('')
+  const [saving, setSaving] = useState(false)
+  const isEdit = !!editing
+
+  const [prevOpen, setPrevOpen] = useState(false)
+  const [prevId, setPrevId] = useState<string | null>(null)
+  if (open !== prevOpen || (editing?.id ?? null) !== prevId) {
+    setPrevOpen(open); setPrevId(editing?.id ?? null)
+    if (open && editing) {
+      setNombre(editing.nombre); setTipo(editing.tipo); setFecha(editing.fecha || '')
+      setResultado(editing.resultado); setPuntaje(editing.puntaje != null ? String(editing.puntaje) : '')
+      setHallazgos(String(editing.hallazgos || '')); setCerrados(String(editing.hallazgos_cerrados || ''))
+      setAuditor(editing.auditor || ''); setObs(editing.observacion || ''); setUrl(editing.url || '')
+    } else if (open) {
+      setNombre(''); setTipo('interna'); setFecha(''); setResultado('pendiente')
+      setPuntaje(''); setHallazgos(''); setCerrados(''); setAuditor(''); setObs(''); setUrl('')
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} title={isEdit ? 'Editar' : 'Nueva'} accent="Auditoria"
+      footer={<>
+        {isEdit && <Btn variant="danger" onClick={async () => { if (editing && confirm('Eliminar?')) { setSaving(true); try { await onDelete(editing.id) } finally { setSaving(false) } } }} disabled={saving}>Eliminar</Btn>}
+        <div className="flex-1" />
+        <Btn onClick={onClose}>Cancelar</Btn>
+        <Btn variant="primary" onClick={async () => {
+          if (!nombre.trim()) return; setSaving(true)
+          try { await onSave({ nombre: nombre.trim(), tipo, fecha: fecha || null, resultado, puntaje: puntaje ? Number(puntaje) : null, hallazgos: Number(hallazgos) || 0, hallazgos_cerrados: Number(cerrados) || 0, auditor: auditor.trim() || null, observacion: obs.trim() || null, url: url.trim() || null, fuente: 'manual' }, editing?.id) } finally { setSaving(false) }
+        }} disabled={saving}>{saving ? 'Guardando...' : isEdit ? 'Guardar' : 'Crear'}</Btn>
+      </>}>
+      <Field label="Nombre"><Input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej: Auditoria SSO Q1 2026" /></Field>
+      <Row2>
         <Field label="Tipo">
-          <Select value={tipo} onChange={e => setTipo(e.target.value as DotacionInput['tipo'])}>
-            <option value="constructta">Constructta</option>
-            <option value="subcontrato">Subcontrato</option>
+          <Select value={tipo} onChange={e => setTipo(e.target.value as AuditoriaInput['tipo'])}>
+            {Object.entries(TIPO_AUD).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </Select>
         </Field>
+        <Field label="Fecha"><Input type="date" value={fecha} onChange={e => setFecha(e.target.value)} /></Field>
       </Row2>
-      {tipo === 'subcontrato' && (
-        <Field label="Empresa subcontrato"><Input value={empresaSc} onChange={e => setEmpresaSc(e.target.value)} placeholder="Nombre empresa SC" /></Field>
-      )}
       <Row2>
-        <Field label="Obra">
-          <Select value={obraId} onChange={e => setObraId(e.target.value)}>
-            <option value="">— Sin obra —</option>
-            {projects.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+        <Field label="Resultado">
+          <Select value={resultado} onChange={e => setResultado(e.target.value as AuditoriaInput['resultado'])}>
+            {Object.entries(RESULTADO_AUD).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
           </Select>
         </Field>
-        <Field label="Area"><Input value={area} onChange={e => setArea(e.target.value)} placeholder="Oficina central, Terreno..." /></Field>
+        <Field label="Puntaje (%)"><Input type="number" value={puntaje} onChange={e => setPuntaje(e.target.value)} placeholder="0-100" /></Field>
       </Row2>
       <Row2>
-        <Field label="Estado">
-          <Select value={estado} onChange={e => setEstado(e.target.value as DotacionInput['estado'])}>
-            {Object.entries(ESTADO_DOT).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-          </Select>
-        </Field>
-        <Field label="Costo mensual (CLP)"><Input type="number" value={costo} onChange={e => setCosto(e.target.value)} placeholder="0" /></Field>
+        <Field label="Hallazgos totales"><Input type="number" value={hallazgos} onChange={e => setHallazgos(e.target.value)} placeholder="0" /></Field>
+        <Field label="Hallazgos cerrados"><Input type="number" value={cerrados} onChange={e => setCerrados(e.target.value)} placeholder="0" /></Field>
       </Row2>
       <Row2>
-        <Field label="Fecha ingreso"><Input type="date" value={fechaIng} onChange={e => setFechaIng(e.target.value)} /></Field>
-        <Field label="Observacion"><Input value={obs} onChange={e => setObs(e.target.value)} /></Field>
+        <Field label="Auditor"><Input value={auditor} onChange={e => setAuditor(e.target.value)} /></Field>
+        <Field label="URL informe"><Input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://..." /></Field>
       </Row2>
+      <Field label="Observacion"><Input value={obs} onChange={e => setObs(e.target.value)} /></Field>
     </Modal>
   )
 }

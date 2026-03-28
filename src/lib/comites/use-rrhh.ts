@@ -4,26 +4,25 @@ import { createClient } from '@/lib/supabase/client'
 
 const supabase = createClient()
 
-// ── Dotación ──
+// ── Métricas mensuales consolidadas ──
 
-export interface Dotacion {
+export interface MetricaRRHH {
   id: string
-  nombre: string
-  rut: string | null
-  cargo: string | null
-  area: string | null
-  obra_id: string | null
-  tipo: 'constructta' | 'subcontrato'
-  empresa_sc: string | null
-  estado: 'activo' | 'inactivo' | 'vacaciones' | 'licencia' | 'desvinculado'
-  fecha_ingreso: string | null
-  fecha_termino: string | null
-  costo_mensual: number
-  fuente: string
+  mes: string
+  dotacion_constructora: number
+  dotacion_subcontrato: number
+  trabajadores_vigentes: number
+  asistencia_promedio: number
+  tasa_asistencia: number
+  licencias_medicas: number
+  vacaciones: number
+  desvinculaciones: number
+  contrataciones: number
   observacion: string | null
+  fuente: string
 }
 
-export type DotacionInput = Omit<Dotacion, 'id'>
+export type MetricaRRHHInput = Omit<MetricaRRHH, 'id'>
 
 // ── Documentación ──
 
@@ -61,47 +60,70 @@ export interface Capacitacion {
 
 export type CapacitacionInput = Omit<Capacitacion, 'id'>
 
+// ── Auditorías ──
+
+export interface Auditoria {
+  id: string
+  nombre: string
+  tipo: 'interna' | 'externa' | 'mutual' | 'ist' | 'achs' | 'otro'
+  fecha: string | null
+  resultado: 'aprobada' | 'aprobada_observaciones' | 'reprobada' | 'pendiente' | 'en_proceso'
+  puntaje: number | null
+  hallazgos: number
+  hallazgos_cerrados: number
+  auditor: string | null
+  observacion: string | null
+  url: string | null
+  fuente: string
+}
+
+export type AuditoriaInput = Omit<Auditoria, 'id'>
+
 // ── Hook ──
 
 export function useRRHH() {
-  const [dotacion, setDotacion] = useState<Dotacion[]>([])
+  const [metricas, setMetricas] = useState<MetricaRRHH[]>([])
   const [docs, setDocs] = useState<DocRRHH[]>([])
   const [capacitaciones, setCapacitaciones] = useState<Capacitacion[]>([])
+  const [auditorias, setAuditorias] = useState<Auditoria[]>([])
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [d, doc, c] = await Promise.all([
-      supabase.from('dotacion').select('*').order('nombre'),
+    const [m, d, c, a] = await Promise.all([
+      supabase.from('metricas_rrhh').select('*').order('mes', { ascending: false }),
       supabase.from('documentacion_rrhh').select('*').order('nombre'),
       supabase.from('capacitaciones').select('*').order('fecha', { ascending: false }),
+      supabase.from('auditorias_rrhh').select('*').order('fecha', { ascending: false }),
     ])
-    if (d.data) setDotacion(d.data as Dotacion[])
-    if (doc.data) setDocs(doc.data as DocRRHH[])
+    if (m.data) setMetricas(m.data as MetricaRRHH[])
+    if (d.data) setDocs(d.data as DocRRHH[])
     if (c.data) setCapacitaciones(c.data as Capacitacion[])
+    if (a.data) setAuditorias(a.data as Auditoria[])
     setLoading(false)
   }, [])
 
   useEffect(() => { load() }, [load])
 
-  async function saveDotacion(item: DotacionInput & { id?: string }) {
+  // Métricas
+  async function saveMetrica(item: MetricaRRHHInput & { id?: string }) {
     if (item.id) {
       const { id, ...rest } = item
-      const { error } = await supabase.from('dotacion').update(rest).eq('id', id)
+      const { error } = await supabase.from('metricas_rrhh').update({ ...rest, updated_at: new Date().toISOString() }).eq('id', id)
       if (error) throw new Error(error.message)
     } else {
-      const { error } = await supabase.from('dotacion').insert(item)
+      const { error } = await supabase.from('metricas_rrhh').insert(item)
       if (error) throw new Error(error.message)
     }
     await load()
   }
-
-  async function removeDotacion(id: string) {
-    const { error } = await supabase.from('dotacion').delete().eq('id', id)
+  async function removeMetrica(id: string) {
+    const { error } = await supabase.from('metricas_rrhh').delete().eq('id', id)
     if (error) throw new Error(error.message)
     await load()
   }
 
+  // Docs
   async function saveDoc(item: DocRRHHInput & { id?: string }) {
     if (item.id) {
       const { id, ...rest } = item
@@ -113,13 +135,13 @@ export function useRRHH() {
     }
     await load()
   }
-
   async function removeDoc(id: string) {
     const { error } = await supabase.from('documentacion_rrhh').delete().eq('id', id)
     if (error) throw new Error(error.message)
     await load()
   }
 
+  // Capacitaciones
   async function saveCapacitacion(item: CapacitacionInput & { id?: string }) {
     if (item.id) {
       const { id, ...rest } = item
@@ -131,17 +153,35 @@ export function useRRHH() {
     }
     await load()
   }
-
   async function removeCapacitacion(id: string) {
     const { error } = await supabase.from('capacitaciones').delete().eq('id', id)
     if (error) throw new Error(error.message)
     await load()
   }
 
+  // Auditorías
+  async function saveAuditoria(item: AuditoriaInput & { id?: string }) {
+    if (item.id) {
+      const { id, ...rest } = item
+      const { error } = await supabase.from('auditorias_rrhh').update({ ...rest, updated_at: new Date().toISOString() }).eq('id', id)
+      if (error) throw new Error(error.message)
+    } else {
+      const { error } = await supabase.from('auditorias_rrhh').insert(item)
+      if (error) throw new Error(error.message)
+    }
+    await load()
+  }
+  async function removeAuditoria(id: string) {
+    const { error } = await supabase.from('auditorias_rrhh').delete().eq('id', id)
+    if (error) throw new Error(error.message)
+    await load()
+  }
+
   return {
-    dotacion, docs, capacitaciones, loading, refresh: load,
-    saveDotacion, removeDotacion,
+    metricas, docs, capacitaciones, auditorias, loading, refresh: load,
+    saveMetrica, removeMetrica,
     saveDoc, removeDoc,
     saveCapacitacion, removeCapacitacion,
+    saveAuditoria, removeAuditoria,
   }
 }
