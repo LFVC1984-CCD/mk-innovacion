@@ -9,7 +9,6 @@ const NAV = [
   { href: '/comites', label: 'Inicio', exact: true },
   { href: '/comites/proyectos', label: 'Proyectos', exact: false },
   { href: '/comites/equipos', label: 'Equipos', exact: false },
-  { href: '/comites/garantias', label: 'Garantías', exact: false },
   { href: '/comites/historial', label: 'Historial', exact: false },
   { href: '/comites/usuarios', label: 'Usuarios', exact: false },
 ]

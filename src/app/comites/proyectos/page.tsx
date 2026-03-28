@@ -1,9 +1,11 @@
 'use client'
 import { useState, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useProjects } from '@/lib/comites/use-projects'
 import { useAuth } from '@/lib/comites/hooks'
 import ProyectoCard from '@/components/comites/ProyectoCard'
 import ProyectoModal from '@/components/comites/ProyectoModal'
+import MandantesPanel from '@/components/comites/MandantesPanel'
 import type { Proyecto, ProyectoEstado } from '@/lib/types'
 import { ESTADO_LABELS, ESTADO_COLORS } from '@/lib/types'
 import { toast } from '@/components/ui/Toast'
@@ -18,12 +20,15 @@ const FILTERS: { key: FilterKey; label: string; match: (e: ProyectoEstado) => bo
   { key: 'no_adjudicados', label: 'No Adjudicados', match: e => ['no_adjudicado', 'excusa'].includes(e) },
 ]
 
+type PageTab = 'proyectos' | 'mandantes'
+
 export default function ProyectosPage() {
   const { projects, loading, save, remove } = useProjects()
   const { isAdmin, loading: authLoading } = useAuth()
   const [filter, setFilter] = useState<FilterKey>('todos')
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Proyecto | null>(null)
+  const [pageTab, setPageTab] = useState<PageTab>('proyectos')
 
   const filtered = useMemo(() => {
     const f = FILTERS.find(x => x.key === filter)!
@@ -60,92 +65,140 @@ export default function ProyectosPage() {
 
   return (
     <>
-      {/* Header */}
-      <div className="flex items-end justify-between mb-4 flex-wrap gap-2">
-        <div>
-          <h1 className="font-condensed text-[26px] font-extrabold">
-            Maestro de <span className="text-cobalt">Proyectos</span>
-          </h1>
-          <p className="text-xs text-slate-500">Proyectos compartidos entre todas las áreas</p>
-        </div>
-        {isAdmin && (
+      {/* Page-level tabs */}
+      <div className="flex gap-1 mb-5 border-b border-[#E2E8F0] pb-0">
+        {([
+          { id: 'proyectos' as const, label: 'Proyectos', count: projects.length },
+          { id: 'mandantes' as const, label: 'Mandantes' },
+        ]).map(t => (
           <button
-            onClick={openNew}
-            className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors"
-          >
-            + Nuevo proyecto
-          </button>
-        )}
-      </div>
-
-      {/* Filters */}
-      <div className="flex gap-1.5 flex-wrap mb-4">
-        {FILTERS.map(f => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
-              filter === f.key
-                ? 'bg-cobalt text-white border-cobalt'
-                : 'bg-white border-[#E2E8F0] text-slate-500 hover:border-cobalt hover:text-cobalt'
+            key={t.id}
+            onClick={() => setPageTab(t.id)}
+            className={`relative px-4 py-2.5 text-xs font-bold transition-all ${
+              pageTab === t.id
+                ? 'text-cobalt'
+                : 'text-slate hover:text-ink'
             }`}
           >
-            {f.label}
-            <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${
-              filter === f.key ? 'bg-white/20' : 'bg-slate-100'
-            }`}>
-              {counts[f.key]}
-            </span>
+            {t.label}
+            {t.count !== undefined && (
+              <span className={`ml-1.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
+                pageTab === t.id ? 'bg-cobalt/10 text-cobalt' : 'bg-slate-100 text-slate'
+              }`}>
+                {t.count}
+              </span>
+            )}
+            {pageTab === t.id && (
+              <motion.div
+                layoutId="proyectos-tab-indicator"
+                className="absolute bottom-0 left-2 right-2 h-0.5 bg-cobalt rounded-full"
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              />
+            )}
           </button>
         ))}
       </div>
 
-      {/* Summary by estado */}
-      <div className="flex gap-2 flex-wrap mb-4">
-        {Object.entries(
-          filtered.reduce<Record<string, number>>((acc, p) => {
-            acc[p.estado] = (acc[p.estado] || 0) + 1
-            return acc
-          }, {})
-        ).map(([estado, count]) => (
-          <div
-            key={estado}
-            className="flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-lg border border-[#E2E8F0] bg-white"
-          >
-            <span
-              className="w-2 h-2 rounded-full shrink-0"
-              style={{ background: ESTADO_COLORS[estado as ProyectoEstado] }}
-            />
-            {ESTADO_LABELS[estado as ProyectoEstado]}: {count}
-          </div>
-        ))}
-      </div>
+      <AnimatePresence mode="wait">
+        {/* ═══ TAB: PROYECTOS ═══ */}
+        {pageTab === 'proyectos' && (
+          <motion.div key="proyectos" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+            {/* Header */}
+            <div className="flex items-end justify-between mb-4 flex-wrap gap-2">
+              <div>
+                <h1 className="font-condensed text-[26px] font-extrabold">
+                  Maestro de <span className="text-cobalt">Proyectos</span>
+                </h1>
+                <p className="text-xs text-slate-500">Proyectos compartidos entre todas las áreas</p>
+              </div>
+              {isAdmin && (
+                <button
+                  onClick={openNew}
+                  className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors"
+                >
+                  + Nuevo proyecto
+                </button>
+              )}
+            </div>
 
-      {/* Grid */}
-      {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-400 text-sm">
-          Sin proyectos en este filtro.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map(p => (
-            <ProyectoCard
-              key={p.id}
-              proyecto={p}
-              onEdit={() => openEdit(p)}
-              onDelete={() => handleDelete(p)}
-            />
-          ))}
-        </div>
-      )}
+            {/* Filters */}
+            <div className="flex gap-1.5 flex-wrap mb-4">
+              {FILTERS.map(f => (
+                <button
+                  key={f.key}
+                  onClick={() => setFilter(f.key)}
+                  className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
+                    filter === f.key
+                      ? 'bg-cobalt text-white border-cobalt'
+                      : 'bg-white border-[#E2E8F0] text-slate-500 hover:border-cobalt hover:text-cobalt'
+                  }`}
+                >
+                  {f.label}
+                  <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${
+                    filter === f.key ? 'bg-white/20' : 'bg-slate-100'
+                  }`}>
+                    {counts[f.key]}
+                  </span>
+                </button>
+              ))}
+            </div>
 
-      {/* Modal */}
-      <ProyectoModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSave={async (p) => { try { await save(p); toast('Proyecto guardado'); return true } catch { toast('Error al guardar proyecto'); return false } }}
-        proyecto={editing}
-      />
+            {/* Summary by estado */}
+            <div className="flex gap-2 flex-wrap mb-4">
+              {Object.entries(
+                filtered.reduce<Record<string, number>>((acc, p) => {
+                  acc[p.estado] = (acc[p.estado] || 0) + 1
+                  return acc
+                }, {})
+              ).map(([estado, count]) => (
+                <div
+                  key={estado}
+                  className="flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-lg border border-[#E2E8F0] bg-white"
+                >
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ background: ESTADO_COLORS[estado as ProyectoEstado] }}
+                  />
+                  {ESTADO_LABELS[estado as ProyectoEstado]}: {count}
+                </div>
+              ))}
+            </div>
+
+            {/* Grid */}
+            {filtered.length === 0 ? (
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-400 text-sm">
+                Sin proyectos en este filtro.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {filtered.map(p => (
+                  <ProyectoCard
+                    key={p.id}
+                    proyecto={p}
+                    onEdit={() => openEdit(p)}
+                    onDelete={() => handleDelete(p)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Modal */}
+            <ProyectoModal
+              open={modalOpen}
+              onClose={() => setModalOpen(false)}
+              onSave={async (p) => { try { await save(p); toast('Proyecto guardado'); return true } catch { toast('Error al guardar proyecto'); return false } }}
+              proyecto={editing}
+            />
+          </motion.div>
+        )}
+
+        {/* ═══ TAB: MANDANTES ═══ */}
+        {pageTab === 'mandantes' && (
+          <motion.div key="mandantes" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+            <MandantesPanel />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }

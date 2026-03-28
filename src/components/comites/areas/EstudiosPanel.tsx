@@ -1,14 +1,19 @@
 'use client'
-import { useMemo } from 'react'
+import { useState, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useProjects } from '@/lib/comites/use-projects'
 import type { ProyectoEstado } from '@/lib/types'
 import { isEstudio, ESTADO_LABELS, ESTADO_COLORS } from '@/lib/types'
 import { fmtMM, fmtFecha } from '@/lib/comites/data'
+import PlanInversionPanel from './PlanInversionPanel'
 
 const ESTUDIO_ESTADOS: ProyectoEstado[] = ['en_evaluacion', 'en_estudio', 'en_aclaracion', 'sin_informacion']
 const RESULTADO_ESTADOS: ProyectoEstado[] = ['adjudicado', 'no_adjudicado', 'excusa']
 
+type SubTab = 'pipeline' | 'inversion'
+
 export default function EstudiosPanel() {
+  const [subTab, setSubTab] = useState<SubTab>('pipeline')
   const { projects, loading } = useProjects()
 
   // Pipeline: proyectos en etapa de estudio
@@ -54,6 +59,45 @@ export default function EstudiosPanel() {
 
   return (
     <div>
+      {/* Sub-tabs */}
+      <div className="flex gap-1 mb-5 border-b border-[#E2E8F0] pb-0">
+        {([
+          { id: 'pipeline' as const, label: 'Pipeline', count: pipeline.length },
+          { id: 'inversion' as const, label: 'Plan de Inversion' },
+        ]).map(t => (
+          <button
+            key={t.id}
+            onClick={() => setSubTab(t.id)}
+            className={`relative px-4 py-2.5 text-xs font-bold transition-all ${
+              subTab === t.id ? 'text-cobalt' : 'text-slate hover:text-ink'
+            }`}
+          >
+            {t.label}
+            {t.count !== undefined && (
+              <span className={`ml-1.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
+                subTab === t.id ? 'bg-cobalt/10 text-cobalt' : 'bg-slate-100 text-slate'
+              }`}>{t.count}</span>
+            )}
+            {subTab === t.id && (
+              <motion.div
+                layoutId="estudios-subtab"
+                className="absolute bottom-0 left-2 right-2 h-0.5 bg-cobalt rounded-full"
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              />
+            )}
+          </button>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+      {subTab === 'inversion' && (
+        <motion.div key="inversion" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+          <PlanInversionPanel />
+        </motion.div>
+      )}
+
+      {subTab === 'pipeline' && (
+        <motion.div key="pipeline" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
       {/* Consolidado */}
       <div className="bg-[#0F172A] rounded-xl p-5 grid grid-cols-4 gap-4 mb-4">
         <div>
@@ -205,6 +249,9 @@ export default function EstudiosPanel() {
           </div>
         </div>
       )}
+      </motion.div>
+      )}
+      </AnimatePresence>
     </div>
   )
 }

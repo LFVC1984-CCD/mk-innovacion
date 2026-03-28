@@ -31,7 +31,7 @@ const CAT_LABELS: Record<HerramientaCategoria, string> = {
   servicio_cloud: 'Cloud', licencia: 'Licencia', otro: 'Otro',
 }
 
-const ESTADO_PROY: Record<ProyectoInnovacion['estado'], { label: string; color: string }> = {
+const ESTADO_PROY: Record<ProyectoInnovacion['estado'], { label: string; color: string }> = { // eslint-disable-line @typescript-eslint/no-unused-vars
   idea: { label: 'Idea', color: '#64748B' },
   en_desarrollo: { label: 'En Desarrollo', color: '#0B5ED7' },
   piloto: { label: 'Piloto', color: '#D97706' },

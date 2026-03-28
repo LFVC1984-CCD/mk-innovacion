@@ -16,4 +16,8 @@ export const AREA_PANELS: Partial<Record<AreaId, ComponentType>> = {
   prevencion: dynamic(() => import('./PrevencionPanel'), { loading: Loading }),
   finanzas: dynamic(() => import('./FinanzasPanel'), { loading: Loading }),
   eti: dynamic(() => import('./ETIPanel'), { loading: Loading }),
+  rrhh: dynamic(() => import('./RRHHPanel'), { loading: Loading }),
 }
+
+export const GarantiasPanel = dynamic(() => import('./GarantiasPanel'), { loading: Loading })
+export const GarantiasViewer = dynamic(() => import('./GarantiasViewer'), { loading: Loading })

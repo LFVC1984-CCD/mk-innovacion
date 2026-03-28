@@ -37,6 +37,8 @@ export default function PrevencionPanel() {
   const [loading, setLoading] = useState(true)
   const [modalEvento, setModalEvento] = useState<Partial<EventoSeguridad> | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [filtro, setFiltro] = useState<'abiertos' | 'cerrados' | 'todos'>('abiertos')
+  const [search, setSearch] = useState('')
 
   async function load() {
     setLoading(true)
@@ -114,12 +116,21 @@ export default function PrevencionPanel() {
     load()
   }
 
+  const eventosAbiertos = eventos.filter(e => !e.cerrado)
+  const eventosCerrados = eventos.filter(e => e.cerrado)
+
+  const eventosFiltrados = useMemo(() => {
+    let list = filtro === 'abiertos' ? eventosAbiertos : filtro === 'cerrados' ? eventosCerrados : eventos
+    if (search) {
+      const s = search.toLowerCase()
+      list = list.filter(e => (e.trabajador || '').toLowerCase().includes(s) || (e.descripcion || '').toLowerCase().includes(s) || proyectoName(e.proyecto_id).toLowerCase().includes(s))
+    }
+    return list
+  }, [eventos, eventosAbiertos, eventosCerrados, filtro, search, proyectoName])
+
   if (loading) {
     return <div className="py-8 text-center text-slate-500 text-sm">Cargando datos de seguridad...</div>
   }
-
-  const eventosAbiertos = eventos.filter(e => !e.cerrado)
-  const eventosCerrados = eventos.filter(e => e.cerrado)
 
   return (
     <div>
@@ -199,28 +210,44 @@ export default function PrevencionPanel() {
         </div>
       )}
 
-      {/* Header eventos */}
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-          Eventos registrados ({eventos.length})
-        </p>
-        {ce && (
-          <button onClick={() => setModalEvento({ ...EMPTY_EVENTO })} className="bg-cobalt text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark transition-colors">
-            + Registrar evento
-          </button>
-        )}
+      {/* Controls */}
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div className="flex gap-1.5">
+          {([
+            { key: 'abiertos' as const, label: 'Abiertos', count: eventosAbiertos.length },
+            { key: 'cerrados' as const, label: 'Cerrados', count: eventosCerrados.length },
+            { key: 'todos' as const, label: 'Todos', count: eventos.length },
+          ]).map(f => (
+            <button key={f.key} onClick={() => setFiltro(f.key)}
+              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
+                filtro === f.key ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] text-slate hover:border-cobalt hover:text-cobalt'
+              }`}>
+              {f.label}
+              <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${filtro === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{f.count}</span>
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2 items-center">
+          <input type="text" placeholder="Buscar evento, trabajador..." value={search} onChange={e => setSearch(e.target.value)}
+            className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
+          {ce && (
+            <button onClick={() => setModalEvento({ ...EMPTY_EVENTO })} className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors">
+              + Registrar evento
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Eventos */}
-      {eventos.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-500 text-sm">
-          Sin eventos de seguridad registrados.
+      {eventosFiltrados.length === 0 ? (
+        <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate text-sm">
+          {search ? 'Sin resultados para esta busqueda.' : 'Sin eventos en este filtro.'}
         </div>
       ) : (
         <>
-          {eventosAbiertos.length > 0 && (
+          {eventosFiltrados.length > 0 && (
             <div className="mb-4">
-              {eventosAbiertos.map(e => (
+              {eventosFiltrados.map(e => (
                 <EventoRow key={e.id} evento={e} proyectoName={proyectoName(e.proyecto_id)}
                   expanded={expanded === e.id} onToggle={() => setExpanded(expanded === e.id ? null : e.id)}
                   onEdit={ce ? () => setModalEvento({ ...e }) : undefined}
@@ -230,19 +257,7 @@ export default function PrevencionPanel() {
               ))}
             </div>
           )}
-          {eventosCerrados.length > 0 && (
-            <>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Cerrados ({eventosCerrados.length})</p>
-              {eventosCerrados.map(e => (
-                <EventoRow key={e.id} evento={e} proyectoName={proyectoName(e.proyecto_id)}
-                  expanded={expanded === e.id} onToggle={() => setExpanded(expanded === e.id ? null : e.id)}
-                  onEdit={ce ? () => setModalEvento({ ...e }) : undefined}
-                  onDelete={ce ? () => deleteEvento(e.id) : undefined}
-                  onToggleCerrado={ce ? () => toggleCerrado(e) : undefined}
-                />
-              ))}
-            </>
-          )}
+          {/* Cerrados se muestran con el filtro */}
         </>
       )}
 

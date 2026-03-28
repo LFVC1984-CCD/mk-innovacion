@@ -35,9 +35,10 @@ interface Props {
   entidades: EntidadComputed[]
   onSave: (input: GarantiaInput, id?: string) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  defaultEstado?: string
 }
 
-export default function GarantiaModal({ open, onClose, editing, proyectos, entidades, onSave, onDelete }: Props) {
+export default function GarantiaModal({ open, onClose, editing, proyectos, entidades, onSave, onDelete, defaultEstado }: Props) {
   const [proyectoId, setProyectoId] = useState('')
   const [instrumento, setInstrumento] = useState('')
   const [tipo, setTipo] = useState('')
@@ -66,9 +67,9 @@ export default function GarantiaModal({ open, onClose, editing, proyectos, entid
       setObs(editing.observacion || '')
     } else {
       setProyectoId(''); setInstrumento(''); setTipo(''); setEntidad(''); setMonto(''); setDivisa('CLP')
-      setFSolicitud(''); setFInicio(''); setFVencimiento(''); setEstado('solicitada'); setNDoc(''); setObs('')
+      setFSolicitud(''); setFInicio(''); setFVencimiento(''); setEstado(defaultEstado || 'solicitada'); setNDoc(''); setObs('')
     }
-  }, [editing, open])
+  }, [editing, open, defaultEstado])
 
   const isEdit = !!editing
 

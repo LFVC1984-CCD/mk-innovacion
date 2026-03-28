@@ -6,6 +6,8 @@ import { useAuth } from '@/lib/comites/hooks'
 import { fmtFecha, fmtMM } from '@/lib/comites/data'
 import type { CausaLegal, CausaEstado, CausaTipo, DocumentoLegal, DocTipo } from '@/lib/types'
 
+type FiltroEstado = 'activas' | 'cerradas' | 'todas'
+
 // ── Config ──
 
 const ESTADO_CFG: Record<CausaEstado, { color: string; label: string }> = {
@@ -78,6 +80,8 @@ export default function LegalPanel() {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [addingDocFor, setAddingDocFor] = useState<string | null>(null) // causa_id
   const [newDoc, setNewDoc] = useState<{ tipo: DocTipo; nombre: string; url: string }>({ tipo: 'contrato', nombre: '', url: '' })
+  const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>('activas')
+  const [search, setSearch] = useState('')
 
   const abogados = useAbogados(causas)
   const contrapartes = useContrapartes(causas)
@@ -150,6 +154,18 @@ export default function LegalPanel() {
     load()
   }
 
+  const causasActivas = causas.filter(c => ['activa', 'en_negociacion', 'en_arbitraje'].includes(c.estado))
+  const causasCerradas = causas.filter(c => !['activa', 'en_negociacion', 'en_arbitraje'].includes(c.estado))
+
+  const causasFiltradas = useMemo(() => {
+    let list = filtroEstado === 'activas' ? causasActivas : filtroEstado === 'cerradas' ? causasCerradas : causas
+    if (search) {
+      const s = search.toLowerCase()
+      list = list.filter(c => c.titulo.toLowerCase().includes(s) || (c.contraparte || '').toLowerCase().includes(s) || (c.abogado_responsable || '').toLowerCase().includes(s))
+    }
+    return list
+  }, [causas, causasActivas, causasCerradas, filtroEstado, search])
+
   if (loading) {
     return (
       <div className="space-y-3">
@@ -159,9 +175,6 @@ export default function LegalPanel() {
       </div>
     )
   }
-
-  const causasActivas = causas.filter(c => ['activa', 'en_negociacion', 'en_arbitraje'].includes(c.estado))
-  const causasCerradas = causas.filter(c => !['activa', 'en_negociacion', 'en_arbitraje'].includes(c.estado))
 
   return (
     <div>
@@ -196,27 +209,45 @@ export default function LegalPanel() {
         </div>
       </div>
 
-      {/* ── Header + New ── */}
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate">Causas ({causas.length})</p>
-        {ce && (
-          <button onClick={() => setModalCausa({ proyecto_id: null, titulo: '', tipo: 'reclamo', estado: 'activa', contraparte: null, monto_reclamado: 0, monto_provision: 0, fecha_inicio: null, fecha_audiencia: null, abogado_responsable: null, descripcion: null, riesgo: 'medio' })}
-            className="bg-cobalt text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark transition-colors btn-scale">
-            + Nueva causa
-          </button>
-        )}
+      {/* ── Controls ── */}
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div className="flex gap-1.5">
+          {([
+            { key: 'activas' as const, label: 'Activas', count: causasActivas.length },
+            { key: 'cerradas' as const, label: 'Cerradas', count: causasCerradas.length },
+            { key: 'todas' as const, label: 'Todas', count: causas.length },
+          ]).map(f => (
+            <button key={f.key} onClick={() => setFiltroEstado(f.key)}
+              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
+                filtroEstado === f.key ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] text-slate hover:border-cobalt hover:text-cobalt'
+              }`}>
+              {f.label}
+              <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${filtroEstado === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{f.count}</span>
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2 items-center">
+          <input type="text" placeholder="Buscar causa, contraparte..." value={search} onChange={e => setSearch(e.target.value)}
+            className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
+          {ce && (
+            <button onClick={() => setModalCausa({ proyecto_id: null, titulo: '', tipo: 'reclamo', estado: 'activa', contraparte: null, monto_reclamado: 0, monto_provision: 0, fecha_inicio: null, fecha_audiencia: null, abogado_responsable: null, descripcion: null, riesgo: 'medio' })}
+              className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors">
+              + Nueva causa
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Lista ── */}
-      {causas.length === 0 ? (
+      {causasFiltradas.length === 0 ? (
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate text-sm">
-          Sin causas registradas. Agrega la primera.
+          {search ? 'Sin resultados para esta busqueda.' : 'Sin causas en este filtro.'}
         </div>
       ) : (
         <>
-          {causasActivas.length > 0 && (
+          {causasFiltradas.length > 0 && (
             <div className="space-y-2.5 mb-5">
-              {causasActivas.map(c => {
+              {causasFiltradas.map(c => {
                 const est = ESTADO_CFG[c.estado]
                 const riesgo = RIESGO_CFG[c.riesgo]
                 const causaDocs = docs.filter(d => d.causa_id === c.id)
@@ -330,24 +361,7 @@ export default function LegalPanel() {
             </div>
           )}
 
-          {causasCerradas.length > 0 && (
-            <>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate mb-2">Cerradas / Resueltas ({causasCerradas.length})</p>
-              <div className="space-y-2 opacity-70">
-                {causasCerradas.map(c => {
-                  const est = ESTADO_CFG[c.estado]
-                  return (
-                    <div key={c.id} className="bg-white rounded-xl border border-[#E2E8F0] px-4 py-3 flex items-center gap-3">
-                      <span className="w-1 h-6 rounded-full shrink-0" style={{ background: est.color }} />
-                      <span className="text-[13px] font-bold text-ink flex-1 truncate">{c.titulo}</span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: est.color + '15', color: est.color }}>{est.label}</span>
-                      {c.monto_reclamado > 0 && <span className="text-[11px] text-slate">{fmtMM(c.monto_reclamado)}</span>}
-                    </div>
-                  )
-                })}
-              </div>
-            </>
-          )}
+          {/* Cerradas ya se muestran con el filtro */}
         </>
       )}
 

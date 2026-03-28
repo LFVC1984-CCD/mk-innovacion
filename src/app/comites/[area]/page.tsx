@@ -9,7 +9,7 @@ import { toast } from '@/components/ui/Toast'
 import { createClient } from '@/lib/supabase/client'
 import { AREAS_LIST, AREA_NAMES, TAREA_TIPO_LABELS, TAREA_TIPO_COLORS } from '@/lib/types'
 import type { AreaId, TareaTipo } from '@/lib/types'
-import { AREA_PANELS } from '@/components/comites/areas'
+import { AREA_PANELS, GarantiasPanel, GarantiasViewer } from '@/components/comites/areas'
 import KPIDashboard from '@/components/comites/KPIDashboard'
 import TaskStackedBar from '@/components/comites/TaskStackedBar'
 import AnimatedBar from '@/components/comites/AnimatedBar'
@@ -25,6 +25,7 @@ const MODULE_NAMES: Record<string, string> = {
   estudios: 'Pipeline',
   finanzas: 'Flujo de Caja',
   eti: 'Tecnología e Innovación',
+  rrhh: 'Recursos Humanos',
 }
 
 interface MinutaRow {
@@ -51,12 +52,16 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
   const AreaPanel = AREA_PANELS[areaId as AreaId]
 
   // ── Tabs ──
-  type TabId = 'informe' | 'tareas' | 'modulo' | 'minutas'
+  const isFinanzas = areaId === 'finanzas'
+  const isEstudios = areaId === 'estudios'
+  const showGarantiasTab = isFinanzas || isEstudios
+  type TabId = 'informe' | 'tareas' | 'modulo' | 'garantias' | 'minutas'
   const tabs: { id: TabId; label: string; count?: number }[] = [
     { id: 'informe', label: 'Informe' },
     { id: 'tareas', label: 'Tareas', count: tareas.length },
   ]
   if (AreaPanel) tabs.push({ id: 'modulo', label: MODULE_NAMES[areaId] || 'Módulo' })
+  if (showGarantiasTab) tabs.push({ id: 'garantias', label: 'Garantías' })
   tabs.push({ id: 'minutas', label: 'Minutas' })
 
   const [activeTab, setActiveTab] = useState<TabId>('informe')
@@ -394,6 +399,18 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
         {activeTab === 'modulo' && AreaPanel && (
           <motion.div key="modulo" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
             <AreaPanel />
+          </motion.div>
+        )}
+
+        {/* ═══ GARANTÍAS ═══ */}
+        {activeTab === 'garantias' && isFinanzas && (
+          <motion.div key="garantias" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+            <GarantiasPanel />
+          </motion.div>
+        )}
+        {activeTab === 'garantias' && isEstudios && (
+          <motion.div key="garantias-viewer" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+            <GarantiasViewer />
           </motion.div>
         )}
 

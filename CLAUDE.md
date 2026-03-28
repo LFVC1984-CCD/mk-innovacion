@@ -28,7 +28,7 @@ src/
 │       ├── page.tsx        # Home: cards de 7 áreas
 │       ├── [area]/         # Edición de KPIs y tareas por área
 │       │   └── proyectar/  # Proyección/slides por área
-│       ├── garantias/      # Módulo de garantías y líneas
+│       ├── garantias/      # Redirect → /comites/finanzas (garantías ahora es tab de Finanzas)
 │       ├── proyectos/      # Maestro de proyectos (placeholder)
 │       ├── equipos/        # Maestro de equipos (placeholder)
 │       ├── usuarios/       # Maestro de usuarios (admin only)
