@@ -242,40 +242,52 @@ export default function UsuariosPage() {
               {/* Permisos panel */}
               {showPermisos && u.area_id !== 'admin' && (
                 <div className="px-4 py-3 border-t border-[#E2E8F0] bg-[#F9FAFB]">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate mb-2">Permisos de {u.nombre}</p>
-                  {['Comités', 'Gestión', 'Admin'].map(group => {
-                    const mods = MODULOS.filter(m => m.group === group)
-                    return (
-                      <div key={group} className="mb-2">
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-1">{group}</p>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
-                          {mods.map(mod => {
-                            const perm = userPermisos.find(p => p.modulo === mod.id)
-                            const nivel = perm?.nivel || null
-                            return (
-                              <div key={mod.id} className="flex items-center gap-1 bg-white rounded-lg border border-[#E2E8F0] px-2 py-1.5">
-                                <span className="text-[11px] font-medium text-ink flex-1">{mod.label}</span>
-                                <div className="flex gap-0.5">
-                                  <button onClick={() => togglePermiso(u.id, mod.id, nivel === null ? 'lectura' : null)}
-                                    className={`w-5 h-5 rounded text-[9px] font-bold flex items-center justify-center transition-all ${nivel ? 'bg-green-100 text-green-700' : 'bg-[#F1F5F9] text-[#CBD5E1]'}`}
-                                    title={nivel ? 'Quitar acceso' : 'Dar lectura'}>
-                                    👁
-                                  </button>
-                                  <button onClick={() => togglePermiso(u.id, mod.id, nivel === 'edicion' ? 'lectura' : 'edicion')}
-                                    className={`w-5 h-5 rounded text-[9px] font-bold flex items-center justify-center transition-all ${nivel === 'edicion' ? 'text-white' : 'bg-[#F1F5F9] text-[#CBD5E1]'}`}
-                                    style={nivel === 'edicion' ? { background: 'var(--org-primary)' } : undefined}
-                                    title={nivel === 'edicion' ? 'Cambiar a lectura' : 'Dar edición'}>
-                                    ✎
-                                  </button>
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )
-                  })}
-                  <p className="text-[9px] text-slate mt-1">👁 = solo lectura · ✎ = edicion · gris = sin acceso</p>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate">Permisos de {u.nombre}</p>
+                    <div className="flex gap-1">
+                      <button onClick={async () => { for (const m of MODULOS) await togglePermiso(u.id, m.id, 'lectura'); toast('Lectura en todos') }}
+                        className="text-[9px] font-bold px-2 py-0.5 rounded bg-[#F1F5F9] text-slate hover:text-ink">Lectura en todos</button>
+                      <button onClick={async () => { for (const m of MODULOS) await togglePermiso(u.id, m.id, 'edicion'); toast('Edicion en todos') }}
+                        className="text-[9px] font-bold px-2 py-0.5 rounded text-white" style={{ background: 'var(--org-primary)' }}>Edicion en todos</button>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg border border-[#E2E8F0] overflow-hidden">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                          <th className="text-left px-3 py-2 text-[10px] font-bold uppercase text-slate">Módulo</th>
+                          <th className="text-left px-3 py-2 text-[10px] font-bold uppercase text-slate">Grupo</th>
+                          <th className="text-center px-3 py-2 text-[10px] font-bold uppercase text-slate">Acceso</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {MODULOS.map(mod => {
+                          const perm = userPermisos.find(p => p.modulo === mod.id)
+                          const nivel = perm?.nivel || ''
+                          return (
+                            <tr key={mod.id} className="border-b border-[#F1F5F9] hover:bg-[#FAFBFD]">
+                              <td className="px-3 py-2 font-semibold text-ink">{mod.label}</td>
+                              <td className="px-3 py-2 text-slate text-[11px]">{mod.group}</td>
+                              <td className="px-3 py-2 text-center">
+                                <select value={nivel}
+                                  onChange={e => togglePermiso(u.id, mod.id, e.target.value === '' ? null : e.target.value as 'lectura' | 'edicion')}
+                                  className="text-[11px] font-semibold rounded-md border px-2 py-1 cursor-pointer outline-none"
+                                  style={{
+                                    borderColor: nivel === 'edicion' ? 'var(--org-primary)' : nivel === 'lectura' ? '#16A34A' : '#E2E8F0',
+                                    color: nivel === 'edicion' ? 'var(--org-primary)' : nivel === 'lectura' ? '#16A34A' : '#9CA3AF',
+                                    background: nivel === 'edicion' ? 'var(--org-primary-light)' : nivel === 'lectura' ? '#F0FDF4' : 'white',
+                                  }}>
+                                  <option value="">Sin acceso</option>
+                                  <option value="lectura">Lectura</option>
+                                  <option value="edicion">Edicion</option>
+                                </select>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>
