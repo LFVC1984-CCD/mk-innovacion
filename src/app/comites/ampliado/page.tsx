@@ -177,7 +177,7 @@ export default function AmpliadoPage() {
     return (
       <>
         <div className="mb-6">
-          <h1 className="font-condensed text-[28px] font-extrabold">
+          <h1 className="font-condensed text-2xl font-extrabold">
             Comité <span className="text-cobalt">Ampliado</span>
           </h1>
           <p className="text-xs text-slate">Selecciona las áreas que se revisarán en esta sesión</p>
@@ -226,7 +226,7 @@ export default function AmpliadoPage() {
       {/* Header */}
       <div className="flex items-end justify-between mb-5">
         <div>
-          <h1 className="font-condensed text-[28px] font-extrabold">
+          <h1 className="font-condensed text-2xl font-extrabold">
             Comité <span className="text-cobalt">Ampliado</span>
           </h1>
           <p className="text-xs text-slate">
@@ -306,7 +306,7 @@ export default function AmpliadoPage() {
                       const ec = estadoCfg[t.estado] || estadoCfg.pendiente
                       return (
                         <div key={t.id} className="flex items-center gap-2 text-xs py-1.5 px-2 rounded hover:bg-[#F8FAFC]">
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold" style={{ background: ec.color + '18', color: ec.color }}>{ec.label}</span>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold" style={{ background: ec.color + '18', color: ec.color }}>{ec.label}</span>
                           <span className="flex-1 truncate">{t.texto}</span>
                           {t.responsable && <span className="text-[10px] text-slate">{t.responsable}</span>}
                           {t.fecha_compromiso && <span className="text-[10px] text-slate">{fmtFecha(t.fecha_compromiso)}</span>}

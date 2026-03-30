@@ -330,7 +330,7 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
                               {t.responsable && <span>{t.responsable}</span>}
                               {t.fecha_compromiso && <span className="font-mono">{fmtFecha(t.fecha_compromiso)}</span>}
                             </div>
-                            <span className="text-[9px] text-[#CBD5E1] group-hover:text-slate transition-colors">editar →</span>
+                            <span className="text-[10px] text-[#CBD5E1] group-hover:text-slate transition-colors">editar →</span>
                           </div>
                         </div>
                       )
@@ -399,7 +399,7 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
                       >
                         <div className="w-1 h-8 rounded-full shrink-0" style={{ background: areaInfo?.color || '#64748B' }} />
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-[13px] font-bold text-ink">
+                          <h3 className="text-xs font-bold text-ink">
                             Minuta — {fecha.toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' })}
                           </h3>
                           <p className="text-[10px] text-slate mt-0.5">

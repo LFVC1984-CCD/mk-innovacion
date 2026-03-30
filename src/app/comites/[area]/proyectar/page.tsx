@@ -135,7 +135,7 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
       {/* Header */}
       <div className="hero-gradient px-7 py-3.5 flex items-center justify-between">
         <div>
-          <h1 className="font-condensed font-black text-3xl text-white uppercase tracking-wide">
+          <h1 className="font-condensed font-black text-3xl text-white uppercase tracking-wider">
             {areaInfo?.name} <span className="text-gold">·</span>
           </h1>
           <p className="text-white/40 text-xs uppercase tracking-wider mt-0.5">Comité · {fmtFechaDate(new Date())} · MK Ingeniería</p>
@@ -305,7 +305,7 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
                 {minutaLines.length === 0 && <p className="text-xs text-slate italic py-2">Los comentarios aparecerán aquí.</p>}
                 {minutaLines.map((l, i) => (
                   <div key={i} className="flex items-start gap-2 py-1 border-b border-[#F1F5F9] last:border-0">
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${l.tag === 'KPI' ? 'bg-cobalt-light text-cobalt' : 'bg-green-50 text-success'}`}>{l.tag}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${l.tag === 'KPI' ? 'bg-cobalt-light text-cobalt' : 'bg-green-50 text-success'}`}>{l.tag}</span>
                     <span className="text-[11px] text-ink flex-1">{l.text}</span>
                   </div>
                 ))}

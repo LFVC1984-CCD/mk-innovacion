@@ -22,7 +22,7 @@ function NumField({ label, value, onChange }: {
         type="number"
         value={value || ''}
         onChange={e => onChange(parseFloat(e.target.value) || 0)}
-        className="w-full px-2.5 py-2 border border-[#E2E8F0] rounded-lg text-[13px] text-right outline-none focus:border-cobalt transition-colors"
+        className="w-full px-2.5 py-2 border border-[#E2E8F0] rounded-lg text-xs text-right outline-none focus:border-cobalt transition-colors"
         placeholder="0"
       />
     </div>

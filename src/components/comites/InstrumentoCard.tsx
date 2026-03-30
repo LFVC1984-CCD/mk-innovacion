@@ -19,7 +19,7 @@ export default function InstrumentoCard({ inst, index, onClick }: { inst: Instru
       className="bg-white rounded-xl border border-[#E2E8F0] p-4 relative overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer"
     >
       <div className="absolute top-0 left-0 right-0 h-[3px] bg-[#94A3B8]" />
-      <p className="text-[13px] font-bold mb-1">{inst.nombre}</p>
+      <p className="text-xs font-bold mb-1">{inst.nombre}</p>
       <p className="text-[10px] text-slate mb-2">{inst.entidades.length} entidades · {inst.tipos.length} tipos</p>
       <div className="grid grid-cols-2 gap-1.5 mb-2">
         <div><p className="text-[10px] text-slate">Activas</p><p className="font-condensed text-lg font-black">{inst.activas}</p></div>

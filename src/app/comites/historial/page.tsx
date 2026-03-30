@@ -87,7 +87,7 @@ export default function HistorialPage() {
   return (
     <>
       <div className="mb-5">
-        <h1 className="font-condensed text-[28px] font-extrabold">
+        <h1 className="font-condensed text-2xl font-extrabold">
           Historial de <span className="text-cobalt">Minutas</span>
         </h1>
         <p className="text-xs text-slate">Registro de todas las sesiones de comité — ver y descargar como PDF</p>
@@ -100,14 +100,14 @@ export default function HistorialPage() {
           className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all ${
             filterArea === 'todas' ? 'bg-cobalt border-cobalt text-white' : 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1]'
           }`}>
-          Todas <span className="text-[9px] font-extrabold opacity-70">{minutas.length}</span>
+          Todas <span className="text-[10px] font-extrabold opacity-70">{minutas.length}</span>
         </button>
         {areas.map(a => (
           <button key={a} onClick={() => setFilterArea(a)}
             className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all ${
               filterArea === a ? 'bg-cobalt border-cobalt text-white' : 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1]'
             }`}>
-            {AREA_NAMES[a] || a} <span className="text-[9px] font-extrabold opacity-70">{minutas.filter(m => m.area_id === a).length}</span>
+            {AREA_NAMES[a] || a} <span className="text-[10px] font-extrabold opacity-70">{minutas.filter(m => m.area_id === a).length}</span>
           </button>
         ))}
       </div>
@@ -137,8 +137,8 @@ export default function HistorialPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold">{areaName}</span>
                         <span className="text-[10px] text-slate">{fmtFecha(m.fecha)}</span>
-                        {lineCount > 0 && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#F1F5F9] text-slate">{lineCount} líneas</span>}
-                        {m.enviada && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-50 text-success">Enviada</span>}
+                        {lineCount > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#F1F5F9] text-slate">{lineCount} líneas</span>}
+                        {m.enviada && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-50 text-success">Enviada</span>}
                       </div>
                       {m.texto_completo && <p className="text-[11px] text-slate truncate mt-0.5">{m.texto_completo.slice(0, 120)}</p>}
                     </div>
@@ -175,7 +175,7 @@ export default function HistorialPage() {
                           return (
                             <div key={i} className="flex items-start gap-2 py-1 border-b border-white last:border-0">
                               {(isKPI || isTarea) && (
-                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 mt-0.5 ${isKPI ? 'bg-cobalt-light text-cobalt' : 'bg-green-50 text-success'}`}>
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 mt-0.5 ${isKPI ? 'bg-cobalt-light text-cobalt' : 'bg-green-50 text-success'}`}>
                                   {isKPI ? 'KPI' : 'Tarea'}
                                 </span>
                               )}
@@ -201,7 +201,7 @@ export default function HistorialPage() {
                             const text = String(line.text || '')
                             return (
                               <div key={i} className="flex items-center gap-2 px-3 py-2">
-                                {tag && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${tag === 'KPI' ? 'bg-cobalt-light text-cobalt' : 'bg-green-50 text-success'}`}>{tag}</span>}
+                                {tag && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${tag === 'KPI' ? 'bg-cobalt-light text-cobalt' : 'bg-green-50 text-success'}`}>{tag}</span>}
                                 {areaKey && <span className="text-[10px] font-bold" style={{ color: AREA_COLORS[areaKey] || '#64748B' }}>{AREA_NAMES[areaKey] || areaKey}</span>}
                                 <span className="text-xs text-ink flex-1">{text || comentario}</span>
                                 {acuerdos >= 0 && <span className="text-[10px] font-bold text-gold">{acuerdos} acuerdos</span>}

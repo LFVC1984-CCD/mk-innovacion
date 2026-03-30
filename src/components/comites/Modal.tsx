@@ -125,7 +125,7 @@ export function Input({ ...props }: React.InputHTMLAttributes<HTMLInputElement>)
   return (
     <input
       {...props}
-      className="w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-[13px] font-sans bg-white outline-none focus:border-cobalt focus:shadow-[0_0_0_3px_rgba(11,94,215,0.1)] transition-all placeholder:text-[#CBD5E1]"
+      className="w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-xs bg-white outline-none focus:border-cobalt focus:shadow-[0_0_0_3px_rgba(11,94,215,0.1)] transition-all placeholder:text-[#CBD5E1]"
     />
   )
 }
@@ -134,7 +134,7 @@ export function Select({ children, ...props }: React.SelectHTMLAttributes<HTMLSe
   return (
     <select
       {...props}
-      className="w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-[13px] font-sans bg-white outline-none focus:border-cobalt focus:shadow-[0_0_0_3px_rgba(11,94,215,0.1)] transition-all cursor-pointer"
+      className="w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-xs bg-white outline-none focus:border-cobalt focus:shadow-[0_0_0_3px_rgba(11,94,215,0.1)] transition-all cursor-pointer"
     >
       {children}
     </select>

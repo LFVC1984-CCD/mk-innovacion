@@ -201,7 +201,7 @@ export default function LegalPanel() {
                 filtroEstado === f.key ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] text-slate hover:border-cobalt hover:text-cobalt'
               }`}>
               {f.label}
-              <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${filtroEstado === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{f.count}</span>
+              <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${filtroEstado === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{f.count}</span>
             </button>
           ))}
         </div>
@@ -238,8 +238,8 @@ export default function LegalPanel() {
                       <span className="w-1 h-8 rounded-full shrink-0" style={{ background: est.color }} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-[13px] font-bold text-ink truncate">{c.titulo}</h3>
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: riesgo.color + '15', color: riesgo.color }}>{riesgo.label}</span>
+                          <h3 className="text-xs font-bold text-ink truncate">{c.titulo}</h3>
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: riesgo.color + '15', color: riesgo.color }}>{riesgo.label}</span>
                         </div>
                         <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate">
                           <span>{TIPO_OPTS.find(t => t.value === c.tipo)?.label}</span>
@@ -286,7 +286,7 @@ export default function LegalPanel() {
                           </div>
                           {causaDocs.map(d => (
                             <div key={d.id} className="flex items-center gap-2 py-1.5 border-b border-[#F1F5F9] last:border-0 text-xs">
-                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#F1F5F9] text-slate shrink-0">{DOC_TIPO_OPTS.find(t => t.value === d.tipo)?.label || d.tipo}</span>
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#F1F5F9] text-slate shrink-0">{DOC_TIPO_OPTS.find(t => t.value === d.tipo)?.label || d.tipo}</span>
                               {d.url ? (
                                 <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-cobalt hover:underline flex-1 truncate">{d.nombre}</a>
                               ) : (
@@ -304,20 +304,20 @@ export default function LegalPanel() {
                           {addingDocFor === c.id && (
                             <div className="flex gap-1.5 mt-2 items-end">
                               <div className="w-32">
-                                <span className="text-[9px] font-bold text-slate block mb-0.5">Tipo</span>
+                                <span className="text-[10px] font-bold text-slate block mb-0.5">Tipo</span>
                                 <select value={newDoc.tipo} onChange={e => setNewDoc(p => ({ ...p, tipo: e.target.value as DocTipo }))}
                                   className="w-full px-2 py-1.5 border border-[#E2E8F0] rounded text-xs outline-none focus:border-cobalt">
                                   {DOC_TIPO_OPTS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                                 </select>
                               </div>
                               <div className="flex-1">
-                                <span className="text-[9px] font-bold text-slate block mb-0.5">Nombre</span>
+                                <span className="text-[10px] font-bold text-slate block mb-0.5">Nombre</span>
                                 <input value={newDoc.nombre} onChange={e => setNewDoc(p => ({ ...p, nombre: e.target.value }))}
                                   placeholder="Ej: Contrato principal"
                                   className="w-full px-2 py-1.5 border border-[#E2E8F0] rounded text-xs outline-none focus:border-cobalt" />
                               </div>
                               <div className="flex-1">
-                                <span className="text-[9px] font-bold text-slate block mb-0.5">URL (opcional)</span>
+                                <span className="text-[10px] font-bold text-slate block mb-0.5">URL (opcional)</span>
                                 <input value={newDoc.url} onChange={e => setNewDoc(p => ({ ...p, url: e.target.value }))}
                                   placeholder="https://..."
                                   className="w-full px-2 py-1.5 border border-[#E2E8F0] rounded text-xs outline-none focus:border-cobalt" />

@@ -80,7 +80,7 @@ export default function RRHHPanel() {
               subTab === t.id ? 'text-cobalt' : 'text-slate hover:text-ink'
             }`}>
             {t.label}
-            <span className={`ml-1.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
+            <span className={`ml-1.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${
               subTab === t.id ? 'bg-cobalt/10 text-cobalt' : 'bg-slate-100 text-slate'
             }`}>{t.count}</span>
             {subTab === t.id && (
@@ -256,7 +256,7 @@ function AuditoriasTab({ auditorias, canEdit, onSave, onRemove }: {
                 filtro === f.key ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] text-slate hover:border-cobalt hover:text-cobalt'
               }`}>
               {f.label}
-              <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${filtro === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{f.count}</span>
+              <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${filtro === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{f.count}</span>
             </button>
           ))}
         </div>
@@ -296,7 +296,7 @@ function AuditoriasTab({ auditorias, canEdit, onSave, onRemove }: {
                   <td className="p-3 text-[11px]">{TIPO_AUD[a.tipo] || a.tipo}</td>
                   <td className="p-3 text-[11px] text-slate">{a.fecha || '—'}</td>
                   <td className="p-3">
-                    <span className="px-2 py-0.5 rounded text-[9px] font-extrabold"
+                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold"
                       style={{ background: res.color + '18', color: res.color }}>{res.label}</span>
                   </td>
                   <td className="p-3 text-right font-bold">{a.puntaje != null ? `${a.puntaje}%` : '—'}</td>
@@ -375,7 +375,7 @@ function DocumentacionTab({ docs, canEdit, onSave, onRemove }: {
                 filtroDoc === f.key ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] text-slate hover:border-cobalt hover:text-cobalt'
               }`}>
               {f.label}
-              <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${filtroDoc === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{f.count}</span>
+              <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${filtroDoc === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{f.count}</span>
             </button>
           ))}
         </div>
@@ -412,7 +412,7 @@ function DocumentacionTab({ docs, canEdit, onSave, onRemove }: {
                   <td className="p-3 font-bold">{d.nombre}</td>
                   <td className="p-3 text-[11px]">{TIPO_DOC[d.tipo] || d.tipo}</td>
                   <td className="p-3">
-                    <span className="px-2 py-0.5 rounded text-[9px] font-extrabold"
+                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold"
                       style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
                   </td>
                   <td className="p-3 text-slate">{d.responsable || '—'}</td>
@@ -483,7 +483,7 @@ function CapacitacionesTab({ capacitaciones, projects, canEdit, onSave, onRemove
                 filtroCap === f.key ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] text-slate hover:border-cobalt hover:text-cobalt'
               }`}>
               {f.label}
-              <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${filtroCap === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{f.count}</span>
+              <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${filtroCap === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{f.count}</span>
             </button>
           ))}
         </div>
@@ -524,7 +524,7 @@ function CapacitacionesTab({ capacitaciones, projects, canEdit, onSave, onRemove
                   <td className="p-3 text-right font-bold">{c.horas > 0 ? c.horas : '—'}</td>
                   <td className="p-3 text-[11px] text-slate">{c.fecha || '—'}</td>
                   <td className="p-3">
-                    <span className="px-2 py-0.5 rounded text-[9px] font-extrabold"
+                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold"
                       style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
                   </td>
                   <td className="p-3 text-[11px] text-slate">{c.proveedor || '—'}</td>

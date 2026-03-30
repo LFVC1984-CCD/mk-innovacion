@@ -336,7 +336,7 @@ export default function FinanzasPanel() {
                   <div className={`text-[8px] font-bold ${m.saldo >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                     {m.totalIng > 0 || m.totalEg > 0 ? (m.saldo >= 0 ? '+' : '') + fmtMoney(m.saldo) : ''}
                   </div>
-                  <div className={`text-[9px] font-bold ${m.isCurrent ? 'text-cobalt' : 'text-slate'}`}>{fmtMes(m.mes)}</div>
+                  <div className={`text-[10px] font-bold ${m.isCurrent ? 'text-cobalt' : 'text-slate'}`}>{fmtMes(m.mes)}</div>
                 </div>
               ))}
             </div>
@@ -356,8 +356,8 @@ export default function FinanzasPanel() {
               const mesesNeg = porMesAcum.filter(m => m.acumulado < 0 && (m.totalIng > 0 || m.totalEg > 0))
               const mesMax = porMes.reduce((max, m) => m.totalEg > max.totalEg ? m : max, porMes[0])
               return (
-                <div className="mt-3 p-3 rounded-lg bg-[#E8F0FE] border border-[#0B5ED7]/10">
-                  <p className="text-[11px] text-[#0847A8] leading-relaxed">
+                <div className="mt-3 p-3 rounded-lg bg-cobalt-light border border-cobalt/10">
+                  <p className="text-[11px] text-cobalt-dark leading-relaxed">
                     <span className="font-bold">Saldo proyectado al cierre: {acumFinal >= 0 ? '+' : ''}{fmtMM(acumFinal)}</span>
                     {acumFinal < 0 && <span className="text-red-600"> — requiere financiamiento o adelantar cobros.</span>}
                     {mesesNeg.length > 0 && <><br /><span className="text-amber-700 font-semibold">{mesesNeg.length} mes{mesesNeg.length > 1 ? 'es' : ''} con saldo negativo</span> — revisar calce de pagos vs cobros.</>}
@@ -385,7 +385,7 @@ export default function FinanzasPanel() {
                   <tr key={m.mes} className={`border-b border-[#F1F5F9] ${m.isCurrent ? 'bg-blue-50/50' : ''}`}>
                     <td className="px-3.5 py-2 font-semibold">
                       {fmtMes(m.mes)}
-                      {m.isCurrent && <span className="text-[9px] text-cobalt font-bold ml-1">actual</span>}
+                      {m.isCurrent && <span className="text-[10px] text-cobalt font-bold ml-1">actual</span>}
                     </td>
                     <td className="px-2 py-2 text-right font-condensed font-bold text-green-600">{m.totalIng > 0 ? fmtMM(m.totalIng) : '—'}</td>
                     <td className="px-2 py-2 text-right font-condensed font-bold text-red-500">{m.totalEg > 0 ? fmtMM(m.totalEg) : '—'}</td>
@@ -424,9 +424,9 @@ export default function FinanzasPanel() {
                     <td className="px-3.5 py-2.5">
                       <div className="flex items-center gap-1.5">
                         <span className="font-semibold text-ink">{p.nombre}</span>
-                        {p.tipo === 'lead' && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cobalt-light text-cobalt">Lead</span>}
-                        {p.tipo === 'oficina' && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate">Oficina</span>}
-                        {p.flujos.length > 0 && <span className="text-[9px] text-slate">{p.flujos.length} líneas</span>}
+                        {p.tipo === 'lead' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cobalt-light text-cobalt">Lead</span>}
+                        {p.tipo === 'oficina' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate">Oficina</span>}
+                        {p.flujos.length > 0 && <span className="text-[10px] text-slate">{p.flujos.length} líneas</span>}
                       </div>
                     </td>
                     <td className="px-2 py-2.5 text-right font-condensed font-bold text-green-600">{p.ing > 0 ? fmtMM(p.ing) : '—'}</td>

@@ -74,7 +74,7 @@ export default function EntidadModal({ open, onClose, editing, onSave, onDelete 
     >
       {errors.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
-          {errors.map((e, i) => <p key={i} className="text-red-600 text-[13px]">{e}</p>)}
+          {errors.map((e, i) => <p key={i} className="text-red-600 text-xs">{e}</p>)}
         </div>
       )}
       <Row2>

@@ -27,11 +27,11 @@ export default function GarantiaCard({ g, index }: { g: Garantia; index: number 
       {/* Header */}
       <div className="flex justify-between items-start mb-2">
         <div>
-          <p className="text-[13px] font-bold leading-tight">{g.proyecto}</p>
+          <p className="text-xs font-bold leading-tight">{g.proyecto}</p>
           <p className="text-[10px] text-slate mt-0.5">{g.instrumento} · {g.tipo}</p>
         </div>
         <span
-          className="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wide"
+          className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider"
           style={{ background: estado.color + '18', color: estado.color }}
         >
           {estado.label}
@@ -42,11 +42,11 @@ export default function GarantiaCard({ g, index }: { g: Garantia; index: number 
       <div className="grid grid-cols-2 gap-1.5 mb-2">
         <div>
           <p className="text-[10px] text-slate">Monto</p>
-          <p className="font-condensed text-[13px] font-extrabold">{fmtMM(g.monto)}</p>
+          <p className="font-condensed text-xs font-extrabold">{fmtMM(g.monto)}</p>
         </div>
         <div>
           <p className="text-[10px] text-slate">Entidad</p>
-          <p className="font-condensed text-[13px] font-extrabold">{g.entidad}</p>
+          <p className="font-condensed text-xs font-extrabold">{g.entidad}</p>
         </div>
       </div>
 

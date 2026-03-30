@@ -93,7 +93,7 @@ export default function PlanInversionPanel() {
                   : 'bg-white border-[#E2E8F0] text-slate hover:border-cobalt hover:text-cobalt'
               }`}>
               {f.label}
-              <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${
+              <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${
                 filterEstado === f.key ? 'bg-white/20' : 'bg-slate-100'
               }`}>{f.count}</span>
             </button>
@@ -135,12 +135,12 @@ export default function PlanInversionPanel() {
                     <td className="p-3 font-bold">{item.cliente}</td>
                     <td className="p-3 text-[11px] text-slate">{item.proyecto || '—'}</td>
                     <td className="p-3">
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${item.tipo_cliente === 'actual' ? 'bg-cobalt/10 text-cobalt' : 'bg-amber-100 text-amber-700'}`}>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${item.tipo_cliente === 'actual' ? 'bg-cobalt/10 text-cobalt' : 'bg-amber-100 text-amber-700'}`}>
                         {item.tipo_cliente === 'actual' ? 'Actual' : 'Potencial'}
                       </span>
                     </td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase"
+                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase"
                         style={{ background: est.color + '18', color: est.color }}>
                         {est.label}
                       </span>
@@ -191,13 +191,13 @@ export default function PlanInversionPanel() {
                     <h3 className="text-sm font-bold text-ink">{item.cliente}</h3>
                     {item.proyecto && <p className="text-[11px] text-slate">{item.proyecto}</p>}
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase shrink-0"
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase shrink-0"
                     style={{ background: est.color + '18', color: est.color }}>
                     {est.label}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${item.tipo_cliente === 'actual' ? 'bg-cobalt/10 text-cobalt' : 'bg-amber-100 text-amber-700'}`}>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${item.tipo_cliente === 'actual' ? 'bg-cobalt/10 text-cobalt' : 'bg-amber-100 text-amber-700'}`}>
                     {item.tipo_cliente === 'actual' ? 'Actual' : 'Potencial'}
                   </span>
                   {item.segmento && <span className="text-[10px] text-slate">{SEGMENTO_LABELS[item.segmento] || item.segmento}</span>}
@@ -340,7 +340,7 @@ function PlanInversionModal({ open, onClose, editing, onSave, onDelete }: {
     >
       {errors.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
-          {errors.map((e, i) => <p key={i} className="text-red-600 text-[13px]">{e}</p>)}
+          {errors.map((e, i) => <p key={i} className="text-red-600 text-xs">{e}</p>)}
         </div>
       )}
       <Row2>

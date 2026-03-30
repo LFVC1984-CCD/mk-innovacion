@@ -19,17 +19,17 @@ export default function EntidadCard({ e, index, onClick }: { e: Entidad; index: 
       <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: e.tipo === 'Banco' ? '#1E293B' : '#64748B' }} />
       <div className="flex justify-between items-start mb-2">
         <div>
-          <p className="text-[13px] font-bold">{e.nombre}</p>
+          <p className="text-xs font-bold">{e.nombre}</p>
           <p className="text-[10px] text-slate">{e.tipo} · {e.instrumentos.length} instrumento{e.instrumentos.length > 1 ? 's' : ''}</p>
         </div>
-        <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ${e.tipo === 'Banco' ? 'bg-[#F1F5F9] text-ink' : 'bg-[#F1F5F9] text-slate'}`}>
+        <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${e.tipo === 'Banco' ? 'bg-[#F1F5F9] text-ink' : 'bg-[#F1F5F9] text-slate'}`}>
           {e.tipo}
         </span>
       </div>
       <div className="grid grid-cols-3 gap-1.5 mb-2">
-        <div><p className="text-[10px] text-slate">Línea</p><p className="font-condensed text-[13px] font-extrabold" style={{ color: FIN_COLORS.aprobado }}>{fmtMM(e.linea)}</p></div>
-        <div><p className="text-[10px] text-slate">Comprometido</p><p className="font-condensed text-[13px] font-extrabold" style={{ color: barColor }}>{fmtMM(e.consumo)}</p></div>
-        <div><p className="text-[10px] text-slate">Saldo</p><p className="font-condensed text-[13px] font-extrabold" style={{ color: saldo >= 0 ? FIN_COLORS.disponible : FIN_COLORS.critico }}>{fmtMM(saldo)}</p></div>
+        <div><p className="text-[10px] text-slate">Línea</p><p className="font-condensed text-xs font-extrabold" style={{ color: FIN_COLORS.aprobado }}>{fmtMM(e.linea)}</p></div>
+        <div><p className="text-[10px] text-slate">Comprometido</p><p className="font-condensed text-xs font-extrabold" style={{ color: barColor }}>{fmtMM(e.consumo)}</p></div>
+        <div><p className="text-[10px] text-slate">Saldo</p><p className="font-condensed text-xs font-extrabold" style={{ color: saldo >= 0 ? FIN_COLORS.disponible : FIN_COLORS.critico }}>{fmtMM(saldo)}</p></div>
       </div>
       <div className="h-1.5 bg-[#F1F5F9] rounded-full overflow-hidden mb-1.5">
         <div className="h-full rounded-full" style={{ width: `${pct}%`, background: barColor }} />

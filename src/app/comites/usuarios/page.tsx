@@ -156,7 +156,7 @@ export default function UsuariosPage() {
               {u.area_id !== 'admin' && userPermisos.length > 0 && (
                 <div className="flex gap-1 flex-wrap">
                   {userPermisos.map(p => (
-                    <span key={p.modulo} className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                    <span key={p.modulo} className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
                       style={{ background: p.nivel === 'edicion' ? 'var(--org-primary-light)' : '#F0FDF4', color: p.nivel === 'edicion' ? 'var(--org-primary)' : '#16A34A' }}>
                       {MODULOS.find(m => m.id === p.modulo)?.label || p.modulo} {p.nivel === 'edicion' ? '✎' : '👁'}
                     </span>
@@ -226,7 +226,7 @@ export default function UsuariosPage() {
             </div>
             {['Comités', 'Gestión', 'Admin'].map(group => (
               <div key={group} className="mb-2">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-1">{group}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-1">{group}</p>
                 <div className="space-y-1">
                   {MODULOS.filter(m => m.group === group).map(mod => {
                     const perm = editingPermisos.find(p => p.modulo === mod.id)

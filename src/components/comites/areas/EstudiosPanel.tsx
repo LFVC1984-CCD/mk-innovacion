@@ -75,7 +75,7 @@ export default function EstudiosPanel() {
           >
             {t.label}
             {t.count !== undefined && (
-              <span className={`ml-1.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
+              <span className={`ml-1.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${
                 subTab === t.id ? 'bg-cobalt/10 text-cobalt' : 'bg-slate-100 text-slate'
               }`}>{t.count}</span>
             )}
@@ -199,7 +199,7 @@ export default function EstudiosPanel() {
                   <p className="text-[10px] text-slate-500 mt-0.5">{p.mandante || '—'}</p>
                   <div className="flex items-center justify-between mt-2">
                     <span
-                      className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
                       style={{ background: ESTADO_COLORS[p.estado] + '15', color: ESTADO_COLORS[p.estado] }}
                     >
                       {ESTADO_LABELS[p.estado]}

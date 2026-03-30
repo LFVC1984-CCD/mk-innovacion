@@ -112,7 +112,7 @@ export default function MandantesPanel() {
                 className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md hover:border-[#CBD5E1] transition-all cursor-pointer">
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-sm font-bold text-ink">{m.nombre}</h3>
-                  <span className="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase"
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase"
                     style={{ background: TIPO_COLORS[m.tipo] + '18', color: TIPO_COLORS[m.tipo] }}>
                     {TIPO_LABELS[m.tipo]}
                   </span>
@@ -169,7 +169,7 @@ export default function MandantesPanel() {
                     <td className="p-3 font-bold">{m.nombre}</td>
                     <td className="p-3 text-slate">{m.rut || '—'}</td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase"
+                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase"
                         style={{ background: TIPO_COLORS[m.tipo] + '18', color: TIPO_COLORS[m.tipo] }}>
                         {TIPO_LABELS[m.tipo]}
                       </span>
@@ -291,7 +291,7 @@ function MandanteModal({ open, onClose, editing, onSave, onDelete }: {
     >
       {errors.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
-          {errors.map((e, i) => <p key={i} className="text-red-600 text-[13px]">{e}</p>)}
+          {errors.map((e, i) => <p key={i} className="text-red-600 text-xs">{e}</p>)}
         </div>
       )}
       <Field label="Nombre">

@@ -151,7 +151,7 @@ export default function GarantiasViewer() {
                     <td className="p-3 text-right font-condensed text-sm font-extrabold" style={{ color: FIN_COLORS.aprobado }}>{fmtMM(g.monto)}</td>
                     <td className="p-3 text-[11px] text-slate">{g.fecha_vencimiento ? fmtFecha(g.fecha_vencimiento) : '—'}</td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase"
+                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase"
                         style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
                     </td>
                     <td className="p-3 text-center">
@@ -203,7 +203,7 @@ export default function GarantiasViewer() {
                 className="bg-white rounded-xl border border-[#E2E8F0] p-4">
                 <div className="flex items-start justify-between mb-2">
                   <p className="text-sm font-bold text-ink leading-tight">{g.proyecto}</p>
-                  <span className="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase shrink-0"
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase shrink-0"
                     style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
                 </div>
                 <p className="text-[11px] text-slate mb-1">{g.instrumento_label} · {g.tipo_label}</p>

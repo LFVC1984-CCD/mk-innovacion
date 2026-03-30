@@ -20,7 +20,7 @@ export default function Timeline() {
             <div key={i} className={`flex items-start gap-2.5 py-2 ${i < VENCIMIENTOS.length - 1 ? 'border-b border-[#E2E8F0]' : ''}`}>
               <div className="text-center min-w-[44px]" style={{ color: c }}>
                 <span className="font-condensed text-[14px] font-bold leading-none">{v.date}</span>
-                <span className="block text-[9px] font-semibold text-slate">{v.month}</span>
+                <span className="block text-[10px] font-semibold text-slate">{v.month}</span>
               </div>
               <div className="w-[3px] min-h-[28px] rounded-full self-stretch" style={{ background: c }} />
               <div className="flex-1 min-w-0">

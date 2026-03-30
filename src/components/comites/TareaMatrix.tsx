@@ -45,7 +45,7 @@ export default function TareaMatrix({ tareas, compact = false }: Props) {
           className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all ${
             filterTipo === 'todas' ? 'border-cobalt text-cobalt bg-cobalt-light' : 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1]'
           }`}>
-          Todas <span className="text-[9px] font-extrabold opacity-70">{tipoCounts.todas}</span>
+          Todas <span className="text-[10px] font-extrabold opacity-70">{tipoCounts.todas}</span>
         </button>
         {tipoKeys.map(tipo => {
           if (tipoCounts[tipo] === 0) return null
@@ -57,7 +57,7 @@ export default function TareaMatrix({ tareas, compact = false }: Props) {
                 active ? 'text-white' : 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1]'
               }`}
               style={active ? { background: color, borderColor: color } : {}}>
-              {TAREA_TIPO_LABELS[tipo]} <span className="text-[9px] font-extrabold opacity-70">{tipoCounts[tipo]}</span>
+              {TAREA_TIPO_LABELS[tipo]} <span className="text-[10px] font-extrabold opacity-70">{tipoCounts[tipo]}</span>
             </button>
           )
         })}
@@ -82,11 +82,11 @@ export default function TareaMatrix({ tareas, compact = false }: Props) {
                   <div key={t.id} className="px-4 py-2.5 flex items-start gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: TAREA_TIPO_COLORS[t.tipo || 'seguimiento'] + '15', color: TAREA_TIPO_COLORS[t.tipo || 'seguimiento'] }}>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: TAREA_TIPO_COLORS[t.tipo || 'seguimiento'] + '15', color: TAREA_TIPO_COLORS[t.tipo || 'seguimiento'] }}>
                           {TAREA_TIPO_LABELS[t.tipo || 'seguimiento']}
                         </span>
                         {t.area_id !== t.area_destino && t.area_destino && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#0891B2]/10 text-[#0891B2]">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#0891B2]/10 text-[#0891B2]">
                             ← {t.area_id.toUpperCase()}
                           </span>
                         )}

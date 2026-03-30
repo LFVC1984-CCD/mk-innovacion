@@ -82,7 +82,7 @@ export default function ProyectosPage() {
           >
             {t.label}
             {t.count !== undefined && (
-              <span className={`ml-1.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
+              <span className={`ml-1.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${
                 pageTab === t.id ? 'bg-cobalt/10 text-cobalt' : 'bg-slate-100 text-slate'
               }`}>
                 {t.count}
@@ -106,7 +106,7 @@ export default function ProyectosPage() {
             {/* Header */}
             <div className="flex items-end justify-between mb-4 flex-wrap gap-2">
               <div>
-                <h1 className="font-condensed text-[26px] font-extrabold">
+                <h1 className="font-condensed text-2xl font-extrabold">
                   Maestro de <span className="text-cobalt">Proyectos</span>
                 </h1>
                 <p className="text-xs text-slate-500">Proyectos compartidos entre todas las áreas</p>
@@ -134,7 +134,7 @@ export default function ProyectosPage() {
                   }`}
                 >
                   {f.label}
-                  <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${
+                  <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${
                     filter === f.key ? 'bg-white/20' : 'bg-slate-100'
                   }`}>
                     {counts[f.key]}

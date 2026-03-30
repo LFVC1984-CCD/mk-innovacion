@@ -178,8 +178,8 @@ export default function PrevencionPanel() {
             </tbody>
           </table>
           {/* Insight narrativo */}
-          <div className="px-4 py-3 bg-[#E8F0FE] border-t border-[#0B5ED7]/10">
-            <p className="text-[11px] text-[#0847A8] leading-relaxed">
+          <div className="px-4 py-3 bg-cobalt-light border-t border-cobalt/10">
+            <p className="text-[11px] text-cobalt-dark leading-relaxed">
               {consol.accidentes === 0
                 ? <><span className="font-bold text-green-700">Sin accidentes en el periodo.</span> Se mantiene racha positiva. Continuar con charlas diarias e inspecciones.</>
                 : <><span className="font-bold">{consol.accidentes} accidente{consol.accidentes > 1 ? 's' : ''}</span> con {consol.diasPerdidos} dias perdidos (tasa frec. {consol.tasaFrec}).
@@ -205,7 +205,7 @@ export default function PrevencionPanel() {
                 filtro === f.key ? 'bg-cobalt text-white border-cobalt' : 'bg-white border-[#E2E8F0] text-slate hover:border-cobalt hover:text-cobalt'
               }`}>
               {f.label}
-              <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${filtro === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{f.count}</span>
+              <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${filtro === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{f.count}</span>
             </button>
           ))}
         </div>

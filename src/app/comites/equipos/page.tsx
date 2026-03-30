@@ -78,7 +78,7 @@ export default function EquiposPage() {
       {/* Header */}
       <div className="flex items-end justify-between mb-4 flex-wrap gap-2">
         <div>
-          <h1 className="font-condensed text-[26px] font-extrabold">
+          <h1 className="font-condensed text-2xl font-extrabold">
             Maestro de <span className="text-cobalt">Equipos</span>
           </h1>
           <p className="text-xs text-slate-500">{equipo.length} profesionales · {uniqueProyectos.length} proyectos</p>
@@ -177,7 +177,7 @@ function ListadoView({
             }`}
           >
             {f.label}
-            <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${
+            <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${
               estadoFilter === f.key ? 'bg-white/20' : 'bg-slate-100'
             }`}>{counts[f.key]}</span>
           </button>
@@ -336,7 +336,7 @@ function CalendarioView({ equipo, projects }: { equipo: Miembro[]; projects: Pro
                 {/* Project bar */}
                 {barWidth > 0 ? (
                   <div
-                    className="absolute top-2.5 h-5 rounded-md flex items-center px-2 text-[9px] font-bold text-white truncate z-20"
+                    className="absolute top-2.5 h-5 rounded-md flex items-center px-2 text-[10px] font-bold text-white truncate z-20"
                     style={{
                       left: `${barLeft}%`,
                       width: `${barWidth}%`,
@@ -348,11 +348,11 @@ function CalendarioView({ equipo, projects }: { equipo: Miembro[]; projects: Pro
                     {barWidth > 8 ? m.proyecto_nombre : ''}
                   </div>
                 ) : m.proyecto_nombre ? (
-                  <div className="absolute top-2.5 left-1 text-[9px] text-slate-500 italic">
+                  <div className="absolute top-2.5 left-1 text-[10px] text-slate-500 italic">
                     {m.proyecto_nombre} (sin fechas)
                   </div>
                 ) : (
-                  <div className="absolute top-2.5 left-1 text-[9px] text-amber font-semibold">
+                  <div className="absolute top-2.5 left-1 text-[10px] text-amber font-semibold">
                     Disponible
                   </div>
                 )}

@@ -31,7 +31,7 @@ export default function TaskStackedBar({ segments, total, height = 16 }: Props) 
               className="flex items-center justify-center"
               style={{ background: s.color, minWidth: pct > 0 ? 3 : 0 }}
             >
-              {pct > 12 && <span className="text-[9px] font-bold text-white">{s.value}</span>}
+              {pct > 12 && <span className="text-[10px] font-bold text-white">{s.value}</span>}
             </motion.div>
           )
         })}
@@ -40,7 +40,7 @@ export default function TaskStackedBar({ segments, total, height = 16 }: Props) 
         {segments.filter(s => s.value > 0).map(s => (
           <div key={s.label} className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full" style={{ background: s.color }} />
-            <span className="text-[9px] font-semibold text-slate">{s.label} ({s.value})</span>
+            <span className="text-[10px] font-semibold text-slate">{s.label} ({s.value})</span>
           </div>
         ))}
       </div>

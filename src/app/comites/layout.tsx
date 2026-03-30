@@ -155,7 +155,7 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
                       if (hasSub) { e.preventDefault(); setExpandedSub(isExpanded ? null : item.href); router.push(item.href) }
                       onNavigate?.()
                     }}
-                    className={`ccd-sidebar-item flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] relative group ${active ? 'active' : ''}`}
+                    className={`ccd-sidebar-item flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs relative group ${active ? 'active' : ''}`}
                     style={{ color: active ? undefined : 'var(--org-sidebar-text)', marginLeft: '-2px' }}>
                     <span className="text-base opacity-60 group-hover:opacity-100 transition-opacity">{item.icon}</span>
                     {!collapsed && (
@@ -219,7 +219,7 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
               <div className="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold text-white" style={{ background: 'var(--org-primary)' }}>N</div>
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-bold truncate" style={{ color: 'var(--org-primary)' }}>NEGRETPAR002</p>
-                <p className="text-[9px] truncate" style={{ color: '#9CA3AF' }}>MK Ingeniería</p>
+                <p className="text-[10px] truncate" style={{ color: '#9CA3AF' }}>MK Ingeniería</p>
               </div>
             </div>
           ) : (
@@ -287,7 +287,7 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <button className="lg:hidden w-8 h-8 flex items-center justify-center relative">
                 <span className="text-lg">🔔</span>
-                <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-danger text-white text-[9px] font-bold flex items-center justify-center">3</span>
+                <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center">3</span>
               </button>
               <button onClick={() => setLogoutConfirm(true)}
                 className="hidden sm:flex items-center gap-1.5 bg-white border px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all hover:bg-gray-50"
@@ -421,7 +421,7 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
                     transition={{ delay: i * 0.05 }}
                     onClick={() => setFabOpen(false)}
                     className="flex items-center gap-2">
-                    <span className="px-3 py-1.5 rounded-lg bg-[#111827] text-white text-[13px] font-medium shadow-lg">{action.label}</span>
+                    <span className="px-3 py-1.5 rounded-lg bg-[#111827] text-white text-xs font-medium shadow-lg">{action.label}</span>
                     <span className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold shadow-lg"
                       style={{ background: i === 0 ? 'var(--org-primary)' : '#E5E7EB', color: i === 0 ? 'white' : 'var(--org-primary)' }}>
                       {action.icon}

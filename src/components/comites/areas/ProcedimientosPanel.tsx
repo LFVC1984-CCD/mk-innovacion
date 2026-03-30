@@ -163,8 +163,8 @@ export default function ProcedimientosPanel({ areaId }: Props) {
                     <div className="flex items-center gap-2">
                       {p.codigo && <span className="text-[10px] font-mono font-bold text-slate">{p.codigo}</span>}
                       <span className="text-xs font-bold text-ink truncate">{p.nombre}</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded font-bold" style={{ background: cfg.color + '18', color: cfg.color }}>{cfg.label}</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#F1F5F9] text-slate font-medium">{tipoLabel(p.tipo)}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-bold" style={{ background: cfg.color + '18', color: cfg.color }}>{cfg.label}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#F1F5F9] text-slate font-medium">{tipoLabel(p.tipo)}</span>
                       {p.video_url && <span className="text-[10px]" title="Tiene video">▶</span>}
                     </div>
                     <EtapaBar proc={p} />

@@ -62,7 +62,7 @@ export default function AreaCard({ area, index, editHref, presentHref }: Props) 
 
       <div className="p-4 relative">
         {/* Area name + freq */}
-        <h3 className="font-condensed text-[17px] font-bold leading-tight group-hover:text-cobalt transition-colors duration-200">{area.name}</h3>
+        <h3 className="font-condensed text-base font-bold leading-tight group-hover:text-cobalt transition-colors duration-200">{area.name}</h3>
         <p className="text-[10px] text-slate font-semibold mb-2.5">{area.freq}</p>
 
         {/* Stats pills */}

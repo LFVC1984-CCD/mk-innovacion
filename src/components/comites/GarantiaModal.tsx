@@ -154,7 +154,7 @@ export default function GarantiaModal({ open, onClose, editing, proyectos, entid
     >
       {errors.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
-          {errors.map((e, i) => <p key={i} className="text-red-600 text-[13px]">{e}</p>)}
+          {errors.map((e, i) => <p key={i} className="text-red-600 text-xs">{e}</p>)}
         </div>
       )}
       <Field label="Proyecto asociado">
@@ -197,7 +197,7 @@ export default function GarantiaModal({ open, onClose, editing, proyectos, entid
         </Field>
         {divisa === 'UF' && monto ? (
           <Field label={`Equivalente CLP (UF $${UF_REF.toLocaleString('es-CL')})`}>
-            <div className="px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-[13px] bg-[#F8FAFC] text-slate font-semibold">
+            <div className="px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-xs bg-[#F8FAFC] text-slate font-semibold">
               ${(parseFloat(monto) * UF_REF).toLocaleString('es-CL', { maximumFractionDigits: 0 })}
             </div>
           </Field>

@@ -39,7 +39,7 @@ export default function MiniGauge({ value, max = 2, label, sublabel, size = 64, 
           <span className="font-condensed font-black text-sm" style={{ color }}>{value}</span>
         </div>
       </div>
-      <span className="text-[9px] font-bold uppercase tracking-wider text-slate">{label}</span>
+      <span className="text-[10px] font-bold uppercase tracking-wider text-slate">{label}</span>
       {sublabel && <span className="text-[8px] text-slate -mt-1">{sublabel}</span>}
     </div>
   )

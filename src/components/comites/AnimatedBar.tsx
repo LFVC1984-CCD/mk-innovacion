@@ -42,7 +42,7 @@ export default function AnimatedBar({
         />
       </div>
       {showLabel && (
-        <div className="flex justify-between text-[9px] text-slate mt-1">
+        <div className="flex justify-between text-[10px] text-slate mt-1">
           <span>{Math.round(pct)}%</span>
           {secondValue !== undefined && <span>Prog. {Math.round(pct2)}%</span>}
         </div>

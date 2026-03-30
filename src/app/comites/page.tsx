@@ -101,7 +101,7 @@ export default function ComitesHomePage() {
         className="flex items-end justify-between mb-4"
       >
         <div>
-          <h1 className="font-condensed text-[28px] font-extrabold">
+          <h1 className="font-condensed text-2xl font-extrabold">
             Comités <span className="text-cobalt">MK Ingeniería</span>
           </h1>
           <p className="text-xs text-slate capitalize">{today} · Semana {weekNum}</p>

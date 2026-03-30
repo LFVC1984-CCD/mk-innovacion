@@ -333,10 +333,10 @@ export default function ETIPanel() {
                       onClick={() => ce && setModalProy({ ...p })}>
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <h4 className="text-[13px] font-bold text-ink">{p.nombre}</h4>
+                          <h4 className="text-xs font-bold text-ink">{p.nombre}</h4>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: etapaCfg.color + '15', color: etapaCfg.color }}>{etapaCfg.label}</span>
-                            <span className="text-[9px] text-slate px-1.5 py-0.5 rounded bg-[#F1F5F9] font-semibold">
+                            <span className="text-[10px] text-slate px-1.5 py-0.5 rounded bg-[#F1F5F9] font-semibold">
                               {p.tipo_ruta === 'contratacion_servicio' ? 'Contratación' : 'Desarrollo'}
                             </span>
                           </div>
@@ -384,7 +384,7 @@ export default function ETIPanel() {
                 <tr key={m.id} className="border-b border-[#F1F5F9] hover:bg-[#F8FAFC] transition-colors">
                   <td className="px-3.5 py-2.5 font-bold text-ink">
                     {m.nombre}
-                    {!m.activo && <span className="ml-1.5 text-[9px] text-slate bg-slate-100 px-1.5 py-0.5 rounded">Inactivo</span>}
+                    {!m.activo && <span className="ml-1.5 text-[10px] text-slate bg-slate-100 px-1.5 py-0.5 rounded">Inactivo</span>}
                   </td>
                   <td className="px-3.5 py-2.5 text-slate">{m.cargo || '—'}</td>
                   <td className="px-3.5 py-2.5">

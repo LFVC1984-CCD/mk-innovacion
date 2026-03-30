@@ -202,7 +202,7 @@ export default function GarantiasPanel() {
                         : { borderColor: '#E2E8F0' }
                       }>
                       {!isAll && <span className="w-1.5 h-1.5 rounded-full" style={{ background: isActive ? '#fff' : activeColor }} />}
-                      {label}<span className="text-[9px] font-extrabold opacity-70">{counts[k] || 0}</span>
+                      {label}<span className="text-[10px] font-extrabold opacity-70">{counts[k] || 0}</span>
                     </button>
                   )
                 })}
@@ -238,7 +238,7 @@ export default function GarantiasPanel() {
                       className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md hover:border-[#CBD5E1] transition-all cursor-pointer">
                       <div className="flex items-start justify-between mb-2">
                         <p className="text-sm font-bold text-ink leading-tight">{g.proyecto}</p>
-                        <span className="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase shrink-0" style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase shrink-0" style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
                       </div>
                       <p className="text-[11px] text-slate mb-1">{g.instrumento_label} · {g.tipo_label}</p>
                       <p className="text-[11px] text-slate mb-3">{g.entidad}</p>
@@ -285,7 +285,7 @@ export default function GarantiasPanel() {
                           <td className="p-3 font-semibold">{g.entidad}</td>
                           <td className="p-3 text-right font-condensed text-sm font-extrabold" style={{ color: FIN_COLORS.aprobado }}>{fmtMM(g.monto)}</td>
                           <td className="p-3 text-[11px] text-slate">{g.fecha_vencimiento ? fmtFecha(g.fecha_vencimiento) : '—'}</td>
-                          <td className="p-3"><span className="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase" style={{ background: est.color + '18', color: est.color }}>{est.label}</span></td>
+                          <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase" style={{ background: est.color + '18', color: est.color }}>{est.label}</span></td>
                           <td className="p-3 text-right">{g.dias !== null ? <span className={`text-[11px] font-bold ${g.dias <= 0 ? 'text-danger' : g.dias <= 30 ? 'text-amber' : 'text-success'}`}>{g.dias <= 0 ? 'Vencida' : `${g.dias}d`}</span> : <span className="text-[11px] font-bold text-cobalt">Pendiente</span>}</td>
                         </tr>
                       )
@@ -332,8 +332,8 @@ export default function GarantiasPanel() {
                   const tasaMin = entidades.filter(e => e.tasa_interes > 0).sort((a, b) => a.tasa_interes - b.tasa_interes)[0]
                   const pctGlobal = totalLinea > 0 ? Math.round(totalConsumo / totalLinea * 100) : 0
                   return (
-                    <div className="mt-3 p-3 rounded-lg bg-[#E8F0FE] border border-[#0B5ED7]/10">
-                      <p className="text-[11px] text-[#0847A8] leading-relaxed">
+                    <div className="mt-3 p-3 rounded-lg bg-cobalt-light border border-cobalt/10">
+                      <p className="text-[11px] text-cobalt-dark leading-relaxed">
                         <span className="font-bold">Utilizacion global: {pctGlobal}%</span>
                         {' — '}{fmtMM(totalConsumo)} comprometido de {fmtMM(totalLinea)} disponible.
                         {criticas.length > 0 && <><br /><span className="text-red-600 font-bold">{criticas.length} entidad{criticas.length > 1 ? 'es' : ''} sobre 80%:</span> {criticas.map(e => e.nombre).join(', ')}. Considerar ampliar linea o redistribuir.</>}
@@ -657,7 +657,7 @@ function LineaCreditoModal({ open, onClose, editing, entidades, onSave, onDelete
     >
       {errors.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
-          {errors.map((e, i) => <p key={i} className="text-red-600 text-[13px]">{e}</p>)}
+          {errors.map((e, i) => <p key={i} className="text-red-600 text-xs">{e}</p>)}
         </div>
       )}
       <Field label="Entidad">

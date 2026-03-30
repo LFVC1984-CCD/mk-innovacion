@@ -26,7 +26,7 @@ export default function InnovacionGantt({ proyectos, onEdit }: Props) {
       {/* Leyenda */}
       <div className="flex flex-wrap gap-1.5 mb-2">
         {Object.entries(ETAPA_CONFIG).filter(([k]) => k !== 'descartado').map(([key, cfg]) => (
-          <span key={key} className="flex items-center gap-1 text-[9px] font-bold">
+          <span key={key} className="flex items-center gap-1 text-[10px] font-bold">
             <span className="w-2.5 h-2.5 rounded" style={{ background: cfg.color }} />
             {cfg.label}
           </span>
@@ -80,7 +80,7 @@ function GanttBlock({ proyectos, etapas, onEdit }: {
           {etapas.map(e => {
             const cfg = ETAPA_CONFIG[e]
             return (
-              <div key={e} className="flex-1 px-1 py-2 text-center text-[9px] font-bold uppercase" style={{ color: cfg.color }}>
+              <div key={e} className="flex-1 px-1 py-2 text-center text-[10px] font-bold uppercase" style={{ color: cfg.color }}>
                 {cfg.short}
               </div>
             )
@@ -153,7 +153,7 @@ function GanttBlock({ proyectos, etapas, onEdit }: {
                   {fmtShortDate(p.fecha_objetivo)}
                 </span>
               </div>
-              <span className="text-[9px] font-bold mt-0.5" style={{ color: ETAPA_CONFIG[p.etapa]?.color }}>{pct}%</span>
+              <span className="text-[10px] font-bold mt-0.5" style={{ color: ETAPA_CONFIG[p.etapa]?.color }}>{pct}%</span>
             </div>
           </div>
         )
