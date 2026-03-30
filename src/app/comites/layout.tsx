@@ -275,78 +275,79 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
       {/* ═══ MAIN AREA ═══ */}
       <div className={`flex-1 flex flex-col min-h-screen transition-all ${sidebarCollapsed ? 'lg:ml-[64px]' : 'lg:ml-[240px]'}`}>
 
-        {/* ── Header ── */}
-        <header className="sticky top-0 z-30 h-[52px] flex items-center justify-between px-4 sm:px-6 border-b"
-          style={{ background: 'var(--org-header-bg)', borderColor: 'var(--org-sidebar-border)' }}>
-          <div className="flex items-center gap-3">
-            <button onClick={() => setDrawerOpen(true)} className="lg:hidden w-8 h-8 flex flex-col items-center justify-center gap-1">
-              <span className="w-5 h-0.5 bg-ink" /><span className="w-5 h-0.5 bg-ink" /><span className="w-5 h-0.5 bg-ink" />
-            </button>
+        {/* ── Sticky header block: header + comité tabs + sub-tabs ── */}
+        <div className="sticky top-0 z-30">
+          {/* Row 1: Header */}
+          <div className="h-[48px] flex items-center justify-between px-4 sm:px-6 border-b"
+            style={{ background: 'var(--org-header-bg)', borderColor: 'var(--org-sidebar-border)' }}>
+            <div className="flex items-center gap-3">
+              <button onClick={() => setDrawerOpen(true)} className="lg:hidden w-8 h-8 flex flex-col items-center justify-center gap-1">
+                <span className="w-5 h-0.5 bg-ink" /><span className="w-5 h-0.5 bg-ink" /><span className="w-5 h-0.5 bg-ink" />
+              </button>
+              <div className="flex items-center gap-2">
+                <span className="font-condensed text-sm font-bold" style={{ color: '#111827' }}>Comités</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'var(--org-primary-light)', color: 'var(--org-primary)' }}>MK</span>
+              </div>
+            </div>
             <div className="flex items-center gap-2">
-              <span className="font-condensed text-base font-bold hidden sm:inline" style={{ color: '#111827' }}>Portal de Comités</span>
-              <span className="font-condensed text-sm font-bold sm:hidden" style={{ color: '#111827' }}>Comités</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'var(--org-primary-light)', color: 'var(--org-primary)' }}>MK</span>
+              <button className="lg:hidden w-8 h-8 flex items-center justify-center relative">
+                <span className="text-lg">🔔</span>
+                <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-danger text-white text-[9px] font-bold flex items-center justify-center">3</span>
+              </button>
+              <button onClick={() => setLogoutConfirm(true)}
+                className="hidden sm:flex items-center gap-1.5 bg-white border px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all hover:bg-gray-50"
+                style={{ borderColor: 'var(--org-sidebar-border)', color: 'var(--org-sidebar-text)' }}>
+                <span className="w-[7px] h-[7px] rounded-full bg-success" />Salir
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {/* Notification bell (mobile) */}
-            <button className="lg:hidden w-8 h-8 flex items-center justify-center relative">
-              <span className="text-lg">🔔</span>
-              <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-danger text-white text-[9px] font-bold flex items-center justify-center">3</span>
-            </button>
-            <button onClick={() => setLogoutConfirm(true)}
-              className="hidden sm:flex items-center gap-1.5 bg-white border px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all hover:bg-gray-50"
-              style={{ borderColor: 'var(--org-sidebar-border)', color: 'var(--org-sidebar-text)' }}>
-              <span className="w-[7px] h-[7px] rounded-full bg-success" />Salir
-            </button>
-          </div>
-        </header>
 
-        {/* ── Area tabs (pill style) — desktop + mobile ── */}
-        {(isAreaPage || isHome) && !isProfile && !isNonAreaPage && (
-          <div className="px-3 sm:px-6 py-2 flex gap-1.5 overflow-x-auto border-b scrollbar-hide"
-            style={{ background: 'var(--org-header-bg)', borderColor: 'var(--org-sidebar-border)' }}>
-            {AREA_TABS.map(tab => {
-              const active = pathname.startsWith(tab.href) || pathname.includes(tab.id)
-              return (
-                <Link key={tab.id} href={tab.href}
-                  className="px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-semibold whitespace-nowrap transition-all shrink-0"
-                  style={{
-                    background: active ? 'var(--org-tab-active-bg)' : 'white',
-                    color: active ? 'var(--org-tab-active-text)' : '#6B7280',
-                    boxShadow: active ? `0 2px 8px rgba(var(--org-primary-rgb), 0.25)` : '0 1px 2px rgba(0,0,0,0.05)',
-                    border: active ? 'none' : '1px solid var(--org-sidebar-border)',
-                  }}>
-                  {tab.label}
-                </Link>
-              )
-            })}
-          </div>
-        )}
+          {/* Row 2: Comité tabs (gray band) */}
+          {(isAreaPage || isHome) && !isProfile && !isNonAreaPage && (
+            <div className="px-3 sm:px-6 py-1.5 flex gap-1 overflow-x-auto scrollbar-hide border-b"
+              style={{ background: 'var(--org-header-bg)', borderColor: 'var(--org-sidebar-border)' }}>
+              {AREA_TABS.map(tab => {
+                const active = pathname.startsWith(tab.href) || pathname.includes(tab.id)
+                return (
+                  <Link key={tab.id} href={tab.href}
+                    className="px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all shrink-0"
+                    style={{
+                      background: active ? 'var(--org-tab-active-bg)' : 'white',
+                      color: active ? 'var(--org-tab-active-text)' : '#6B7280',
+                      boxShadow: active ? `0 1px 4px rgba(var(--org-primary-rgb), 0.2)` : 'none',
+                      border: active ? 'none' : '1px solid var(--org-sidebar-border)',
+                    }}>
+                    {tab.label}
+                  </Link>
+                )
+              })}
+            </div>
+          )}
 
-        {/* ── Sub-tabs ribbon (second line, white bg) ── */}
-        {showSubTabs && (
-          <div className="px-3 sm:px-6 py-1.5 flex items-center gap-1 overflow-x-auto border-b scrollbar-hide bg-white"
-            style={{ borderColor: 'var(--org-sidebar-border)' }}>
-            {subTabs.map(tab => {
-              const active = activeSubTab === tab.id
-              return (
-                <Link key={tab.id} href={`/comites/${currentArea}?tab=${tab.id}`} scroll={false}
-                  className={`px-3 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all shrink-0 ${
-                    active ? 'font-bold' : 'text-[#6B7280] hover:text-ink hover:bg-[#F3F4F6]'
-                  }`}
-                  style={active ? { color: 'var(--org-primary)', background: 'var(--org-primary-light)' } : undefined}>
-                  {tab.label}
-                </Link>
-              )
-            })}
-            <div className="flex-1" />
-            <Link href={`/comites/${currentArea}/proyectar`}
-              className="shrink-0 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all text-[#6B7280] hover:text-ink hover:bg-[#F3F4F6]">
-              Presentar →
-            </Link>
-          </div>
-        )}
+          {/* Row 3: Sub-tabs (white band) — only inside an area */}
+          {showSubTabs && (
+            <div className="px-3 sm:px-6 py-1 flex items-center gap-0.5 overflow-x-auto scrollbar-hide border-b bg-white"
+              style={{ borderColor: 'var(--org-sidebar-border)' }}>
+              {subTabs.map(tab => {
+                const active = activeSubTab === tab.id
+                return (
+                  <Link key={tab.id} href={`/comites/${currentArea}?tab=${tab.id}`} scroll={false}
+                    className={`px-2.5 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-all shrink-0 ${
+                      active ? 'font-semibold' : 'text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F9FAFB]'
+                    }`}
+                    style={active ? { color: 'var(--org-primary)', background: 'var(--org-primary-light)' } : undefined}>
+                    {tab.label}
+                  </Link>
+                )
+              })}
+              <div className="flex-1" />
+              <Link href={`/comites/${currentArea}/proyectar`}
+                className="shrink-0 px-2 py-1 rounded text-[10px] font-medium text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F9FAFB] transition-all">
+                Presentar →
+              </Link>
+            </div>
+          )}
+        </div>
 
         {/* ── Content ── */}
         <ToastContainer />
