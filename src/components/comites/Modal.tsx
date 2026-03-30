@@ -17,15 +17,16 @@ export default function Modal({ open, onClose, title, accent, children, footer }
   const titleId = useId()
   const prevFocusRef = useRef<HTMLElement | null>(null)
 
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+
   useEffect(() => {
     if (!open) return
 
-    // Store previous focus to restore later
     prevFocusRef.current = document.activeElement as HTMLElement
 
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') { onClose(); return }
-      // Focus trap
+      if (e.key === 'Escape') { onCloseRef.current(); return }
       if (e.key === 'Tab' && dialogRef.current) {
         const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -41,10 +42,10 @@ export default function Modal({ open, onClose, title, accent, children, footer }
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
 
-    // Auto-focus first focusable element
+    // Auto-focus first input (not button) — only once on open
     requestAnimationFrame(() => {
-      const first = dialogRef.current?.querySelector<HTMLElement>('input, select, textarea, button')
-      first?.focus()
+      const firstInput = dialogRef.current?.querySelector<HTMLElement>('input, select, textarea')
+      firstInput?.focus()
     })
 
     return () => {
@@ -52,7 +53,7 @@ export default function Modal({ open, onClose, title, accent, children, footer }
       document.body.style.overflow = ''
       prevFocusRef.current?.focus()
     }
-  }, [open, onClose])
+  }, [open])
 
   return (
     <AnimatePresence>
