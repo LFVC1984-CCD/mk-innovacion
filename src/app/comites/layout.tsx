@@ -40,7 +40,7 @@ const AREA_TABS = [
 // ── Sub-tabs per area (second ribbon) ──
 const MODULE_NAMES: Record<string, string> = {
   obras: 'Control Financiero', legal: 'Causas', prevencion: 'Seguridad',
-  estudios: 'Pipeline', finanzas: 'Flujo de Caja', eti: 'Tecnología e Innovación', rrhh: 'Recursos Humanos',
+  estudios: 'En Estudio', finanzas: 'Flujo de Caja', eti: 'Tecnología e Innovación', rrhh: 'Recursos Humanos',
 }
 const HAS_PANEL: string[] = ['obras', 'legal', 'prevencion', 'estudios', 'finanzas', 'eti', 'rrhh']
 const HAS_GARANTIAS: string[] = ['finanzas', 'estudios']

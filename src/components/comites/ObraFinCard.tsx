@@ -183,7 +183,7 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
           </div>
 
           {/* ── KPIs RESUMEN ── */}
-          <div className="grid grid-cols-6 gap-2.5 mt-4 bg-[#0F172A] rounded-xl p-3.5">
+          <div className="grid grid-cols-6 gap-2.5 mt-4 bg-white border border-[#E2E8F0] rounded-xl p-3.5">
             <ReadOnly label="Flujo Financiero" value={`$${flujoFinanciero} MM`} color={flujoFinanciero >= 0 ? '#E1BA10' : '#DC2626'} sub="Facturado − Gasto Real" />
             <ReadOnly label="Saldo x Facturar" value={`$${saldoFacturar} MM`} color="#D97706" sub={`${pctFacturado}% facturado`} />
             <ReadOnly label="Saldo Proveedores" value={`$${saldoProveedores} MM`} color={saldoProveedores > 0 ? '#DC2626' : '#16A34A'} />

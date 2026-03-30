@@ -43,7 +43,7 @@ export default function TareaMatrix({ tareas, compact = false }: Props) {
         <button
           onClick={() => setFilterTipo('todas')}
           className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all ${
-            filterTipo === 'todas' ? 'bg-[#0F172A] border-[#0F172A] text-white' : 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1]'
+            filterTipo === 'todas' ? 'border-cobalt text-cobalt bg-cobalt-light' : 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1]'
           }`}>
           Todas <span className="text-[9px] font-extrabold opacity-70">{tipoCounts.todas}</span>
         </button>
