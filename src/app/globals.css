@@ -12,10 +12,16 @@
     --org-primary-rgb: 11, 94, 215;
     --org-accent: #E1BA10;
     --org-accent-hover: rgba(225, 186, 16, 0.1);
+    /* Sidebar — fondo SIEMPRE blanco, color tenant solo en activos */
     --org-sidebar-bg: #FFFFFF;
     --org-sidebar-text: #374151;
-    --org-sidebar-active-bg: rgba(11, 94, 215, 0.08);
+    --org-sidebar-active-text: var(--org-primary);
+    --org-sidebar-active-bg: var(--org-primary-light);
+    --org-sidebar-active-border: var(--org-primary);
+    --org-sidebar-hover-bg: rgba(225, 186, 16, 0.08); /* SIEMPRE gold — firma CCD */
     --org-sidebar-border: #E5E7EB;
+    --org-focus-ring: rgba(11, 94, 215, 0.3);
+    /* Header + tabs */
     --org-header-bg: #F3F4F6;
     --org-tab-active-bg: var(--org-primary);
     --org-tab-active-text: #FFFFFF;
@@ -145,15 +151,50 @@
   border-radius: 14px 14px 0 0;
 }
 
-/* ── Sidebar hover ── */
-.sidebar-item:hover {
-  background: var(--org-accent-hover) !important;
+/* ── CCD Sidebar (v2.1 — SIEMPRE blanco, hover SIEMPRE gold) ── */
+.ccd-sidebar {
+  background: var(--org-sidebar-bg);
+  border-right: 1px solid var(--org-sidebar-border);
+  color: var(--org-sidebar-text);
+}
+.ccd-sidebar-item {
+  transition: background 150ms ease, border-color 150ms ease;
+  border-left: 3px solid transparent;
+}
+.ccd-sidebar-item:hover {
+  background: var(--org-sidebar-hover-bg) !important; /* SIEMPRE gold — firma CCD */
   border-left-color: var(--org-primary) !important;
 }
+.ccd-sidebar-item.active {
+  background: var(--org-sidebar-active-bg);
+  color: var(--org-sidebar-active-text);
+  border-left-color: var(--org-sidebar-active-border);
+  font-weight: 600;
+}
 
-/* ── Clickable hover (Design System rule: gold bg + org border) ── */
+/* ── CCD Bottom Nav (v2.1) ── */
+.ccd-bottom-nav {
+  background: #FFFFFF;
+  border-top: 1px solid var(--org-sidebar-border);
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+}
+.ccd-bottom-nav-item.active {
+  color: var(--org-primary);
+}
+.ccd-bottom-nav-fab {
+  background: var(--org-primary);
+  box-shadow: 0 4px 16px rgba(var(--org-primary-rgb), 0.4);
+}
+
+/* ── Clickable hover (Design System: gold bg + org border) ── */
 .hover-org:hover {
-  background: var(--org-accent-hover);
+  background: var(--org-sidebar-hover-bg);
+  border-color: var(--org-primary);
+}
+
+/* ── Focus ring (org color) ── */
+.focus-org:focus {
+  box-shadow: 0 0 0 3px var(--org-focus-ring);
   border-color: var(--org-primary);
 }
 

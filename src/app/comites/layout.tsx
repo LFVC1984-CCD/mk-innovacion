@@ -154,14 +154,8 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
                       if (hasSub) { e.preventDefault(); setExpandedSub(isExpanded ? null : item.href); router.push(item.href) }
                       onNavigate?.()
                     }}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all relative group"
-                    style={{
-                      background: active ? 'var(--org-sidebar-active-bg)' : undefined,
-                      color: active ? 'var(--org-primary)' : 'var(--org-sidebar-text)',
-                      fontWeight: active ? 600 : 500,
-                      borderLeft: active ? '3px solid var(--org-primary)' : '3px solid transparent',
-                      marginLeft: '-2px',
-                    }}>
+                    className={`ccd-sidebar-item flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] relative group ${active ? 'active' : ''}`}
+                    style={{ color: active ? undefined : 'var(--org-sidebar-text)', marginLeft: '-2px' }}>
                     <span className="text-base opacity-60 group-hover:opacity-100 transition-opacity">{item.icon}</span>
                     {!collapsed && (
                       <>
@@ -388,8 +382,7 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* ═══ MOBILE BOTTOM NAV ═══ */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 h-[64px] bg-white border-t flex items-center justify-around px-4 safe-area-pb"
-        style={{ borderColor: 'var(--org-sidebar-border)', boxShadow: '0 -2px 12px rgba(0,0,0,0.06)' }}>
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 h-[64px] ccd-bottom-nav flex items-center justify-around px-4 safe-area-pb">
         {/* Home */}
         <button onClick={() => { setMobileTab('home'); router.push('/comites') }}
           className="flex flex-col items-center gap-0.5 py-1.5 px-4 relative">
@@ -441,8 +434,8 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
         </AnimatePresence>
         {/* FAB button */}
         <button onClick={() => setFabOpen(!fabOpen)}
-          className="w-14 h-14 rounded-full flex items-center justify-center text-white text-2xl font-light transition-transform"
-          style={{ background: 'var(--org-primary)', boxShadow: `0 4px 16px rgba(var(--org-primary-rgb), 0.4)`, transform: fabOpen ? 'rotate(45deg)' : 'none' }}>
+          className="w-14 h-14 rounded-full ccd-bottom-nav-fab flex items-center justify-center text-white text-2xl font-light transition-transform"
+          style={{ transform: fabOpen ? 'rotate(45deg)' : 'none' }}>
           +
         </button>
       </div>

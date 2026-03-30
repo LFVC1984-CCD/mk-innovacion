@@ -39,8 +39,15 @@ export function applyOrgTheme(config: ThemeConfig) {
       r.style.setProperty('--org-' + key.replace(/_/g, '-'), val)
     }
   })
-  // Derived variables
-  r.style.setProperty('--org-sidebar-active-bg', `rgba(${config.primary_rgb}, 0.08)`)
+  // Derived: sidebar uses tenant color for active items only
+  r.style.setProperty('--org-sidebar-active-bg', config.primary_light)
+  r.style.setProperty('--org-sidebar-active-text', config.primary)
+  r.style.setProperty('--org-sidebar-active-border', config.primary)
+  // Hover SIEMPRE gold — firma visual CCD, no cambia por tenant
+  r.style.setProperty('--org-sidebar-hover-bg', 'rgba(225, 186, 16, 0.08)')
+  // Focus ring uses tenant color
+  r.style.setProperty('--org-focus-ring', `rgba(${config.primary_rgb}, 0.3)`)
+  // Tabs + header
   r.style.setProperty('--org-tab-active-bg', config.primary)
   r.style.setProperty('--org-header-bg', config.primary === '#C41E2A' ? '#F9F0F1' : '#F3F4F6')
 }
