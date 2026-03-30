@@ -4,6 +4,22 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* ── Multi-tenant org variables (overridden by applyOrgTheme) ── */
+    --org-primary: #0B5ED7;
+    --org-primary-dark: #0847A8;
+    --org-primary-light: #E8F0FE;
+    --org-primary-rgb: 11, 94, 215;
+    --org-accent: #E1BA10;
+    --org-accent-hover: rgba(225, 186, 16, 0.1);
+    --org-sidebar-bg: #FFFFFF;
+    --org-sidebar-text: #374151;
+    --org-sidebar-active-bg: rgba(11, 94, 215, 0.08);
+    --org-sidebar-border: #E5E7EB;
+    --org-header-bg: #F3F4F6;
+    --org-tab-active-bg: var(--org-primary);
+    --org-tab-active-text: #FFFFFF;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Barlow', sans-serif; background: #F1F5F9; color: #1E293B; }
 }
@@ -17,7 +33,7 @@
 
 /* ── Card Hover System ── */
 .card-hover { transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s cubic-bezier(.22,1,.36,1); }
-.card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(11,94,215,.08), 0 4px 12px rgba(0,0,0,.06); }
+.card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(var(--org-primary-rgb),.08), 0 4px 12px rgba(0,0,0,.06); }
 
 /* ── Skeleton Shimmer ── */
 @keyframes shimmer {
@@ -47,8 +63,8 @@
 
 /* ── Glow Focus ── */
 .glow-focus:focus {
-  border-color: #0B5ED7;
-  box-shadow: 0 0 0 3px rgba(11,94,215,.12);
+  border-color: var(--org-primary);
+  box-shadow: 0 0 0 3px rgba(var(--org-primary-rgb),.12);
 }
 
 /* ── Progress Ring ── */
@@ -83,7 +99,7 @@
   outline: none;
   transition: border-color .15s, box-shadow .15s;
 }
-.inp:focus { border-color: #0B5ED7; box-shadow: 0 0 0 3px rgba(11,94,215,.1); }
+.inp:focus { border-color: var(--org-primary); box-shadow: 0 0 0 3px rgba(var(--org-primary-rgb),.1); }
 .inp::placeholder { color: #94A3B8; }
 
 /* ── Toast ── */
@@ -118,8 +134,20 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--accent, #0B5ED7), var(--accent-end, #0891B2));
+  background: linear-gradient(90deg, var(--org-primary), var(--accent-end, #0891B2));
   border-radius: 14px 14px 0 0;
+}
+
+/* ── Sidebar hover ── */
+.sidebar-item:hover {
+  background: var(--org-accent-hover) !important;
+  border-left-color: var(--org-primary) !important;
+}
+
+/* ── Clickable hover (Design System rule: gold bg + org border) ── */
+.hover-org:hover {
+  background: var(--org-accent-hover);
+  border-color: var(--org-primary);
 }
 
 /* ── Hover Scale Buttons ── */

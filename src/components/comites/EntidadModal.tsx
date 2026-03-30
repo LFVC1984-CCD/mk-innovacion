@@ -16,6 +16,7 @@ export default function EntidadModal({ open, onClose, editing, onSave, onDelete 
   const [tipo, setTipo] = useState('banco')
   const [contacto, setContacto] = useState('')
   const [obs, setObs] = useState('')
+  const [tasaInteres, setTasaInteres] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -24,8 +25,9 @@ export default function EntidadModal({ open, onClose, editing, onSave, onDelete 
       setTipo(editing.tipo)
       setContacto(editing.contacto || '')
       setObs(editing.observacion || '')
+      setTasaInteres(editing.tasa_interes ? String(editing.tasa_interes) : '')
     } else {
-      setNombre(''); setTipo('banco'); setContacto(''); setObs('')
+      setNombre(''); setTipo('banco'); setContacto(''); setObs(''); setTasaInteres('')
     }
   }, [editing, open])
 
@@ -40,7 +42,7 @@ export default function EntidadModal({ open, onClose, editing, onSave, onDelete 
     setErrors([])
     setSaving(true)
     try {
-      await onSave({ nombre: nombre.trim(), tipo, contacto, observacion: obs }, editing?.id)
+      await onSave({ nombre: nombre.trim(), tipo, contacto, observacion: obs, tasa_interes: parseFloat(tasaInteres) || 0 }, editing?.id)
     } catch (err) {
       setErrors([err instanceof Error ? err.message : 'Error al guardar'])
     } finally {
@@ -87,9 +89,14 @@ export default function EntidadModal({ open, onClose, editing, onSave, onDelete 
         </Field>
       </Row2>
 
-      <Field label="Contacto (opcional)">
-        <Input type="text" placeholder="Nombre del ejecutivo o email" value={contacto} onChange={e => setContacto(e.target.value)} />
-      </Field>
+      <Row2>
+        <Field label="Contacto (opcional)">
+          <Input type="text" placeholder="Nombre del ejecutivo o email" value={contacto} onChange={e => setContacto(e.target.value)} />
+        </Field>
+        <Field label="Tasa de interés anual (%)">
+          <Input type="number" step="0.01" placeholder="Ej: 1.35" value={tasaInteres} onChange={e => setTasaInteres(e.target.value)} />
+        </Field>
+      </Row2>
       <Field label="Observaciones">
         <Input type="text" placeholder="Notas adicionales" value={obs} onChange={e => setObs(e.target.value)} />
       </Field>

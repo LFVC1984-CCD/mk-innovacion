@@ -32,8 +32,9 @@ src/
 │       ├── proyectos/      # Maestro de proyectos (placeholder)
 │       ├── equipos/        # Maestro de equipos (placeholder)
 │       ├── usuarios/       # Maestro de usuarios (admin only)
-│       ├── ampliado/       # Comité Ampliado (placeholder)
-│       ├── historial/      # Historial de minutas (placeholder)
+│       ├── reuniones-obra/  # Reuniones ejecutivas obra-gerencia (financiero + planificación + tareas)
+│       ├── ampliado/       # Comité Ampliado
+│       ├── historial/      # Historial de minutas
 │       └── api/            # Route handlers (minuta, usuarios)
 ├── components/
 │   ├── comites/            # 15+ componentes (AreaCard, GarantiaModal, etc.)
@@ -65,5 +66,5 @@ RLS: cada usuario edita solo su area_id. Admin edita todo.
 
 ## Migración desde index.html
 El portal HTML single-file (3,266 líneas) se está migrando módulo por módulo.
-Módulos migrados: Login, Home (cards de áreas), Garantías (parcial), Usuarios (parcial)
-Módulos pendientes: Proyectos, Equipos, Comité Ampliado, Historial, Edición de área, Proyección, PDF export, Control financiero de obras
+Módulos migrados: Login, Home, Garantías, Usuarios, Proyectos, Equipos, Comité Ampliado, Historial, Edición de área, Proyección, Reuniones Obra-Gerencia, Control financiero (Finanzas), Prevención, RRHH, Legal, ETI, Estudios
+Módulos pendientes: PDF export desde historial

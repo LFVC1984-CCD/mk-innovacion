@@ -320,6 +320,22 @@ export default function GarantiasPanel() {
                   } delay={i * 0.08} />
                 ))}
                 {entidades.length === 0 && <p className="text-xs text-slate text-center py-4">Sin datos para graficar</p>}
+                {/* Insight narrativo */}
+                {entidades.length > 0 && (() => {
+                  const criticas = entidades.filter(e => e.linea > 0 && e.consumo / e.linea > 0.8)
+                  const tasaMin = entidades.filter(e => e.tasa_interes > 0).sort((a, b) => a.tasa_interes - b.tasa_interes)[0]
+                  const pctGlobal = totalLinea > 0 ? Math.round(totalConsumo / totalLinea * 100) : 0
+                  return (
+                    <div className="mt-3 p-3 rounded-lg bg-[#E8F0FE] border border-[#0B5ED7]/10">
+                      <p className="text-[11px] text-[#0847A8] leading-relaxed">
+                        <span className="font-bold">Utilizacion global: {pctGlobal}%</span>
+                        {' — '}{fmtMM(totalConsumo)} comprometido de {fmtMM(totalLinea)} disponible.
+                        {criticas.length > 0 && <><br /><span className="text-red-600 font-bold">{criticas.length} entidad{criticas.length > 1 ? 'es' : ''} sobre 80%:</span> {criticas.map(e => e.nombre).join(', ')}. Considerar ampliar linea o redistribuir.</>}
+                        {tasaMin && <><br />Mejor tasa: <b>{tasaMin.nombre}</b> ({tasaMin.tasa_interes}% anual).</>}
+                      </p>
+                    </div>
+                  )
+                })()}
               </div>
             )}
 
@@ -328,7 +344,7 @@ export default function GarantiasPanel() {
               <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
                 <table className="w-full text-xs min-w-[700px]">
                   <thead><tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
-                    <th className="text-left p-3">Entidad</th><th className="text-left p-3">Tipo</th><th className="text-left p-3">Instrumentos</th>
+                    <th className="text-left p-3">Entidad</th><th className="text-left p-3">Tipo</th><th className="text-right p-3">Tasa</th><th className="text-left p-3">Instrumentos</th>
                     <th className="text-right p-3" style={{ color: FIN_COLORS.aprobado }}>Linea</th><th className="p-3 w-36" style={{ color: FIN_COLORS.comprometido }}>Utilizacion</th>
                     <th className="text-right p-3" style={{ color: FIN_COLORS.disponible }}>Saldo</th><th className="text-right p-3">Activas</th>
                   </tr></thead>
@@ -341,6 +357,7 @@ export default function GarantiasPanel() {
                         <tr key={e.id} onClick={() => { setEntEditing(e); setEntModal(true) }} className="border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors cursor-pointer">
                           <td className="p-3 font-bold">{e.nombre}</td>
                           <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#F1F5F9]">{e.tipo}</span></td>
+                          <td className="p-3 text-right font-condensed font-bold text-sm">{e.tasa_interes > 0 ? `${e.tasa_interes}%` : '—'}</td>
                           <td className="p-3 text-[11px]">{e.instrumentos.join(', ')}</td>
                           <td className="p-3 text-right font-condensed text-sm font-extrabold" style={{ color: FIN_COLORS.aprobado }}>{fmtMM(e.linea)}</td>
                           <td className="p-3"><div className="flex items-center gap-2"><div className="flex-1 h-1.5 bg-[#F1F5F9] rounded-full overflow-hidden"><motion.div className="h-full rounded-full" initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6 }} style={{ background: barColor }} /></div><span className="text-[10px] font-bold min-w-[28px] text-right" style={{ color: barColor }}>{pct}%</span></div></td>
@@ -370,6 +387,7 @@ export default function GarantiasPanel() {
                         <div className="flex items-center gap-2">
                           <span className="text-[15px] font-bold text-ink">{e.nombre}</span>
                           <span className="text-[10px] px-2 py-0.5 rounded bg-[#F1F5F9] text-slate font-semibold">{e.tipo === 'banco' ? 'Banco' : 'Aseguradora'}</span>
+                          {e.tasa_interes > 0 && <span className="text-[10px] px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-bold">{e.tasa_interes}% anual</span>}
                           {e.contacto && <span className="text-[10px] text-slate">{e.contacto}</span>}
                         </div>
                         <div className="flex items-center gap-2">

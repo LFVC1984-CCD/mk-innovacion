@@ -29,6 +29,7 @@ export interface EntidadRow {
   tipo: string
   contacto: string
   observacion: string
+  tasa_interes: number
   created_at: string
 }
 
@@ -50,6 +51,7 @@ export interface EntidadComputed {
   tipo: string
   contacto: string
   observacion: string
+  tasa_interes: number
   instrumentos: string[]
   linea: number
   consumo: number
@@ -92,6 +94,7 @@ export interface EntidadInput {
   tipo: string
   contacto: string
   observacion: string
+  tasa_interes: number
 }
 
 // ── Helper: compute days until vencimiento ──
@@ -177,6 +180,7 @@ export function useGarantias() {
         tipo: e.tipo,
         contacto: e.contacto,
         observacion: e.observacion,
+        tasa_interes: Number(e.tasa_interes) || 0,
         instrumentos: Array.from(instrumentosSet),
         linea: misLineas.reduce((s, l) => s + l.monto, 0),
         consumo: misGarantias.reduce((s, g) => s + g.monto, 0),
@@ -262,7 +266,7 @@ export function useGarantias() {
 
   // ── CRUD: Entidades ──
   const saveEntidad = useCallback(async (input: EntidadInput, id?: string): Promise<boolean> => {
-    const row = { nombre: input.nombre, tipo: input.tipo, contacto: input.contacto || '', observacion: input.observacion || '' }
+    const row = { nombre: input.nombre, tipo: input.tipo, contacto: input.contacto || '', observacion: input.observacion || '', tasa_interes: input.tasa_interes || 0 }
     console.log('[saveEntidad]', id ? 'UPDATE' : 'INSERT', row, id)
     const result = id
       ? await supabase.from('entidades').update(row).eq('id', id)

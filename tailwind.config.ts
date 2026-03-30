@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cobalt: { DEFAULT: '#0B5ED7', dark: '#0847A8', light: '#EFF6FF' },
+        cobalt: { DEFAULT: 'var(--org-primary)', dark: 'var(--org-primary-dark)', light: 'var(--org-primary-light)' },
         gold: { DEFAULT: '#E1BA10', dark: '#C4A00C', light: '#FFFBEB' },
         mkred: '#E8000D',
         success: '#16A34A',

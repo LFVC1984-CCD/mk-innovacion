@@ -367,6 +367,22 @@ export default function FinanzasPanel() {
                 </div>
               ))}
             </div>
+            {/* Insight narrativo */}
+            {porMes.some(m => m.totalIng > 0 || m.totalEg > 0) && (() => {
+              const acumFinal = porMesAcum[porMesAcum.length - 1]?.acumulado || 0
+              const mesesNeg = porMesAcum.filter(m => m.acumulado < 0 && (m.totalIng > 0 || m.totalEg > 0))
+              const mesMax = porMes.reduce((max, m) => m.totalEg > max.totalEg ? m : max, porMes[0])
+              return (
+                <div className="mt-3 p-3 rounded-lg bg-[#E8F0FE] border border-[#0B5ED7]/10">
+                  <p className="text-[11px] text-[#0847A8] leading-relaxed">
+                    <span className="font-bold">Saldo proyectado al cierre: {acumFinal >= 0 ? '+' : ''}{fmtMM(acumFinal)}</span>
+                    {acumFinal < 0 && <span className="text-red-600"> — requiere financiamiento o adelantar cobros.</span>}
+                    {mesesNeg.length > 0 && <><br /><span className="text-amber-700 font-semibold">{mesesNeg.length} mes{mesesNeg.length > 1 ? 'es' : ''} con saldo negativo</span> — revisar calce de pagos vs cobros.</>}
+                    {mesMax.totalEg > 0 && <><br />Mayor egreso en <b>{fmtMes(mesMax.mes)}</b> ({fmtMM(mesMax.totalEg)}).</>}
+                  </p>
+                </div>
+              )
+            })()}
           </div>
 
           {/* Tabla resumen */}

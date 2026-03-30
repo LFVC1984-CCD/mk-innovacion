@@ -207,6 +207,18 @@ export default function PrevencionPanel() {
               })}
             </tbody>
           </table>
+          {/* Insight narrativo */}
+          <div className="px-4 py-3 bg-[#E8F0FE] border-t border-[#0B5ED7]/10">
+            <p className="text-[11px] text-[#0847A8] leading-relaxed">
+              {consol.accidentes === 0
+                ? <><span className="font-bold text-green-700">Sin accidentes en el periodo.</span> Se mantiene racha positiva. Continuar con charlas diarias e inspecciones.</>
+                : <><span className="font-bold">{consol.accidentes} accidente{consol.accidentes > 1 ? 's' : ''}</span> con {consol.diasPerdidos} dias perdidos (tasa frec. {consol.tasaFrec}).
+                  {consol.sinCerrar > 0 && <> <span className="text-red-600 font-bold">{consol.sinCerrar} evento{consol.sinCerrar > 1 ? 's' : ''} sin cerrar</span> — requiere{consol.sinCerrar > 1 ? 'n' : ''} accion correctiva.</>}
+                </>
+              }
+              {consol.totalCapacitacion > 0 && <> {consol.totalCapacitacion}h de capacitacion acumuladas en el periodo.</>}
+            </p>
+          </div>
         </div>
       )}
 
