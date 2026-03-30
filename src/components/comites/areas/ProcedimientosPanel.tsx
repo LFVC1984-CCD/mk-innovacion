@@ -58,13 +58,14 @@ function EtapaBar({ proc }: { proc: Procedimiento }) {
 interface Props { areaId: string }
 
 export default function ProcedimientosPanel({ areaId }: Props) {
-  const { procedimientos, loading, save, remove } = useProcedimientos(areaId)
+  const { procedimientos, loading, save, remove, upload } = useProcedimientos(areaId)
   const { canEdit } = useAuth()
   const ce = canEdit(areaId as 'obras')
 
   const [modal, setModal] = useState<Procedimiento | 'new' | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<'todos' | 'activos' | 'vigentes'>('todos')
+  const [uploading, setUploading] = useState(false)
 
   // Form state
   const [form, setForm] = useState<Partial<ProcInput>>({})
@@ -290,17 +291,63 @@ export default function ProcedimientosPanel({ areaId }: Props) {
         </div>
 
         <Divider label="Documentos y recursos" />
-        <Field label="URL documento (PDF)">
-          <Input value={form.documento_url || ''} onChange={e => setForm(f => ({ ...f, documento_url: e.target.value }))} placeholder="https://..." />
+
+        {/* Documento — upload */}
+        <Field label="Documento del procedimiento (PDF, Word)">
+          {form.documento_url ? (
+            <div className="flex items-center gap-2 px-3 py-2 border border-[#E2E8F0] rounded-lg bg-[#F8FAFC]">
+              <span className="text-[11px]">📄</span>
+              <a href={form.documento_url} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium hover:underline flex-1 truncate" style={{ color: 'var(--org-primary)' }}>{form.documento_nombre || 'Documento'}</a>
+              <button type="button" onClick={() => setForm(f => ({ ...f, documento_url: '', documento_nombre: '' }))} className="text-[10px] text-red-400 hover:text-red-600">✕</button>
+            </div>
+          ) : (
+            <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-[#CBD5E1] rounded-lg cursor-pointer hover:border-cobalt hover:bg-[#F8FAFC] transition-colors">
+              <span className="text-[11px]">📎</span>
+              <span className="text-[12px] text-[#9CA3AF]">{uploading ? 'Subiendo...' : typeof modal === 'object' && modal !== null ? 'Adjuntar documento' : 'Guardar primero para adjuntar'}</span>
+              {typeof modal === 'object' && modal !== null && (
+                <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" className="hidden" disabled={uploading} onChange={async e => {
+                  const f = e.target.files?.[0]; if (!f || typeof modal !== 'object' || !modal) return
+                  setUploading(true)
+                  const { url, nombre } = await upload(f, modal.id, 'documento')
+                  setForm(prev => ({ ...prev, documento_url: url, documento_nombre: nombre }))
+                  setUploading(false)
+                }} />
+              )}
+            </label>
+          )}
         </Field>
-        <Field label="URL diagrama de flujo">
-          <Input value={form.diagrama_url || ''} onChange={e => setForm(f => ({ ...f, diagrama_url: e.target.value }))} placeholder="https://..." />
+
+        {/* Diagrama de flujo — upload */}
+        <Field label="Diagrama de flujo (PDF, imagen)">
+          {form.diagrama_url ? (
+            <div className="flex items-center gap-2 px-3 py-2 border border-[#E2E8F0] rounded-lg bg-[#F8FAFC]">
+              <span className="text-[11px]">📊</span>
+              <a href={form.diagrama_url} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-purple-600 hover:underline flex-1 truncate">{form.diagrama_nombre || 'Diagrama'}</a>
+              <button type="button" onClick={() => setForm(f => ({ ...f, diagrama_url: '', diagrama_nombre: '' }))} className="text-[10px] text-red-400 hover:text-red-600">✕</button>
+            </div>
+          ) : (
+            <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-[#CBD5E1] rounded-lg cursor-pointer hover:border-cobalt hover:bg-[#F8FAFC] transition-colors">
+              <span className="text-[11px]">📎</span>
+              <span className="text-[12px] text-[#9CA3AF]">{uploading ? 'Subiendo...' : typeof modal === 'object' && modal !== null ? 'Adjuntar diagrama' : 'Guardar primero para adjuntar'}</span>
+              {typeof modal === 'object' && modal !== null && (
+                <input type="file" accept=".pdf,.jpg,.jpeg,.png,.svg,.webp" className="hidden" disabled={uploading} onChange={async e => {
+                  const f = e.target.files?.[0]; if (!f || typeof modal !== 'object' || !modal) return
+                  setUploading(true)
+                  const { url, nombre } = await upload(f, modal.id, 'diagrama')
+                  setForm(prev => ({ ...prev, diagrama_url: url, diagrama_nombre: nombre }))
+                  setUploading(false)
+                }} />
+              )}
+            </label>
+          )}
         </Field>
+
+        {/* Video — solo URL */}
         <Row2>
-          <Field label="URL video capacitación">
+          <Field label="Video capacitacion (URL)">
             <Input value={form.video_url || ''} onChange={e => setForm(f => ({ ...f, video_url: e.target.value }))} placeholder="https://youtu.be/..." />
           </Field>
-          <Field label="Título del video">
+          <Field label="Titulo del video">
             <Input value={form.video_titulo || ''} onChange={e => setForm(f => ({ ...f, video_titulo: e.target.value }))} placeholder="Nombre del video" />
           </Field>
         </Row2>

@@ -85,5 +85,14 @@ export function useProcedimientos(areaId: string) {
     await load()
   }, [load])
 
-  return { procedimientos, loading, save, remove, reload: load }
+  const upload = useCallback(async (file: File, procId: string, tipo: 'documento' | 'diagrama'): Promise<{ url: string; nombre: string }> => {
+    const ext = file.name.split('.').pop() || 'pdf'
+    const path = `${areaId}/${procId}/${tipo}_${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('garantias-docs').upload(path, file, { upsert: true })
+    if (error) throw new Error(error.message)
+    const { data } = supabase.storage.from('garantias-docs').getPublicUrl(path)
+    return { url: data.publicUrl, nombre: file.name }
+  }, [areaId])
+
+  return { procedimientos, loading, save, remove, upload, reload: load }
 }
