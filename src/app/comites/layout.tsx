@@ -1,7 +1,7 @@
 'use client'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { applyOrgTheme, THEME_PRESETS } from '@/lib/theme'
@@ -37,6 +37,25 @@ const AREA_TABS = [
   { href: '/comites/ampliado', label: 'Ampliado', id: 'ampliado' },
 ]
 
+// ── Sub-tabs per area (second ribbon) ──
+const MODULE_NAMES: Record<string, string> = {
+  obras: 'Control Financiero', legal: 'Causas', prevencion: 'Seguridad',
+  estudios: 'Pipeline', finanzas: 'Flujo de Caja', eti: 'Tecnología e Innovación', rrhh: 'Recursos Humanos',
+}
+const HAS_PANEL: string[] = ['obras', 'legal', 'prevencion', 'estudios', 'finanzas', 'eti', 'rrhh']
+const HAS_GARANTIAS: string[] = ['finanzas', 'estudios']
+
+function getSubTabs(areaId: string): { id: string; label: string }[] {
+  const tabs: { id: string; label: string }[] = [
+    { id: 'informe', label: 'Informe' },
+    { id: 'tareas', label: 'Tareas' },
+  ]
+  if (HAS_PANEL.includes(areaId)) tabs.push({ id: 'modulo', label: MODULE_NAMES[areaId] || 'Módulo' })
+  if (HAS_GARANTIAS.includes(areaId)) tabs.push({ id: 'garantias', label: 'Garantías' })
+  tabs.push({ id: 'minutas', label: 'Minutas' })
+  return tabs
+}
+
 // ── Speed Dial actions per module ──
 const SPEED_DIAL_ACTIONS: Record<string, { label: string; icon: string }[]> = {
   reuniones: [
@@ -59,6 +78,10 @@ const PROFILE_MENU = [
 ]
 
 export default function ComitesLayout({ children }: { children: React.ReactNode }) {
+  return <Suspense><ComitesLayoutInner>{children}</ComitesLayoutInner></Suspense>
+}
+
+function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -79,11 +102,18 @@ export default function ComitesLayout({ children }: { children: React.ReactNode 
     router.refresh()
   }
 
+  const searchParams = useSearchParams()
   const isAreaPage = pathname.match(/^\/comites\/(finanzas|obras|estudios|legal|prevencion|rrhh|eti|ampliado)/) || pathname.match(/^\/comites\/[a-f0-9-]+/)
   const isHome = pathname === '/comites'
   const isProfile = mobileTab === 'profile'
-  // Show area tabs on home + area pages, NOT on reuniones/proyectos/equipos/etc.
   const isNonAreaPage = pathname.match(/^\/comites\/(reuniones|proyectos|equipos|historial|usuarios)/)
+
+  // Current area for sub-tabs
+  const currentAreaMatch = pathname.match(/^\/comites\/([a-z]+)/)
+  const currentArea = currentAreaMatch ? currentAreaMatch[1] : null
+  const showSubTabs = isAreaPage && currentArea && currentArea !== 'ampliado' && !pathname.includes('/proyectar')
+  const subTabs = currentArea ? getSubTabs(currentArea) : []
+  const activeSubTab = searchParams.get('tab') || 'informe'
 
   // Current module for speed dial
   const currentModule = useMemo(() => {
@@ -291,6 +321,30 @@ export default function ComitesLayout({ children }: { children: React.ReactNode 
                 </Link>
               )
             })}
+          </div>
+        )}
+
+        {/* ── Sub-tabs ribbon (second line, white bg) ── */}
+        {showSubTabs && (
+          <div className="px-3 sm:px-6 py-1.5 flex items-center gap-1 overflow-x-auto border-b scrollbar-hide bg-white"
+            style={{ borderColor: 'var(--org-sidebar-border)' }}>
+            {subTabs.map(tab => {
+              const active = activeSubTab === tab.id
+              return (
+                <Link key={tab.id} href={`/comites/${currentArea}?tab=${tab.id}`} scroll={false}
+                  className={`px-3 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all shrink-0 ${
+                    active ? 'font-bold' : 'text-[#6B7280] hover:text-ink hover:bg-[#F3F4F6]'
+                  }`}
+                  style={active ? { color: 'var(--org-primary)', background: 'var(--org-primary-light)' } : undefined}>
+                  {tab.label}
+                </Link>
+              )
+            })}
+            <div className="flex-1" />
+            <Link href={`/comites/${currentArea}/proyectar`}
+              className="shrink-0 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all text-[#6B7280] hover:text-ink hover:bg-[#F3F4F6]">
+              Presentar →
+            </Link>
           </div>
         )}
 

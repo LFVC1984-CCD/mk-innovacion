@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth, useAreaData } from '@/lib/comites/hooks'
 import { useAutoKpis } from '@/lib/comites/use-auto-kpis'
@@ -16,17 +17,6 @@ import AnimatedBar from '@/components/comites/AnimatedBar'
 
 const TIPO_KEYS: TareaTipo[] = ['seguimiento', 'acuerdo', 'accion_correctiva', 'solicitud']
 
-// ── Tab config per area ──
-
-const MODULE_NAMES: Record<string, string> = {
-  obras: 'Control Financiero',
-  legal: 'Causas',
-  prevencion: 'Seguridad',
-  estudios: 'Pipeline',
-  finanzas: 'Flujo de Caja',
-  eti: 'Tecnología e Innovación',
-  rrhh: 'Recursos Humanos',
-}
 
 interface MinutaRow {
   id: string
@@ -51,20 +41,12 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
   const hasAutoKpis = !isRRHH && autoKpis.length > 0
   const AreaPanel = AREA_PANELS[areaId as AreaId]
 
-  // ── Tabs ──
+  // ── Tabs — read from URL search params (controlled by layout ribbon) ──
+  const searchParams = useSearchParams()
+  type TabId = 'informe' | 'tareas' | 'modulo' | 'garantias' | 'minutas'
+  const activeTab = (searchParams.get('tab') || 'informe') as TabId
   const isFinanzas = areaId === 'finanzas'
   const isEstudios = areaId === 'estudios'
-  const showGarantiasTab = isFinanzas || isEstudios
-  type TabId = 'informe' | 'tareas' | 'modulo' | 'garantias' | 'minutas'
-  const tabs: { id: TabId; label: string; count?: number }[] = [
-    { id: 'informe', label: 'Informe' },
-    { id: 'tareas', label: 'Tareas', count: tareas.length },
-  ]
-  if (AreaPanel) tabs.push({ id: 'modulo', label: MODULE_NAMES[areaId] || 'Módulo' })
-  if (showGarantiasTab) tabs.push({ id: 'garantias', label: 'Garantías' })
-  tabs.push({ id: 'minutas', label: 'Minutas' })
-
-  const [activeTab, setActiveTab] = useState<TabId>('informe')
 
   // KPI form (solo RRHH)
   const [showKpiForm, setShowKpiForm] = useState(false)
@@ -151,42 +133,7 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
 
   return (
     <>
-      {/* ── Sub-tabs (Informe, Tareas, Módulo, Minutas) + Presentación ── */}
-      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
-        {tabs.map(tab => {
-          const isActive = activeTab === tab.id
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`relative px-3.5 py-1.5 rounded-lg text-[11px] font-bold transition-all shrink-0 ${
-                isActive
-                  ? 'bg-white shadow-sm border'
-                  : 'text-slate hover:text-ink hover:bg-white/60 border border-transparent'
-              }`}
-              style={isActive ? { color: 'var(--org-primary)', borderColor: 'rgba(var(--org-primary-rgb), 0.2)' } : undefined}
-            >
-              {tab.label}
-              {tab.count !== undefined && tab.count > 0 && (
-                <span className={`ml-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
-                  isActive ? 'bg-cobalt/10 text-cobalt' : 'bg-slate-100 text-slate'
-                }`}>
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          )
-        })}
-        {/* Presentación — al final de los sub-tabs */}
-        <div className="flex-1" />
-        <Link href={`/comites/${areaId}/proyectar`}
-          className="shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all hover-org"
-          style={{ borderColor: 'var(--org-sidebar-border)', color: 'var(--org-sidebar-text)' }}>
-          Presentar →
-        </Link>
-      </div>
-
-      {/* ── Tab Content ── */}
+      {/* ── Tab Content (sub-tab ribbon is in layout) ── */}
       <AnimatePresence mode="wait">
         {/* ═══ INFORME ═══ */}
         {activeTab === 'informe' && (
