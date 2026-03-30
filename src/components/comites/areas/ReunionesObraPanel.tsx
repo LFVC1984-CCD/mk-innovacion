@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/comites/hooks'
 import { fmtMM } from '@/lib/comites/data'
 import { isObra } from '@/lib/types'
 import Modal, { Field, Input, Select, Row2, Btn } from '@/components/comites/Modal'
+import UserSelect from '@/components/comites/UserSelect'
 import { toast } from '@/components/ui/Toast'
 
 const ESTADO_BADGE: Record<string, { bg: string; text: string; label: string }> = {
@@ -414,7 +415,7 @@ export default function ReunionesObraPanel() {
             </Select>
           </Field>
           <Field label="Responsable">
-            <Input type="text" placeholder="Nombre" value={formT.responsable} onChange={e => setFormT(f => ({ ...f, responsable: e.target.value }))} />
+            <UserSelect value={formT.responsable} onChange={v => setFormT(f => ({ ...f, responsable: v }))} placeholder="Responsable" />
           </Field>
         </Row2>
         <Field label="Fecha compromiso">

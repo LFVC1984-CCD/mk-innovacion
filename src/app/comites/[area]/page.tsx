@@ -14,6 +14,7 @@ import { AREA_PANELS, GarantiasPanel, GarantiasViewer } from '@/components/comit
 import ProcedimientosPanel from '@/components/comites/areas/ProcedimientosPanel'
 import KPIDashboard from '@/components/comites/KPIDashboard'
 import TaskStackedBar from '@/components/comites/TaskStackedBar'
+import UserSelect from '@/components/comites/UserSelect'
 import AnimatedBar from '@/components/comites/AnimatedBar'
 
 const TIPO_KEYS: TareaTipo[] = ['seguimiento', 'acuerdo', 'accion_correctiva', 'solicitud']
@@ -116,13 +117,6 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
   }
   async function updateTaskEstado(id: string, estado: string) { await supabase.from('tareas').update({ estado }).eq('id', id); refresh() }
   async function deleteTask(id: string) { await supabase.from('tareas').delete().eq('id', id); refresh() }
-
-  const statusColors: Record<string, { bg: string; text: string }> = {
-    'en-proceso': { bg: '#EFF6FF', text: '#0B5ED7' },
-    'completada': { bg: '#DCFCE7', text: '#16A34A' },
-    'bloqueada': { bg: '#FEE2E2', text: '#DC2626' },
-    'pendiente': { bg: '#F8FAFC', text: '#64748B' },
-  }
 
   // Tareas counts by status
   const taskCounts = {
@@ -258,75 +252,82 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
         {/* ═══ TAREAS ═══ */}
         {activeTab === 'tareas' && (
           <motion.div key="tareas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
-            <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden shadow-sm">
-              <div className="px-3.5 py-2.5 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-0.5 h-4 rounded bg-cobalt" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate">Tareas ({tareas.length})</span>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate">{tareas.length} tarea{tareas.length !== 1 ? 's' : ''}</span>
+              <button onClick={() => setShowTaskForm(!showTaskForm)} className="text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold" style={{ background: 'var(--org-primary)' }}>+ Agregar</button>
+            </div>
+            {/* Add form */}
+            {showTaskForm && (
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-3.5 mb-3" style={{ borderLeftWidth: 3, borderLeftColor: 'var(--org-primary)' }}>
+                <input value={taskText} onChange={e => setTaskText(e.target.value)} placeholder="Descripcion de la tarea" className="inp w-full mb-2" />
+                <div className="flex gap-1.5 mb-2 flex-wrap">
+                  <select value={taskTipo} onChange={e => setTaskTipo(e.target.value as TareaTipo)} className="inp" style={{ width: 'auto' }}>
+                    {TIPO_KEYS.map(t => <option key={t} value={t}>{TAREA_TIPO_LABELS[t]}</option>)}
+                  </select>
+                  <UserSelect value={taskResp} onChange={setTaskResp} placeholder="Responsable" className="flex-1 min-w-[140px]" />
+                  <input type="date" value={taskFecha} onChange={e => setTaskFecha(e.target.value)} className="inp" style={{ width: 'auto' }} />
+                  <select value={taskAreaDestino} onChange={e => setTaskAreaDestino(e.target.value)} className="inp" style={{ width: 'auto' }}>
+                    <option value="">Este comite</option>
+                    {AREAS_LIST.filter(a => a.id !== areaId).map(a => <option key={a.id} value={a.id}>→ {a.name}</option>)}
+                  </select>
                 </div>
-                <button onClick={() => setShowTaskForm(!showTaskForm)} className="text-xs text-cobalt font-semibold hover:bg-cobalt-light px-2 py-0.5 rounded">+ Agregar</button>
+                <div className="flex gap-1.5">
+                  <button onClick={addTask} className="px-4 py-1.5 text-white text-xs rounded-lg font-bold btn-scale" style={{ background: 'var(--org-primary)' }}>Agregar</button>
+                  <button onClick={() => setShowTaskForm(false)} className="px-3 py-1.5 border border-[#E2E8F0] text-xs rounded-lg font-semibold">Cancelar</button>
+                </div>
               </div>
-              <div className="p-3.5">
-                {tareas.length === 0 && <p className="text-xs text-slate py-2">Sin tareas.</p>}
-                {tareas.map(t => {
-                  const sc = statusColors[t.estado] || statusColors.pendiente
-                  const tipoColor = TAREA_TIPO_COLORS[t.tipo || 'seguimiento'] || '#64748B'
-                  const tipoLabel = TAREA_TIPO_LABELS[t.tipo || 'seguimiento'] || 'Seguimiento'
-                  return (
-                    <div key={t.id} className="flex items-start gap-2 py-2.5 border-b border-[#F1F5F9] last:border-0">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: tipoColor + '15', color: tipoColor }}>{tipoLabel}</span>
-                          {t.from_decision && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cobalt-light text-cobalt">Decisión</span>}
-                          {t.area_id !== areaId && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#0891B2]/10 text-[#0891B2]">← {t.area_id.toUpperCase()}</span>
-                          )}
-                        </div>
-                        <p className="text-xs text-ink leading-snug">{t.texto}</p>
-                        <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate">
-                          <span>{t.responsable || '—'}</span>
-                          {t.fecha_compromiso ? (
-                            <span className="text-cobalt font-semibold">{fmtFecha(t.fecha_compromiso)}</span>
-                          ) : (
-                            t.estado !== 'completada' && <span className="text-danger font-semibold">Sin fecha</span>
-                          )}
-                        </div>
-                      </div>
-                      <select value={t.estado} onChange={e => updateTaskEstado(t.id, e.target.value)}
-                        className="text-[10px] font-bold rounded-full px-2 py-0.5 border-none cursor-pointer" style={{ background: sc.bg, color: sc.text }}>
-                        <option value="pendiente">Pendiente</option>
-                        <option value="en-proceso">En proceso</option>
-                        <option value="completada">Completada</option>
-                        <option value="bloqueada">Bloqueada</option>
-                      </select>
-                      <button onClick={() => deleteTask(t.id)} className="text-[#CBD5E1] hover:text-danger text-sm flex-shrink-0">×</button>
-                    </div>
-                  )
-                })}
+            )}
 
-                {showTaskForm && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
-                    <input value={taskText} onChange={e => setTaskText(e.target.value)} placeholder="Descripción de la tarea" className="w-full text-xs px-2 py-1.5 border border-[#E2E8F0] rounded mb-1.5 outline-none focus:border-cobalt" />
-                    <div className="flex gap-1.5 mb-1.5">
-                      <select value={taskTipo} onChange={e => setTaskTipo(e.target.value as TareaTipo)} className="text-xs px-2 py-1.5 border border-[#E2E8F0] rounded outline-none focus:border-cobalt bg-white">
-                        {TIPO_KEYS.map(t => <option key={t} value={t}>{TAREA_TIPO_LABELS[t]}</option>)}
-                      </select>
-                      <input value={taskResp} onChange={e => setTaskResp(e.target.value)} placeholder="Responsable" className="flex-1 text-xs px-2 py-1.5 border border-[#E2E8F0] rounded outline-none focus:border-cobalt" />
-                      <input type="date" value={taskFecha} onChange={e => setTaskFecha(e.target.value)} className="text-xs px-2 py-1.5 border border-[#E2E8F0] rounded outline-none focus:border-cobalt" />
-                    </div>
-                    <div className="flex gap-1.5 mb-1.5">
-                      <select value={taskAreaDestino} onChange={e => setTaskAreaDestino(e.target.value)} className="flex-1 text-xs px-2 py-1.5 border border-[#E2E8F0] rounded outline-none focus:border-cobalt bg-white">
-                        <option value="">Solo este comité</option>
-                        {AREAS_LIST.filter(a => a.id !== areaId).map(a => <option key={a.id} value={a.id}>→ {a.name}</option>)}
-                      </select>
-                    </div>
-                    <div className="flex gap-1.5">
-                      <button onClick={addTask} className="px-3 py-1 bg-cobalt text-white text-xs rounded font-semibold btn-scale">Agregar</button>
-                      <button onClick={() => setShowTaskForm(false)} className="px-3 py-1 border border-[#E2E8F0] text-xs rounded font-semibold">Cancelar</button>
-                    </div>
+            {/* Kanban 3 columns */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {([
+                { key: 'pendiente', label: 'Pendientes', color: '#64748B', bg: '#F8FAFC', items: tareas.filter(t => t.estado === 'pendiente' || t.estado === 'bloqueada') },
+                { key: 'en-proceso', label: 'En proceso', color: '#0B5ED7', bg: '#EFF6FF', items: tareas.filter(t => t.estado === 'en-proceso') },
+                { key: 'completada', label: 'Completadas', color: '#16A34A', bg: '#F0FDF4', items: tareas.filter(t => t.estado === 'completada') },
+              ]).map(col => (
+                <div key={col.key} className="rounded-xl border border-[#E2E8F0] overflow-hidden" style={{ background: col.bg }}>
+                  <div className="px-3 py-2 border-b border-[#E2E8F0] flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full" style={{ background: col.color }} />
+                    <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: col.color }}>{col.label}</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-auto" style={{ background: col.color + '18', color: col.color }}>{col.items.length}</span>
                   </div>
-                )}
-              </div>
+                  <div className="p-2 space-y-1.5 min-h-[80px]">
+                    {col.items.map(t => {
+                      const tipoColor = TAREA_TIPO_COLORS[t.tipo || 'seguimiento'] || '#64748B'
+                      return (
+                        <div key={t.id} className="bg-white rounded-lg border border-[#E2E8F0] p-2.5 hover:shadow-sm transition-all group">
+                          <div className="flex gap-1 mb-1 flex-wrap">
+                            <span className="text-[8px] px-1 py-0.5 rounded font-bold uppercase" style={{ background: tipoColor + '15', color: tipoColor }}>{TAREA_TIPO_LABELS[t.tipo || 'seguimiento']}</span>
+                            {t.estado === 'bloqueada' && <span className="text-[8px] px-1 py-0.5 rounded font-bold uppercase bg-red-100 text-red-600">Bloq.</span>}
+                            {t.area_destino && t.area_destino !== areaId && (
+                              <span className="text-[8px] px-1 py-0.5 rounded font-bold uppercase bg-purple-50 text-purple-600">→ {AREA_NAMES[t.area_destino] || t.area_destino}</span>
+                            )}
+                          </div>
+                          <p className="text-[11px] font-medium text-ink leading-snug mb-1.5">{t.texto}</p>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 text-[10px] text-slate">
+                              {t.responsable && <span>{t.responsable}</span>}
+                              {t.fecha_compromiso && <span className="font-mono">{fmtFecha(t.fecha_compromiso)}</span>}
+                            </div>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <select value={t.estado} onChange={e => updateTaskEstado(t.id, e.target.value)}
+                                className="text-[9px] px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-white outline-none cursor-pointer">
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en-proceso">En proceso</option>
+                                <option value="completada">Completada</option>
+                                <option value="bloqueada">Bloqueada</option>
+                              </select>
+                              <button onClick={() => deleteTask(t.id)} className="text-[#CBD5E1] hover:text-danger text-sm">×</button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    {col.items.length === 0 && <p className="text-[10px] text-center text-slate py-4 italic">Sin tareas</p>}
+                  </div>
+                </div>
+              ))}
             </div>
           </motion.div>
         )}

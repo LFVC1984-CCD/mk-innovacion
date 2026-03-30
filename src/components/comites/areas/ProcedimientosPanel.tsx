@@ -6,6 +6,7 @@ import type { Procedimiento, ProcEstado, ProcTipo, ProcInput } from '@/lib/comit
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtFecha } from '@/lib/comites/data'
 import Modal, { Field, Input, Select, Row2, Btn, Divider } from '@/components/comites/Modal'
+import UserSelect from '@/components/comites/UserSelect'
 import { toast } from '@/components/ui/Toast'
 
 const FECHA_FIELDS: { key: keyof Procedimiento; label: string; etapa: ProcEstado }[] = [
@@ -269,7 +270,7 @@ export default function ProcedimientosPanel({ areaId }: Props) {
         </Row2>
         <Row2>
           <Field label="Responsable">
-            <Input value={form.responsable || ''} onChange={e => setForm(f => ({ ...f, responsable: e.target.value }))} placeholder="Nombre o cargo" />
+            <UserSelect value={form.responsable || ''} onChange={v => setForm(f => ({ ...f, responsable: v }))} placeholder="Responsable" />
           </Field>
           <Field label="Versión">
             <Input value={form.version || '1.0'} onChange={e => setForm(f => ({ ...f, version: e.target.value }))} placeholder="1.0" />
