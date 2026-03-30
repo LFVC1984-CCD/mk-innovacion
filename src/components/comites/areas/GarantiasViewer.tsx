@@ -15,19 +15,47 @@ import { toast } from '@/components/ui/Toast'
  * Permite ver y descargar documentos adjuntos. No permite editar — eso se hace desde Finanzas.
  */
 export default function GarantiasViewer() {
-  const { loading, garantias, entidades, proyectos: allProyectos, saveGarantia } = useGarantias()
+  const { loading, garantias, entidades, proyectos: allProyectos, saveGarantia, uploadFile } = useGarantias()
   const { projects } = useProjects()
   const [view, setView] = useState<'cards' | 'tabla'>('tabla')
   const [solicitarModal, setSolicitarModal] = useState(false)
+  const [devModal, setDevModal] = useState<string | null>(null) // garantia id for devolucion
+  const [devFile, setDevFile] = useState<File | null>(null)
+  const [devSaving, setDevSaving] = useState(false)
 
-  // Solo proyectos de obra activos o cerrados con saldo (excluir Administración y estudios)
-  const proyectosObra = useMemo(() =>
-    projects.filter(p => ['activo', 'adjudicado', 'cerrado_saldo'].includes(p.estado) && p.nombre !== 'Administración'),
+  async function handleDevolucion() {
+    if (!devModal) return
+    setDevSaving(true)
+    let compUrl = ''
+    let compNombre = ''
+    if (devFile) {
+      compUrl = await uploadFile(devFile, devModal, 'comprobante')
+      compNombre = devFile.name
+    }
+    const g = garantias.find(x => x.id === devModal)
+    if (g) {
+      await saveGarantia({
+        proyecto_id: g.proyecto_id, tipo: g.tipo, instrumento: g.instrumento,
+        entidad: g.entidad, monto: g.monto,
+        fecha_solicitud: g.fecha_solicitud, fecha_inicio: g.fecha_inicio,
+        fecha_vencimiento: g.fecha_vencimiento,
+        estado: 'devuelta', observacion: g.observacion,
+        comprobante_url: compUrl, comprobante_nombre: compNombre,
+        documento_url: g.documento_url, documento_nombre: g.documento_nombre,
+      }, devModal)
+    }
+    setDevModal(null); setDevFile(null); setDevSaving(false)
+    toast('Garantia marcada como devuelta')
+  }
+
+  // Todos los proyectos excepto Administración (Estudios necesita ver garantías de seriedad en licitaciones)
+  const proyectosFiltro = useMemo(() =>
+    projects.filter(p => p.nombre !== 'Administración'),
   [projects])
 
-  const proyectoIds = useMemo(() => new Set(proyectosObra.map(p => p.id)), [proyectosObra])
+  const proyectoIds = useMemo(() => new Set(proyectosFiltro.map(p => p.id)), [proyectosFiltro])
 
-  // Filtrar garantías: solo de proyectos de obra + vigentes/por_vencer/en_renovacion/solicitada
+  // Filtrar garantías: vigentes/por_vencer/en_renovacion/solicitada de todos los proyectos (no Administración)
   const vigentes = useMemo(() =>
     garantias.filter(g =>
       (g.estado === 'vigente' || g.estado === 'por_vencer' || g.estado === 'en_renovacion' || g.estado === 'solicitada') &&
@@ -54,9 +82,9 @@ export default function GarantiasViewer() {
     <>
       <div className="mb-4">
         <h2 className="font-condensed text-xl font-extrabold">
-          <span style={{ color: 'var(--org-primary)' }}>Garantias</span> <span className="text-slate font-normal text-sm">obras activas</span>
+          <span style={{ color: 'var(--org-primary)' }}>Garantias</span> <span className="text-slate font-normal text-sm">activas</span>
         </h2>
-        <p className="text-xs text-slate">Garantias de proyectos activos y cerrados con saldo. Gestion completa en Finanzas.</p>
+        <p className="text-xs text-slate">Garantias vigentes de obras y licitaciones. Incluye seriedad de oferta. Gestion completa en Finanzas.</p>
       </div>
 
       {/* Alerta por vencer */}
@@ -82,7 +110,7 @@ export default function GarantiasViewer() {
       {/* Controls */}
       <div className="flex items-center justify-between mb-3">
         <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate">
-          {vigentes.length} garantia{vigentes.length !== 1 ? 's' : ''} · {proyectosObra.length} obras
+          {vigentes.length} garantia{vigentes.length !== 1 ? 's' : ''} · {proyectosFiltro.length} proyectos
           {totalSolicitadas > 0 && <span className="ml-1" style={{ color: 'var(--org-primary)' }}>({totalSolicitadas} solicitada{totalSolicitadas > 1 ? 's' : ''})</span>}
         </p>
         <div className="flex gap-2 items-center">
@@ -109,6 +137,7 @@ export default function GarantiasViewer() {
                 <th className="text-left p-3">Estado</th>
                 <th className="text-center p-3">Docs</th>
                 <th className="text-right p-3">Dias</th>
+                <th className="text-center p-3"></th>
               </tr>
             </thead>
             <tbody>
@@ -147,11 +176,16 @@ export default function GarantiasViewer() {
                         <span className="text-[11px] font-bold" style={{ color: 'var(--org-primary)' }}>Pendiente</span>
                       )}
                     </td>
+                    <td className="p-3 text-center">
+                      {g.estado !== 'solicitada' && (
+                        <button onClick={() => setDevModal(g.id)} className="text-[10px] font-semibold text-green-600 hover:underline">Devolver</button>
+                      )}
+                    </td>
                   </tr>
                 )
               })}
               {vigentes.length === 0 && (
-                <tr><td colSpan={8} className="p-8 text-center text-slate">Sin garantias vigentes para obras activas.</td></tr>
+                <tr><td colSpan={9} className="p-8 text-center text-slate">Sin garantias vigentes.</td></tr>
               )}
             </tbody>
           </table>
@@ -199,6 +233,28 @@ export default function GarantiasViewer() {
               Sin garantias vigentes para obras activas.
             </div>
           )}
+        </div>
+      )}
+
+      {/* Modal devolución */}
+      {devModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setDevModal(null); setDevFile(null) }}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-[400px] mx-4 p-5" onClick={e => e.stopPropagation()}>
+            <h3 className="font-condensed font-bold text-lg text-ink mb-3">Marcar como devuelta</h3>
+            <p className="text-xs text-slate mb-4">La garantia se marcara como devuelta y los fondos se consideraran recuperados.</p>
+            <label className="flex items-center gap-2 px-3 py-2.5 border border-dashed border-[#CBD5E1] rounded-lg cursor-pointer hover:border-cobalt hover:bg-[#F8FAFC] transition-colors mb-4">
+              <span className="text-[11px]">📎</span>
+              <span className="text-[12px] text-[#9CA3AF]">{devFile ? devFile.name : 'Adjuntar evidencia (opcional)'}</span>
+              <input type="file" accept=".pdf,.jpg,.jpeg,.png,.eml" className="hidden" onChange={e => setDevFile(e.target.files?.[0] || null)} />
+            </label>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => { setDevModal(null); setDevFile(null) }} className="px-4 py-2 border border-[#E2E8F0] rounded-lg text-xs font-semibold">Cancelar</button>
+              <button onClick={handleDevolucion} disabled={devSaving}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700 transition-colors">
+                {devSaving ? 'Guardando...' : 'Confirmar devolucion'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

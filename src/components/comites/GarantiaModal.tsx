@@ -12,12 +12,11 @@ const TIPOS_GARANTIA = [
   { value: 'correcta_ejecucion', label: 'Correcta ejecución' },
   { value: 'otra', label: 'Otra' },
 ]
+// por_vencer y vencida son automáticos (calculados por fecha), no se seleccionan manual
 const ESTADOS = [
   { value: 'solicitada', label: 'Solicitada' },
-  { value: 'vigente', label: 'Vigente' },
-  { value: 'por_vencer', label: 'Por vencer' },
+  { value: 'vigente', label: 'Vigente (documento gestionado)' },
   { value: 'en_renovacion', label: 'En renovación' },
-  { value: 'vencida', label: 'Vencida' },
   { value: 'devuelta', label: 'Devuelta' },
 ]
 const INSTRUMENTOS = [
@@ -229,24 +228,29 @@ export default function GarantiaModal({ open, onClose, editing, proyectos, entid
 
       <Divider label="Documentos" />
 
-      {/* Documento de garantía */}
+      {/* Documento de garantía — solo adjuntable cuando estado = vigente (Finanzas ya gestionó) */}
       <Field label="Documento de garantia (PDF, foto del instrumento)">
         {docUrl ? (
           <div className="flex items-center gap-2 px-3 py-2 border border-[#E2E8F0] rounded-lg bg-[#F8FAFC]">
             <span className="text-[11px]">📄</span>
             <a href={docUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium hover:underline flex-1 truncate" style={{ color: 'var(--org-primary)' }}>{docNombre || 'Ver documento'}</a>
-            <button onClick={() => { setDocUrl(''); setDocNombre('') }} className="text-[10px] text-red-400 hover:text-red-600">✕</button>
+            {estado === 'vigente' && <button onClick={() => { setDocUrl(''); setDocNombre('') }} className="text-[10px] text-red-400 hover:text-red-600">✕</button>}
           </div>
-        ) : (
+        ) : estado === 'vigente' && isEdit ? (
           <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-[#CBD5E1] rounded-lg cursor-pointer hover:border-cobalt hover:bg-[#F8FAFC] transition-colors">
             <span className="text-[11px]">📎</span>
-            <span className="text-[12px] text-[#9CA3AF]">{uploading ? 'Subiendo...' : isEdit ? 'Adjuntar documento' : 'Guardar primero para adjuntar'}</span>
-            {isEdit && <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" disabled={uploading} onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, 'documento') }} />}
+            <span className="text-[12px] text-[#9CA3AF]">{uploading ? 'Subiendo...' : 'Adjuntar documento de garantia'}</span>
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" disabled={uploading} onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, 'documento') }} />
           </label>
+        ) : (
+          <p className="text-[11px] text-[#9CA3AF] px-3 py-2">
+            {estado === 'solicitada' ? 'Disponible cuando el estado sea Vigente (garantia gestionada)' :
+             estado === 'devuelta' ? 'Garantia devuelta' : 'Sin documento adjunto'}
+          </p>
         )}
       </Field>
 
-      {/* Comprobante de entrega/retiro */}
+      {/* Comprobante de entrega/retiro — solo adjuntable cuando estado = devuelta */}
       <Field label="Comprobante de entrega o retiro (correo, foto, PDF)">
         {compUrl ? (
           <div className="flex items-center gap-2 px-3 py-2 border border-[#E2E8F0] rounded-lg bg-[#F8FAFC]">
@@ -254,12 +258,16 @@ export default function GarantiaModal({ open, onClose, editing, proyectos, entid
             <a href={compUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium hover:underline flex-1 truncate" style={{ color: 'var(--org-primary)' }}>{compNombre || 'Ver comprobante'}</a>
             <button onClick={() => { setCompUrl(''); setCompNombre('') }} className="text-[10px] text-red-400 hover:text-red-600">✕</button>
           </div>
-        ) : (
+        ) : estado === 'devuelta' && isEdit ? (
           <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-[#CBD5E1] rounded-lg cursor-pointer hover:border-cobalt hover:bg-[#F8FAFC] transition-colors">
             <span className="text-[11px]">📎</span>
-            <span className="text-[12px] text-[#9CA3AF]">{uploading ? 'Subiendo...' : isEdit ? 'Adjuntar comprobante' : 'Guardar primero para adjuntar'}</span>
-            {isEdit && <input type="file" accept=".pdf,.jpg,.jpeg,.png,.eml" className="hidden" disabled={uploading} onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, 'comprobante') }} />}
+            <span className="text-[12px] text-[#9CA3AF]">{uploading ? 'Subiendo...' : 'Adjuntar evidencia de devolucion'}</span>
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png,.eml" className="hidden" disabled={uploading} onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, 'comprobante') }} />
           </label>
+        ) : (
+          <p className="text-[11px] text-[#9CA3AF] px-3 py-2">
+            {estado !== 'devuelta' ? 'Disponible al marcar como Devuelta (fondos recuperados)' : 'Sin comprobante'}
+          </p>
         )}
       </Field>
     </Modal>

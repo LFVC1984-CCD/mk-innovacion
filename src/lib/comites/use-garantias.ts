@@ -231,15 +231,27 @@ export function useGarantias() {
     }).sort((a, b) => b.comprometido - a.comprometido)
   }, [garantias, lineas])
 
-  // ── Computed: garantías with dias and proyecto name ──
+  // ── Computed: garantías with dias, proyecto name, and auto-states ──
+  // por_vencer (< 30d) and vencida (past date) are computed, not stored
   const garantiasUI = useMemo(() => {
-    return garantias.map(g => ({
-      ...g,
-      dias: diasHasta(g.fecha_vencimiento),
-      proyecto: g.proyecto_nombre || '(sin proyecto)',
-      instrumento_label: instrLabel(g.instrumento),
-      tipo_label: tipoLabel(g.tipo),
-    }))
+    return garantias.map(g => {
+      const dias = diasHasta(g.fecha_vencimiento)
+      let estadoEfectivo = g.estado
+      // Auto-compute: only if current DB state is 'vigente'
+      if (g.estado === 'vigente' && dias !== null) {
+        if (dias <= 0) estadoEfectivo = 'vencida' as GarantiaEstado
+        else if (dias <= 30) estadoEfectivo = 'por_vencer' as GarantiaEstado
+      }
+      return {
+        ...g,
+        estado: estadoEfectivo,
+        estado_db: g.estado, // original DB state (for permissions logic)
+        dias,
+        proyecto: g.proyecto_nombre || '(sin proyecto)',
+        instrumento_label: instrLabel(g.instrumento),
+        tipo_label: tipoLabel(g.tipo),
+      }
+    })
   }, [garantias])
 
   // ── CRUD: Garantías ──
