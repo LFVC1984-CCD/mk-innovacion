@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 import { AREAS_LIST, AREA_NAMES, TAREA_TIPO_LABELS, TAREA_TIPO_COLORS } from '@/lib/types'
 import type { AreaId, TareaTipo } from '@/lib/types'
 import { AREA_PANELS, GarantiasPanel, GarantiasViewer } from '@/components/comites/areas'
+import ProcedimientosPanel from '@/components/comites/areas/ProcedimientosPanel'
 import KPIDashboard from '@/components/comites/KPIDashboard'
 import TaskStackedBar from '@/components/comites/TaskStackedBar'
 import AnimatedBar from '@/components/comites/AnimatedBar'
@@ -43,7 +44,7 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
 
   // ── Tabs — read from URL search params (controlled by layout ribbon) ──
   const searchParams = useSearchParams()
-  type TabId = 'informe' | 'tareas' | 'modulo' | 'garantias' | 'minutas'
+  type TabId = 'informe' | 'tareas' | 'modulo' | 'garantias' | 'procedimientos' | 'minutas'
   const activeTab = (searchParams.get('tab') || 'informe') as TabId
   const isFinanzas = areaId === 'finanzas'
   const isEstudios = areaId === 'estudios'
@@ -346,6 +347,13 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
         {activeTab === 'garantias' && isEstudios && (
           <motion.div key="garantias-viewer" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
             <GarantiasViewer />
+          </motion.div>
+        )}
+
+        {/* ═══ PROCEDIMIENTOS ═══ */}
+        {activeTab === 'procedimientos' && (
+          <motion.div key="procedimientos" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+            <ProcedimientosPanel areaId={areaId} />
           </motion.div>
         )}
 

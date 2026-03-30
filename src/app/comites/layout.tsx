@@ -52,6 +52,7 @@ function getSubTabs(areaId: string): { id: string; label: string }[] {
   ]
   if (HAS_PANEL.includes(areaId)) tabs.push({ id: 'modulo', label: MODULE_NAMES[areaId] || 'Módulo' })
   if (HAS_GARANTIAS.includes(areaId)) tabs.push({ id: 'garantias', label: 'Garantías' })
+  tabs.push({ id: 'procedimientos', label: 'Procedimientos' })
   tabs.push({ id: 'minutas', label: 'Minutas' })
   return tabs
 }
