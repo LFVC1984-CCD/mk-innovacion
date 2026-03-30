@@ -297,15 +297,15 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          {/* Row 2: Comité tabs (gray band) */}
+          {/* Row 2: Comité tabs (gray band) — full width */}
           {(isAreaPage || isHome) && !isProfile && !isNonAreaPage && (
-            <div className="px-3 sm:px-6 py-1.5 flex gap-1 overflow-x-auto scrollbar-hide border-b"
+            <div className="px-2 sm:px-4 py-1.5 flex gap-0.5 overflow-x-auto scrollbar-hide border-b"
               style={{ background: 'var(--org-header-bg)', borderColor: 'var(--org-sidebar-border)' }}>
               {AREA_TABS.map(tab => {
                 const active = pathname.startsWith(tab.href) || pathname.includes(tab.id)
                 return (
                   <Link key={tab.id} href={tab.href}
-                    className="px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all shrink-0"
+                    className="flex-1 text-center px-1 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all"
                     style={{
                       background: active ? 'var(--org-tab-active-bg)' : 'white',
                       color: active ? 'var(--org-tab-active-text)' : '#6B7280',
@@ -319,15 +319,15 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
             </div>
           )}
 
-          {/* Row 3: Sub-tabs (white band) — only inside an area */}
+          {/* Row 3: Sub-tabs (white band) — full width */}
           {showSubTabs && (
-            <div className="px-3 sm:px-6 py-1 flex items-center gap-0.5 overflow-x-auto scrollbar-hide border-b bg-white"
+            <div className="px-2 sm:px-4 py-1 flex items-center gap-0.5 overflow-x-auto scrollbar-hide border-b bg-white"
               style={{ borderColor: 'var(--org-sidebar-border)' }}>
               {subTabs.map(tab => {
                 const active = activeSubTab === tab.id
                 return (
                   <Link key={tab.id} href={`/comites/${currentArea}?tab=${tab.id}`} scroll={false}
-                    className={`px-2.5 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-all shrink-0 ${
+                    className={`flex-1 text-center px-1 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-all ${
                       active ? 'font-semibold' : 'text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F9FAFB]'
                     }`}
                     style={active ? { color: 'var(--org-primary)', background: 'var(--org-primary-light)' } : undefined}>

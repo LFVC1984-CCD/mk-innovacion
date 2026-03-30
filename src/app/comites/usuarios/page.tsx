@@ -30,7 +30,6 @@ const MODULOS: { id: string; label: string; group: string }[] = [
   { id: 'usuarios', label: 'Usuarios', group: 'Admin' },
 ]
 
-const CARGOS = ['Gerente General', 'Administrador de Obra', 'Jefe Oficina Técnica', 'Jefe de Terreno', 'Prevencionista', 'Profesional', 'Analista', 'Asistente', 'Otro']
 
 export default function UsuariosPage() {
   const { loading: authLoading, isAdmin, supabase } = useAuth()
@@ -41,7 +40,7 @@ export default function UsuariosPage() {
 
   // Modal state — click on card opens this
   const [editUser, setEditUser] = useState<UserRow | 'new' | null>(null)
-  const [form, setForm] = useState({ email: '', password: '', nombre: '', cargo: '', area_id: 'viewer' as AreaId })
+  const [form, setForm] = useState({ email: '', password: '', nombre: '', area_id: 'viewer' as AreaId })
   const [saving, setSaving] = useState(false)
 
   useEffect(() => { if (!authLoading && !isAdmin) router.push('/comites') }, [authLoading, isAdmin, router])
@@ -65,12 +64,12 @@ export default function UsuariosPage() {
   useEffect(() => { if (isAdmin) loadUsers() }, [isAdmin, loadUsers])
 
   function openNew() {
-    setForm({ email: '', password: '', nombre: '', cargo: '', area_id: 'viewer' })
+    setForm({ email: '', password: '', nombre: '', area_id: 'viewer' })
     setEditUser('new')
   }
 
   function openEdit(u: UserRow) {
-    setForm({ email: '', password: '', nombre: u.nombre, cargo: u.cargo || '', area_id: u.area_id })
+    setForm({ email: '', password: '', nombre: u.nombre, area_id: u.area_id })
     setEditUser(u)
   }
 
@@ -81,12 +80,12 @@ export default function UsuariosPage() {
       const res = await fetch('/api/usuarios', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email, password: form.password, nombre: form.nombre, cargo: form.cargo || null, area_id: form.area_id, color: AREA_COLORS[form.area_id] || '#0B5ED7' }),
+        body: JSON.stringify({ email: form.email, password: form.password, nombre: form.nombre, area_id: form.area_id, color: AREA_COLORS[form.area_id] || '#0B5ED7' }),
       })
       if (res.ok) { toast('Usuario creado'); setEditUser(null); await loadUsers() }
       else { const err = await res.json(); toast(`Error: ${err.error}`) }
     } else if (editUser) {
-      await supabase.from('perfiles').update({ nombre: form.nombre, cargo: form.cargo || null, area_id: form.area_id, color: AREA_COLORS[form.area_id] || '#0B5ED7' }).eq('id', editUser.id)
+      await supabase.from('perfiles').update({ nombre: form.nombre, area_id: form.area_id, color: AREA_COLORS[form.area_id] || '#0B5ED7' }).eq('id', editUser.id)
       toast('Perfil actualizado'); setEditUser(null); await loadUsers()
     }
     setSaving(false)
@@ -106,7 +105,12 @@ export default function UsuariosPage() {
     } else {
       await supabase.from('permisos_usuario').upsert({ user_id: userId, modulo, nivel }, { onConflict: 'user_id,modulo' })
     }
-    await loadUsers()
+    // Update local state without full reload (prevents flicker)
+    setPermisosMap(prev => {
+      const current = (prev[userId] || []).filter(p => p.modulo !== modulo)
+      if (nivel) current.push({ modulo, nivel })
+      return { ...prev, [userId]: current }
+    })
   }
 
   if (authLoading || loading) return <div className="flex items-center justify-center py-20"><div className="text-slate text-sm">Cargando...</div></div>
@@ -139,7 +143,7 @@ export default function UsuariosPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-ink truncate">{u.nombre}</p>
-                  <p className="text-[11px] text-slate">{u.cargo || 'Sin cargo'}</p>
+                  <p className="text-[11px] text-slate">{u.area_id === 'admin' ? 'Administrador' : `${userPermisos.length} modulo${userPermisos.length !== 1 ? 's' : ''}`}</p>
                 </div>
               </div>
               <div className="flex items-center gap-1.5 mb-2">
@@ -190,17 +194,9 @@ export default function UsuariosPage() {
             </Field>
           </Row2>
         )}
-        <Row2>
-          <Field label="Nombre completo">
-            <Input value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} placeholder="Nombre Apellido" />
-          </Field>
-          <Field label="Cargo">
-            <Select value={form.cargo} onChange={e => setForm(f => ({ ...f, cargo: e.target.value }))}>
-              <option value="">Seleccionar cargo</option>
-              {CARGOS.map(c => <option key={c} value={c}>{c}</option>)}
-            </Select>
-          </Field>
-        </Row2>
+        <Field label="Nombre completo">
+          <Input value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} placeholder="Nombre Apellido" />
+        </Field>
         <Field label="Rol base">
           <Select value={form.area_id} onChange={e => setForm(f => ({ ...f, area_id: e.target.value as AreaId }))}>
             <option value="admin">Administrador (acceso total)</option>
@@ -213,12 +209,20 @@ export default function UsuariosPage() {
           <>
             <Divider label="Permisos por modulo" />
             <div className="flex gap-1.5 mb-3">
-              <button type="button" onClick={async () => { for (const m of MODULOS) await togglePermiso(editingUser.id, m.id, 'lectura') }}
-                className="text-[10px] font-bold px-2.5 py-1 rounded bg-green-50 text-green-700 hover:bg-green-100">Lectura en todos</button>
-              <button type="button" onClick={async () => { for (const m of MODULOS) await togglePermiso(editingUser.id, m.id, 'edicion') }}
-                className="text-[10px] font-bold px-2.5 py-1 rounded text-white" style={{ background: 'var(--org-primary)' }}>Edicion en todos</button>
-              <button type="button" onClick={async () => { for (const m of MODULOS) await togglePermiso(editingUser.id, m.id, null) }}
-                className="text-[10px] font-bold px-2.5 py-1 rounded bg-[#F1F5F9] text-slate">Quitar todos</button>
+              <button type="button" onClick={async () => {
+                const rows = MODULOS.map(m => ({ user_id: editingUser.id, modulo: m.id, nivel: 'lectura' as const }))
+                await supabase.from('permisos_usuario').upsert(rows, { onConflict: 'user_id,modulo' })
+                setPermisosMap(prev => ({ ...prev, [editingUser.id]: rows.map(r => ({ modulo: r.modulo, nivel: r.nivel })) }))
+              }} className="text-[10px] font-bold px-2.5 py-1 rounded bg-green-50 text-green-700 hover:bg-green-100">Lectura en todos</button>
+              <button type="button" onClick={async () => {
+                const rows = MODULOS.map(m => ({ user_id: editingUser.id, modulo: m.id, nivel: 'edicion' as const }))
+                await supabase.from('permisos_usuario').upsert(rows, { onConflict: 'user_id,modulo' })
+                setPermisosMap(prev => ({ ...prev, [editingUser.id]: rows.map(r => ({ modulo: r.modulo, nivel: r.nivel })) }))
+              }} className="text-[10px] font-bold px-2.5 py-1 rounded text-white" style={{ background: 'var(--org-primary)' }}>Edicion en todos</button>
+              <button type="button" onClick={async () => {
+                await supabase.from('permisos_usuario').delete().eq('user_id', editingUser.id)
+                setPermisosMap(prev => ({ ...prev, [editingUser.id]: [] }))
+              }} className="text-[10px] font-bold px-2.5 py-1 rounded bg-[#F1F5F9] text-slate">Quitar todos</button>
             </div>
             {['Comités', 'Gestión', 'Admin'].map(group => (
               <div key={group} className="mb-2">
