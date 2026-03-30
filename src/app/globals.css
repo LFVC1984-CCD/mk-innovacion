@@ -118,6 +118,13 @@
 }
 .toast.on { animation: toast-in .35s cubic-bezier(.22,1,.36,1) forwards; pointer-events: auto; }
 
+/* ── Mobile safe area ── */
+.safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* ── Hide scrollbar ── */
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
 /* ── Glass Panel ── */
 .glass {
   background: rgba(255,255,255,.7);
