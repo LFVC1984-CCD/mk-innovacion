@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useProjects } from '@/lib/comites/use-projects'
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtFecha } from '@/lib/comites/data'
+import KpiCards from '@/components/comites/KpiCards'
 import type { EventoSeguridad, EstadisticaMensual, TipoEvento, Gravedad } from '@/lib/types'
 
 const EMPTY_EVENTO: Omit<EventoSeguridad, 'id'> = {
@@ -134,44 +135,13 @@ export default function PrevencionPanel() {
 
   return (
     <div>
-      {/* Consolidado */}
-      <div className="bg-[#0F172A] rounded-xl p-5 grid grid-cols-5 gap-4 mb-4">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Accidentes</p>
-          <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.accidentes === 0 ? '#16A34A' : '#DC2626' }}>
-            {consol.accidentes}
-          </p>
-          <p className="text-[10px] text-white/30 mt-0.5">{consol.diasPerdidos} días perdidos</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Tasa Frecuencia</p>
-          <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.tasaFrec === 0 ? '#16A34A' : consol.tasaFrec < 5 ? '#D97706' : '#DC2626' }}>
-            {consol.tasaFrec}
-          </p>
-          <p className="text-[10px] text-white/30 mt-0.5">Acc × 10⁶ / HH</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Tasa Gravedad</p>
-          <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.tasaGrav === 0 ? '#16A34A' : consol.tasaGrav < 50 ? '#D97706' : '#DC2626' }}>
-            {consol.tasaGrav}
-          </p>
-          <p className="text-[10px] text-white/30 mt-0.5">Días × 10⁶ / HH</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">HH Trabajadas</p>
-          <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">
-            {consol.totalHH > 0 ? `${(consol.totalHH / 1000).toFixed(0)}K` : '0'}
-          </p>
-          <p className="text-[10px] text-white/30 mt-0.5">{consol.totalCapacitacion}h capacitación</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Sin Cerrar</p>
-          <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.sinCerrar === 0 ? '#16A34A' : '#D97706' }}>
-            {consol.sinCerrar}
-          </p>
-          <p className="text-[10px] text-white/30 mt-0.5">de {consol.totalEventos} eventos</p>
-        </div>
-      </div>
+      <KpiCards items={[
+        { label: 'Accidentes', value: consol.accidentes, color: consol.accidentes === 0 ? '#16A34A' : '#DC2626', sub: `${consol.diasPerdidos} dias perdidos` },
+        { label: 'Tasa Frecuencia', value: consol.tasaFrec, color: consol.tasaFrec === 0 ? '#16A34A' : consol.tasaFrec < 5 ? '#D97706' : '#DC2626', sub: 'Acc x 10⁶ / HH' },
+        { label: 'Tasa Gravedad', value: consol.tasaGrav, color: consol.tasaGrav === 0 ? '#16A34A' : consol.tasaGrav < 50 ? '#D97706' : '#DC2626', sub: 'Dias x 10⁶ / HH' },
+        { label: 'HH Trabajadas', value: consol.totalHH > 0 ? `${(consol.totalHH / 1000).toFixed(0)}K` : '0', color: '#0B5ED7', sub: `${consol.totalCapacitacion}h capacitacion` },
+        { label: 'Sin Cerrar', value: consol.sinCerrar, color: consol.sinCerrar === 0 ? '#16A34A' : '#D97706', sub: `de ${consol.totalEventos} eventos` },
+      ]} />
 
       {/* Por proyecto */}
       {porProyecto.length > 0 && (

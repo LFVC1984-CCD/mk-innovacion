@@ -9,6 +9,7 @@ import { fmtMM } from '@/lib/comites/data'
 import { isObra } from '@/lib/types'
 import Modal, { Field, Input, Select, Row2, Btn } from '@/components/comites/Modal'
 import UserSelect from '@/components/comites/UserSelect'
+import KpiCards from '@/components/comites/KpiCards'
 import { toast } from '@/components/ui/Toast'
 
 const ESTADO_BADGE: Record<string, { bg: string; text: string; label: string }> = {
@@ -142,25 +143,12 @@ export default function ReunionesObraPanel() {
   return (
     <div>
       {/* ── KPIs ── */}
-      <div className="hero-gradient rounded-xl p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Reuniones totales</p>
-          <p className="font-condensed text-[26px] font-black text-white leading-tight mt-1">{totalReuniones}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Este mes</p>
-          <p className="font-condensed text-[26px] font-black text-gold leading-tight mt-1">{reunionesEsteMes}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Tareas pendientes</p>
-          <p className="font-condensed text-[26px] font-black text-amber-400 leading-tight mt-1">{tareasPend}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Tareas cerradas</p>
-          <p className="font-condensed text-[26px] font-black text-green-400 leading-tight mt-1">{tareasComp}</p>
-          {tareasPend + tareasComp > 0 && <p className="text-[10px] text-white/30">{Math.round(tareasComp / (tareasPend + tareasComp) * 100)}% cumplimiento</p>}
-        </div>
-      </div>
+      <KpiCards items={[
+        { label: 'Reuniones totales', value: totalReuniones, color: '#0B5ED7' },
+        { label: 'Este mes', value: reunionesEsteMes, color: '#E1BA10' },
+        { label: 'Tareas pendientes', value: tareasPend, color: '#D97706' },
+        { label: 'Tareas cerradas', value: tareasComp, color: '#16A34A', sub: tareasPend + tareasComp > 0 ? `${Math.round(tareasComp / (tareasPend + tareasComp) * 100)}% cumplimiento` : undefined },
+      ]} />
 
       {/* ── Filtro + Acciones ── */}
       <div className="flex items-center justify-between mb-3">

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useProjects } from '@/lib/comites/use-projects'
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtFecha, fmtMM } from '@/lib/comites/data'
+import KpiCards from '@/components/comites/KpiCards'
 import type { CausaLegal, CausaEstado, CausaTipo, DocumentoLegal, DocTipo } from '@/lib/types'
 
 type FiltroEstado = 'activas' | 'cerradas' | 'todas'
@@ -179,35 +180,13 @@ export default function LegalPanel() {
   return (
     <div>
       {/* ── Consolidado ── */}
-      <div className="hero-gradient rounded-xl p-5 grid grid-cols-2 sm:grid-cols-5 gap-4 mb-4">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Causas Activas</p>
-          <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">{consol.activas}</p>
-          {consol.altoRiesgo > 0 && <p className="text-[10px] text-red-400 mt-0.5">{consol.altoRiesgo} riesgo alto</p>}
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Monto Reclamado</p>
-          <p className="font-condensed text-[28px] font-black text-amber leading-tight mt-1">{fmtMM(consol.totalReclamado)}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Provisión</p>
-          <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.totalProvision > 0 ? '#DC2626' : '#16A34A' }}>
-            {fmtMM(consol.totalProvision)}
-          </p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Próx. Audiencia</p>
-          {consol.proxAudiencia ? (
-            <p className="font-condensed text-lg font-black text-white leading-tight mt-1">{fmtFecha(consol.proxAudiencia.fecha_audiencia)}</p>
-          ) : (
-            <p className="text-sm text-white/20 mt-2">Sin audiencias</p>
-          )}
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Documentos</p>
-          <p className="font-condensed text-[28px] font-black text-cobalt leading-tight mt-1">{consol.totalDocs}</p>
-        </div>
-      </div>
+      <KpiCards items={[
+        { label: 'Causas Activas', value: consol.activas, color: '#E1BA10', sub: consol.altoRiesgo > 0 ? `${consol.altoRiesgo} riesgo alto` : undefined },
+        { label: 'Monto Reclamado', value: fmtMM(consol.totalReclamado), color: '#D97706' },
+        { label: 'Provisión', value: fmtMM(consol.totalProvision), color: consol.totalProvision > 0 ? '#DC2626' : '#16A34A' },
+        { label: 'Próx. Audiencia', value: consol.proxAudiencia ? fmtFecha(consol.proxAudiencia.fecha_audiencia) : 'Sin audiencias', color: '#0B5ED7' },
+        { label: 'Documentos', value: consol.totalDocs, color: '#0B5ED7' },
+      ]} />
 
       {/* ── Controls ── */}
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">

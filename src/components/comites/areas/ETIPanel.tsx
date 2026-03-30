@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtMoney } from '@/lib/comites/data'
+import KpiCards from '@/components/comites/KpiCards'
 import type { HerramientaETI, HerramientaEstado, HerramientaCategoria, ProyectoInnovacion, EtapaInnovacion, TipoRutaInnovacion } from '@/lib/types'
 import { ETAPA_CONFIG, ETAPAS_DESARROLLO, ETAPAS_CONTRATACION } from '@/lib/types'
 import InnovacionGantt from '@/components/comites/InnovacionGantt'
@@ -166,41 +167,13 @@ export default function ETIPanel() {
   return (
     <div>
       {/* Consolidado */}
-      <div className="bg-[#0F172A] rounded-xl p-5 grid grid-cols-5 gap-4 mb-4">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Herramientas Activas</p>
-          <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">{consol.activas}</p>
-          <p className="text-[10px] text-white/30 mt-0.5">{consol.enEvaluacion > 0 && `${consol.enEvaluacion} en evaluación`}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Costo Mensual</p>
-          <p className="font-condensed text-[28px] font-black text-amber leading-tight mt-1">
-            ${fmtMoney(consol.costoMensual).replace('$', '')}
-          </p>
-          <p className="text-[10px] text-white/30 mt-0.5">USD/mes</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Gasto Anual Est.</p>
-          <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: '#E1BA10' }}>
-            ${fmtMoney(consol.totalCosto).replace('$', '')}
-          </p>
-          <p className="text-[10px] text-white/30 mt-0.5">USD/año (mensual×12 + anual)</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Usuarios Totales</p>
-          <p className="font-condensed text-[28px] font-black text-cobalt leading-tight mt-1">{consol.totalUsuarios}</p>
-          <p className="text-[10px] text-white/30 mt-0.5">
-            {consol.totalUsuarios > 0 && consol.costoMensual > 0
-              ? `$${Math.round(consol.costoMensual / consol.totalUsuarios)}/user/mes`
-              : ''}
-          </p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Innovación</p>
-          <p className="font-condensed text-[28px] font-black text-cyan-400 leading-tight mt-1">{consol.proyActivos}</p>
-          <p className="text-[10px] text-white/30 mt-0.5">proyectos activos</p>
-        </div>
-      </div>
+      <KpiCards items={[
+        { label: 'Herramientas Activas', value: consol.activas, color: '#E1BA10', sub: consol.enEvaluacion > 0 ? `${consol.enEvaluacion} en evaluación` : undefined },
+        { label: 'Costo Mensual', value: `$${fmtMoney(consol.costoMensual).replace('$', '')}`, color: '#D97706', sub: 'USD/mes' },
+        { label: 'Gasto Anual Est.', value: `$${fmtMoney(consol.totalCosto).replace('$', '')}`, color: '#E1BA10', sub: 'USD/año (mensual×12 + anual)' },
+        { label: 'Usuarios Totales', value: consol.totalUsuarios, color: '#0B5ED7', sub: consol.totalUsuarios > 0 && consol.costoMensual > 0 ? `$${Math.round(consol.costoMensual / consol.totalUsuarios)}/user/mes` : undefined },
+        { label: 'Innovación', value: consol.proyActivos, color: '#06B6D4', sub: 'proyectos activos' },
+      ]} />
 
       {/* Tabs */}
       <div className="flex items-center gap-1 mb-4">

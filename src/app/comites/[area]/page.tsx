@@ -9,12 +9,13 @@ import { fmtFecha } from '@/lib/comites/data'
 import { toast } from '@/components/ui/Toast'
 import { createClient } from '@/lib/supabase/client'
 import { AREAS_LIST, AREA_NAMES, TAREA_TIPO_LABELS, TAREA_TIPO_COLORS } from '@/lib/types'
-import type { AreaId, TareaTipo } from '@/lib/types'
+import type { AreaId, TareaTipo, Tarea } from '@/lib/types'
 import { AREA_PANELS, GarantiasPanel, GarantiasViewer } from '@/components/comites/areas'
 import ProcedimientosPanel from '@/components/comites/areas/ProcedimientosPanel'
 import KPIDashboard from '@/components/comites/KPIDashboard'
 import TaskStackedBar from '@/components/comites/TaskStackedBar'
 import UserSelect from '@/components/comites/UserSelect'
+import Modal, { Field, Input, Select, Row2, Btn } from '@/components/comites/Modal'
 import AnimatedBar from '@/components/comites/AnimatedBar'
 
 const TIPO_KEYS: TareaTipo[] = ['seguimiento', 'acuerdo', 'accion_correctiva', 'solicitud']
@@ -63,6 +64,14 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
   const [taskFecha, setTaskFecha] = useState('')
   const [taskTipo, setTaskTipo] = useState<TareaTipo>('seguimiento')
   const [taskAreaDestino, setTaskAreaDestino] = useState('')
+
+  // Task edit modal
+  const [editTask, setEditTask] = useState<Tarea | null>(null)
+  const [etText, setEtText] = useState('')
+  const [etResp, setEtResp] = useState('')
+  const [etFecha, setEtFecha] = useState('')
+  const [etTipo, setEtTipo] = useState<TareaTipo>('seguimiento')
+  const [etEstado, setEtEstado] = useState('pendiente')
 
   // Minutas
   const [minutas, setMinutas] = useState<MinutaRow[]>([])
@@ -115,8 +124,19 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
     setTaskText(''); setTaskResp(''); setTaskFecha(''); setTaskTipo('seguimiento'); setTaskAreaDestino(''); setShowTaskForm(false)
     toast('Tarea agregada'); refresh()
   }
-  async function updateTaskEstado(id: string, estado: string) { await supabase.from('tareas').update({ estado }).eq('id', id); refresh() }
-  async function deleteTask(id: string) { await supabase.from('tareas').delete().eq('id', id); refresh() }
+  function openEditTask(t: Tarea) {
+    setEditTask(t); setEtText(t.texto); setEtResp(t.responsable || ''); setEtFecha(t.fecha_compromiso || ''); setEtTipo((t.tipo as TareaTipo) || 'seguimiento'); setEtEstado(t.estado)
+  }
+  async function saveEditTask() {
+    if (!editTask) return
+    await supabase.from('tareas').update({ texto: etText, responsable: etResp || null, fecha_compromiso: etFecha || null, tipo: etTipo, estado: etEstado }).eq('id', editTask.id)
+    setEditTask(null); refresh(); toast('Tarea actualizada')
+  }
+  async function deleteEditTask() {
+    if (!editTask || !confirm('Eliminar esta tarea?')) return
+    await supabase.from('tareas').delete().eq('id', editTask.id)
+    setEditTask(null); refresh(); toast('Tarea eliminada')
+  }
 
   // Tareas counts by status
   const taskCounts = {
@@ -296,7 +316,7 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
                     {col.items.map(t => {
                       const tipoColor = TAREA_TIPO_COLORS[t.tipo || 'seguimiento'] || '#64748B'
                       return (
-                        <div key={t.id} className="bg-white rounded-lg border border-[#E2E8F0] p-2.5 hover:shadow-sm transition-all group">
+                        <div key={t.id} onClick={() => openEditTask(t)} className="bg-white rounded-lg border border-[#E2E8F0] p-2.5 hover:shadow-md hover:border-cobalt/30 transition-all cursor-pointer group">
                           <div className="flex gap-1 mb-1 flex-wrap">
                             <span className="text-[8px] px-1 py-0.5 rounded font-bold uppercase" style={{ background: tipoColor + '15', color: tipoColor }}>{TAREA_TIPO_LABELS[t.tipo || 'seguimiento']}</span>
                             {t.estado === 'bloqueada' && <span className="text-[8px] px-1 py-0.5 rounded font-bold uppercase bg-red-100 text-red-600">Bloq.</span>}
@@ -310,16 +330,7 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
                               {t.responsable && <span>{t.responsable}</span>}
                               {t.fecha_compromiso && <span className="font-mono">{fmtFecha(t.fecha_compromiso)}</span>}
                             </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <select value={t.estado} onChange={e => updateTaskEstado(t.id, e.target.value)}
-                                className="text-[9px] px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-white outline-none cursor-pointer">
-                                <option value="pendiente">Pendiente</option>
-                                <option value="en-proceso">En proceso</option>
-                                <option value="completada">Completada</option>
-                                <option value="bloqueada">Bloqueada</option>
-                              </select>
-                              <button onClick={() => deleteTask(t.id)} className="text-[#CBD5E1] hover:text-danger text-sm">×</button>
-                            </div>
+                            <span className="text-[9px] text-[#CBD5E1] group-hover:text-slate transition-colors">editar →</span>
                           </div>
                         </div>
                       )
@@ -413,6 +424,52 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ═══ MODAL EDICIÓN TAREA ═══ */}
+      <Modal open={!!editTask} onClose={() => setEditTask(null)} title="Editar tarea">
+        <Field label="Descripcion">
+          <Input value={etText} onChange={e => setEtText(e.target.value)} placeholder="Descripcion de la tarea" />
+        </Field>
+        <Row2>
+          <Field label="Tipo">
+            <Select value={etTipo} onChange={e => setEtTipo(e.target.value as TareaTipo)}>
+              {TIPO_KEYS.map(t => <option key={t} value={t}>{TAREA_TIPO_LABELS[t]}</option>)}
+            </Select>
+          </Field>
+          <Field label="Responsable">
+            <UserSelect value={etResp} onChange={setEtResp} placeholder="Responsable" />
+          </Field>
+        </Row2>
+        <Field label="Fecha compromiso">
+          <Input type="date" value={etFecha} onChange={e => setEtFecha(e.target.value)} />
+        </Field>
+        <Field label="Estado">
+          <div className="flex gap-1.5">
+            {[
+              { id: 'pendiente', label: 'Pendiente', color: '#64748B', bg: '#F8FAFC' },
+              { id: 'en-proceso', label: 'En proceso', color: '#0B5ED7', bg: '#EFF6FF' },
+              { id: 'completada', label: 'Completada', color: '#16A34A', bg: '#F0FDF4' },
+              { id: 'bloqueada', label: 'Bloqueada', color: '#DC2626', bg: '#FEF2F2' },
+            ].map(s => (
+              <button key={s.id} type="button" onClick={() => setEtEstado(s.id)}
+                className="flex-1 py-2 rounded-lg text-[11px] font-bold border-2 transition-all"
+                style={{
+                  borderColor: etEstado === s.id ? s.color : '#E2E8F0',
+                  background: etEstado === s.id ? s.bg : 'white',
+                  color: etEstado === s.id ? s.color : '#9CA3AF',
+                }}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+        <div className="flex gap-2 mt-2">
+          <Btn variant="danger" onClick={deleteEditTask}>Eliminar</Btn>
+          <div className="flex-1" />
+          <Btn onClick={() => setEditTask(null)}>Cancelar</Btn>
+          <Btn variant="primary" onClick={saveEditTask}>Guardar</Btn>
+        </div>
+      </Modal>
     </>
   )
 }

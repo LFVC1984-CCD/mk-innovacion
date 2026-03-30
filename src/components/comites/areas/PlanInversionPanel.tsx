@@ -5,6 +5,7 @@ import { usePlanInversion, ESTADO_PLAN } from '@/lib/comites/use-plan-inversion'
 import type { PlanInversion, PlanInversionInput } from '@/lib/comites/use-plan-inversion'
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtMM } from '@/lib/comites/data'
+import KpiCards from '@/components/comites/KpiCards'
 import Modal, { Field, Input, Select, Row2, Btn } from '@/components/comites/Modal'
 import ViewToggle from '@/components/comites/ViewToggle'
 import { toast } from '@/components/ui/Toast'
@@ -70,30 +71,12 @@ export default function PlanInversionPanel() {
   return (
     <>
       {/* Consolidado */}
-      <div className="bg-[#0F172A] rounded-xl p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Pipeline Bruto</p>
-          <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">{fmtMM(consol.activosMonto)}</p>
-          <p className="text-[10px] text-white/30 mt-0.5">{consol.totalItems} oportunidad{consol.totalItems !== 1 ? 'es' : ''} activa{consol.totalItems !== 1 ? 's' : ''}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Ponderado (prob.)</p>
-          <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">{fmtMM(Math.round(consol.ponderado))}</p>
-          <p className="text-[10px] text-white/30 mt-0.5">Monto × probabilidad</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Margen Ponderado</p>
-          <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.margenPond >= 0 ? '#16A34A' : '#DC2626' }}>
-            {fmtMM(Math.round(consol.margenPond))}
-          </p>
-          <p className="text-[10px] text-white/30 mt-0.5">Margen esperado ponderado</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Adjudicado</p>
-          <p className="font-condensed text-[28px] font-black leading-tight mt-1 text-[#16A34A]">{fmtMM(consol.adjMonto)}</p>
-          <p className="text-[10px] text-white/30 mt-0.5">{adjudicados.length} oportunidad{adjudicados.length !== 1 ? 'es' : ''}</p>
-        </div>
-      </div>
+      <KpiCards items={[
+        { label: 'Pipeline Bruto', value: fmtMM(consol.activosMonto), color: '#E1BA10', sub: `${consol.totalItems} oportunidad${consol.totalItems !== 1 ? 'es' : ''} activa${consol.totalItems !== 1 ? 's' : ''}` },
+        { label: 'Ponderado (prob.)', value: fmtMM(Math.round(consol.ponderado)), color: '#E1BA10', sub: 'Monto × probabilidad' },
+        { label: 'Margen Ponderado', value: fmtMM(Math.round(consol.margenPond)), color: consol.margenPond >= 0 ? '#16A34A' : '#DC2626', sub: 'Margen esperado ponderado' },
+        { label: 'Adjudicado', value: fmtMM(consol.adjMonto), color: '#16A34A', sub: `${adjudicados.length} oportunidad${adjudicados.length !== 1 ? 'es' : ''}` },
+      ]} />
 
       {/* Controls */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">

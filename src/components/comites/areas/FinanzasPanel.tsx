@@ -5,6 +5,7 @@ import { useProjects } from '@/lib/comites/use-projects'
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtMM, fmtMoney } from '@/lib/comites/data'
 import { isObra, isEstudio } from '@/lib/types'
+import KpiCards from '@/components/comites/KpiCards'
 
 // ── Types ──
 
@@ -276,31 +277,13 @@ export default function FinanzasPanel() {
   return (
     <div>
       {/* ── KPIs ── */}
-      <div className="hero-gradient rounded-xl p-5 grid grid-cols-2 sm:grid-cols-5 gap-4 mb-4">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Ingresos Prog.</p>
-          <p className="font-condensed text-[26px] font-black text-green-400 leading-tight mt-1">{fmtMM(totalIng)}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Egresos Prog.</p>
-          <p className="font-condensed text-[26px] font-black text-red-400 leading-tight mt-1">{fmtMM(totalEg)}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Saldo Neto</p>
-          <p className="font-condensed text-[26px] font-black leading-tight mt-1" style={{ color: totalIng - totalEg >= 0 ? '#E1BA10' : '#DC2626' }}>
-            {totalIng - totalEg >= 0 ? '+' : ''}{fmtMM(totalIng - totalEg)}
-          </p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Obras</p>
-          <p className="font-condensed text-[26px] font-black text-white leading-tight mt-1">{obras.length}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Leads Pipeline</p>
-          <p className="font-condensed text-[26px] font-black text-cobalt leading-tight mt-1">{fmtMM(leadsPipeline)}</p>
-          <p className="text-[10px] text-white/30">{estudios.length} en estudio</p>
-        </div>
-      </div>
+      <KpiCards items={[
+        { label: 'Ingresos Prog.', value: fmtMM(totalIng), color: '#16A34A' },
+        { label: 'Egresos Prog.', value: fmtMM(totalEg), color: '#DC2626' },
+        { label: 'Saldo Neto', value: `${totalIng - totalEg >= 0 ? '+' : ''}${fmtMM(totalIng - totalEg)}`, color: totalIng - totalEg >= 0 ? '#E1BA10' : '#DC2626' },
+        { label: 'Obras', value: obras.length, color: '#0B5ED7' },
+        { label: 'Leads Pipeline', value: fmtMM(leadsPipeline), color: '#0B5ED7', sub: `${estudios.length} en estudio` },
+      ]} />
 
       {/* ── Tabs Nivel + Acciones ── */}
       <div className="flex items-center justify-between mb-3">

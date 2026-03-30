@@ -335,9 +335,8 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
                   </Link>
                 )
               })}
-              <div className="flex-1" />
               <Link href={`/comites/${currentArea}/proyectar`}
-                className="shrink-0 px-2 py-1 rounded text-[10px] font-medium text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F9FAFB] transition-all">
+                className="flex-1 text-center px-1 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-all text-[#6B7280] bg-[#F3F4F6] border border-[#E2E8F0] hover:text-ink hover:bg-[#E5E7EB]">
                 Presentar →
               </Link>
             </div>

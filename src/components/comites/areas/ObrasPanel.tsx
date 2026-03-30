@@ -6,6 +6,7 @@ import ObraFinCard from '@/components/comites/ObraFinCard'
 import type { Proyecto } from '@/lib/types'
 import { isObra } from '@/lib/types'
 import { fmtMM } from '@/lib/comites/data'
+import KpiCards from '@/components/comites/KpiCards'
 
 export default function ObrasPanel() {
   const { projects, loading, save } = useProjects()
@@ -75,40 +76,13 @@ export default function ObrasPanel() {
     <div>
       {/* Consolidado */}
       {obras.length > 0 && (
-        <div className="bg-[#0F172A] rounded-xl p-5 grid grid-cols-5 gap-4 mb-4">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Contratos Totales</p>
-            <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">{fmtMM(consol.tC)}</p>
-            <p className="text-[10px] text-white/30 mt-0.5">
-              {consol.activas} activa{consol.activas !== 1 ? 's' : ''}
-              {consol.conSaldo > 0 && ` · ${consol.conSaldo} con saldo`}
-            </p>
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Flujo Financiero</p>
-            <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.flujoFin >= 0 ? '#E1BA10' : '#DC2626' }}>
-              {consol.flujoFin >= 0 ? '+' : ''}{fmtMM(consol.flujoFin)}
-            </p>
-            <p className="text-[10px] text-white/30 mt-0.5">Facturado - Gasto Real</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Por Facturar</p>
-            <p className="font-condensed text-[28px] font-black text-amber leading-tight mt-1">{fmtMM(consol.saldoFact)}</p>
-            <p className="text-[10px] text-white/30 mt-0.5">{consol.pctF}% facturado</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Saldo Proveedores</p>
-            <p className="font-condensed text-[28px] font-black text-danger leading-tight mt-1">{fmtMM(consol.saldoProv)}</p>
-            <p className="text-[10px] text-white/30 mt-0.5">Comp - Gastado - MO</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Margen Consolidado</p>
-            <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: consol.margen >= 0 ? '#E1BA10' : '#DC2626' }}>
-              {consol.margen >= 0 ? '+' : ''}{fmtMM(consol.margen)}
-            </p>
-            <p className="text-[10px] text-white/30 mt-0.5">{consol.margenPct}%</p>
-          </div>
-        </div>
+        <KpiCards items={[
+          { label: 'Contratos Totales', value: fmtMM(consol.tC), color: '#E1BA10', sub: `${consol.activas} activa${consol.activas !== 1 ? 's' : ''}${consol.conSaldo > 0 ? ` · ${consol.conSaldo} con saldo` : ''}` },
+          { label: 'Flujo Financiero', value: `${consol.flujoFin >= 0 ? '+' : ''}${fmtMM(consol.flujoFin)}`, color: consol.flujoFin >= 0 ? '#E1BA10' : '#DC2626', sub: 'Facturado - Gasto Real' },
+          { label: 'Por Facturar', value: fmtMM(consol.saldoFact), color: '#D97706', sub: `${consol.pctF}% facturado` },
+          { label: 'Saldo Proveedores', value: fmtMM(consol.saldoProv), color: '#DC2626', sub: 'Comp - Gastado - MO' },
+          { label: 'Margen Consolidado', value: `${consol.margen >= 0 ? '+' : ''}${fmtMM(consol.margen)}`, color: consol.margen >= 0 ? '#E1BA10' : '#DC2626', sub: `${consol.margenPct}%` },
+        ]} />
       )}
 
       {/* Obras list */}

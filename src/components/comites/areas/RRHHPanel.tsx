@@ -7,6 +7,7 @@ import { useProjects } from '@/lib/comites/use-projects'
 import { useAuth } from '@/lib/comites/hooks'
 import Modal, { Field, Input, Select, Row2, Btn } from '@/components/comites/Modal'
 import SummaryCard from '@/components/comites/SummaryCard'
+import KpiCards from '@/components/comites/KpiCards'
 import { toast } from '@/components/ui/Toast'
 
 // ── Config ──
@@ -134,34 +135,13 @@ function DotacionTab({ metricas, ultimo, canEdit, onSave, onRemove }: {
   return (
     <>
       {/* Consolidado último mes */}
-      <div className="bg-[#0F172A] rounded-xl p-5 grid grid-cols-2 sm:grid-cols-5 gap-4 mb-4">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Constructora</p>
-          <p className="font-condensed text-[28px] font-black text-[#0B5ED7] leading-tight mt-1">{ultimo?.dotacion_constructora ?? '—'}</p>
-          <p className="text-[10px] text-white/30 mt-0.5">{ultimo ? fmtMes(ultimo.mes) : 'Sin datos'}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Subcontratos</p>
-          <p className="font-condensed text-[28px] font-black text-[#D97706] leading-tight mt-1">{ultimo?.dotacion_subcontrato ?? '—'}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Total vigentes</p>
-          <p className="font-condensed text-[28px] font-black text-gold leading-tight mt-1">{ultimo?.trabajadores_vigentes ?? '—'}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Tasa Asistencia</p>
-          <p className="font-condensed text-[28px] font-black leading-tight mt-1" style={{ color: (ultimo?.tasa_asistencia ?? 0) >= 90 ? '#16A34A' : (ultimo?.tasa_asistencia ?? 0) >= 80 ? '#D97706' : '#DC2626' }}>
-            {ultimo?.tasa_asistencia ? `${ultimo.tasa_asistencia}%` : '—'}
-          </p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Movimientos</p>
-          <p className="text-[13px] text-white/60 mt-1.5">
-            <span className="text-[#16A34A] font-bold">+{ultimo?.contrataciones ?? 0}</span> ing · <span className="text-[#DC2626] font-bold">-{ultimo?.desvinculaciones ?? 0}</span> salidas
-          </p>
-          <p className="text-[10px] text-white/30 mt-0.5">{ultimo?.licencias_medicas ?? 0} lic · {ultimo?.vacaciones ?? 0} vac</p>
-        </div>
-      </div>
+      <KpiCards items={[
+        { label: 'Constructora', value: ultimo?.dotacion_constructora ?? '—', color: '#0B5ED7', sub: ultimo ? fmtMes(ultimo.mes) : 'Sin datos' },
+        { label: 'Subcontratos', value: ultimo?.dotacion_subcontrato ?? '—', color: '#D97706' },
+        { label: 'Total vigentes', value: ultimo?.trabajadores_vigentes ?? '—', color: '#E1BA10' },
+        { label: 'Tasa Asistencia', value: ultimo?.tasa_asistencia ? `${ultimo.tasa_asistencia}%` : '—', color: (ultimo?.tasa_asistencia ?? 0) >= 90 ? '#16A34A' : (ultimo?.tasa_asistencia ?? 0) >= 80 ? '#D97706' : '#DC2626' },
+        { label: 'Movimientos', value: `+${ultimo?.contrataciones ?? 0} / -${ultimo?.desvinculaciones ?? 0}`, color: '#0B5ED7', sub: `${ultimo?.licencias_medicas ?? 0} lic · ${ultimo?.vacaciones ?? 0} vac` },
+      ]} />
 
       {/* Controls */}
       <div className="flex items-center justify-between mb-3">
