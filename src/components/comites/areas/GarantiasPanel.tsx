@@ -46,7 +46,7 @@ function HBar({ label, value, max, color, delay = 0 }: { label: string; value: n
 }
 
 export default function GarantiasPanel() {
-  const { loading, garantias, entidades, instrumentos, lineas, proyectos, saveGarantia, deleteGarantia, saveEntidad, deleteEntidad, saveLinea, deleteLinea } = useGarantias()
+  const { loading, garantias, entidades, instrumentos, lineas, proyectos, saveGarantia, deleteGarantia, saveEntidad, deleteEntidad, saveLinea, deleteLinea, uploadFile } = useGarantias()
 
   const [tab, setTab] = useState<Tab>('garantias')
   const [filter, setFilter] = useState<FilterKey>('todos')
@@ -253,6 +253,12 @@ export default function GarantiasPanel() {
                         )}
                       </div>
                       {g.fecha_vencimiento && <p className="text-[10px] text-slate mt-1">Venc: {fmtFecha(g.fecha_vencimiento)}</p>}
+                      {(g.documento_url || g.comprobante_url) && (
+                        <div className="flex gap-2 mt-1.5">
+                          {g.documento_url && <a href={g.documento_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-semibold hover:underline" style={{ color: 'var(--org-primary)' }} onClick={e => e.stopPropagation()}>📄 Documento</a>}
+                          {g.comprobante_url && <a href={g.comprobante_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-semibold text-green-600 hover:underline" onClick={e => e.stopPropagation()}>📋 Comprobante</a>}
+                        </div>
+                      )}
                     </div>
                   )
                 })}
@@ -548,6 +554,7 @@ export default function GarantiasPanel() {
         entidades={entidades}
         onSave={async (input, id) => { await saveGarantia(input, id); setGarModal(false); toast('Garantia guardada') }}
         onDelete={async (id) => { await deleteGarantia(id); setGarModal(false); toast('Garantia eliminada') }}
+        onUpload={uploadFile}
       />
       <EntidadModal
         open={entModal}

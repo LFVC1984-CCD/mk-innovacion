@@ -1,7 +1,8 @@
 'use client'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useGarantias } from '@/lib/comites/use-garantias'
+import { useProjects } from '@/lib/comites/use-projects'
 import { ESTADO_CONFIG, FIN_COLORS, fmtMM, fmtShort, fmtFecha } from '@/lib/comites/data'
 import SummaryCard from '@/components/comites/SummaryCard'
 import ViewToggle from '@/components/comites/ViewToggle'
@@ -9,25 +10,37 @@ import GarantiaModal from '@/components/comites/GarantiaModal'
 import { toast } from '@/components/ui/Toast'
 
 /**
- * Visor de garantias para areas distintas a Finanzas.
- * Muestra solo garantias vigentes/por_vencer + boton para solicitar nueva.
- * No permite editar ni eliminar — eso se hace desde Finanzas.
+ * Visor de garantías para Estudios.
+ * Solo muestra garantías de proyectos activos/adjudicados/cerrados con saldo (no Administración).
+ * Permite ver y descargar documentos adjuntos. No permite editar — eso se hace desde Finanzas.
  */
 export default function GarantiasViewer() {
-  const { loading, garantias, entidades, proyectos, saveGarantia } = useGarantias()
+  const { loading, garantias, entidades, proyectos: allProyectos, saveGarantia } = useGarantias()
+  const { projects } = useProjects()
   const [view, setView] = useState<'cards' | 'tabla'>('tabla')
   const [solicitarModal, setSolicitarModal] = useState(false)
 
-  // Solo vigentes + por vencer + en renovacion
-  const vigentes = garantias.filter(g =>
-    g.estado === 'vigente' || g.estado === 'por_vencer' || g.estado === 'en_renovacion' || g.estado === 'solicitada'
-  )
+  // Solo proyectos de obra activos o cerrados con saldo (excluir Administración y estudios)
+  const proyectosObra = useMemo(() =>
+    projects.filter(p => ['activo', 'adjudicado', 'cerrado_saldo'].includes(p.estado) && p.nombre !== 'Administración'),
+  [projects])
+
+  const proyectoIds = useMemo(() => new Set(proyectosObra.map(p => p.id)), [proyectosObra])
+
+  // Filtrar garantías: solo de proyectos de obra + vigentes/por_vencer/en_renovacion/solicitada
+  const vigentes = useMemo(() =>
+    garantias.filter(g =>
+      (g.estado === 'vigente' || g.estado === 'por_vencer' || g.estado === 'en_renovacion' || g.estado === 'solicitada') &&
+      (!g.proyecto_id || proyectoIds.has(g.proyecto_id))
+    ),
+  [garantias, proyectoIds])
 
   const porVencer = vigentes.filter(g => g.dias !== null && g.dias > 0 && g.dias <= 30)
   const totalMonto = vigentes.reduce((s, g) => s + g.monto, 0)
   const totalVigentes = vigentes.filter(g => g.estado === 'vigente').length
   const totalPorVencer = porVencer.length
   const totalSolicitadas = vigentes.filter(g => g.estado === 'solicitada').length
+  const conDocumento = vigentes.filter(g => g.documento_url).length
 
   if (loading) {
     return (
@@ -41,9 +54,9 @@ export default function GarantiasViewer() {
     <>
       <div className="mb-4">
         <h2 className="font-condensed text-xl font-extrabold">
-          <span className="text-cobalt">Garantias</span> <span className="text-slate font-normal text-sm">vigentes</span>
+          <span style={{ color: 'var(--org-primary)' }}>Garantias</span> <span className="text-slate font-normal text-sm">obras activas</span>
         </h2>
-        <p className="text-xs text-slate">Vista de garantias activas. Para gestion completa ir a Finanzas.</p>
+        <p className="text-xs text-slate">Garantias de proyectos activos y cerrados con saldo. Gestion completa en Finanzas.</p>
       </div>
 
       {/* Alerta por vencer */}
@@ -58,23 +71,25 @@ export default function GarantiasViewer() {
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mb-4">
         <SummaryCard value={`${vigentes.length}`} label="Garantias activas" color="#1E293B" />
         <SummaryCard value={fmtMM(totalMonto)} label="Total comprometido" color={FIN_COLORS.comprometido} />
         <SummaryCard value={`${totalVigentes}`} label="Vigentes" color={FIN_COLORS.disponible} />
         <SummaryCard value={`${totalPorVencer}`} label="Por vencer (30d)" color={totalPorVencer > 0 ? FIN_COLORS.critico : '#94A3B8'} />
+        <SummaryCard value={`${conDocumento}`} label="Con documento" color="#0B5ED7" />
       </div>
 
       {/* Controls */}
       <div className="flex items-center justify-between mb-3">
         <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate">
-          {vigentes.length} garantia{vigentes.length !== 1 ? 's' : ''} activa{vigentes.length !== 1 ? 's' : ''}
-          {totalSolicitadas > 0 && <span className="text-cobalt ml-1">({totalSolicitadas} solicitada{totalSolicitadas > 1 ? 's' : ''})</span>}
+          {vigentes.length} garantia{vigentes.length !== 1 ? 's' : ''} · {proyectosObra.length} obras
+          {totalSolicitadas > 0 && <span className="ml-1" style={{ color: 'var(--org-primary)' }}>({totalSolicitadas} solicitada{totalSolicitadas > 1 ? 's' : ''})</span>}
         </p>
         <div className="flex gap-2 items-center">
           <ViewToggle view={view} onChange={v => setView(v as typeof view)} options={['cards', 'tabla']} />
           <button onClick={() => setSolicitarModal(true)}
-            className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors">
+            className="text-white px-4 py-2 rounded-lg text-xs font-bold transition-colors"
+            style={{ background: 'var(--org-primary)' }}>
             Solicitar garantia
           </button>
         </div>
@@ -83,7 +98,7 @@ export default function GarantiasViewer() {
       {/* Tabla */}
       {view === 'tabla' && (
         <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
-          <table className="w-full text-xs min-w-[650px]">
+          <table className="w-full text-xs min-w-[750px]">
             <thead>
               <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
                 <th className="text-left p-3">Proyecto</th>
@@ -92,6 +107,7 @@ export default function GarantiasViewer() {
                 <th className="text-right p-3" style={{ color: FIN_COLORS.aprobado }}>Monto</th>
                 <th className="text-left p-3">Vencimiento</th>
                 <th className="text-left p-3">Estado</th>
+                <th className="text-center p-3">Docs</th>
                 <th className="text-right p-3">Dias</th>
               </tr>
             </thead>
@@ -109,20 +125,33 @@ export default function GarantiasViewer() {
                       <span className="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase"
                         style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
                     </td>
+                    <td className="p-3 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        {g.documento_url && (
+                          <a href={g.documento_url} target="_blank" rel="noopener noreferrer" title={g.documento_nombre || 'Documento'}
+                            className="w-6 h-6 rounded flex items-center justify-center hover:bg-[#F1F5F9] transition-colors text-[11px]" style={{ color: 'var(--org-primary)' }}>📄</a>
+                        )}
+                        {g.comprobante_url && (
+                          <a href={g.comprobante_url} target="_blank" rel="noopener noreferrer" title={g.comprobante_nombre || 'Comprobante'}
+                            className="w-6 h-6 rounded flex items-center justify-center hover:bg-[#F1F5F9] transition-colors text-[11px] text-green-600">📋</a>
+                        )}
+                        {!g.documento_url && !g.comprobante_url && <span className="text-[10px] text-[#CBD5E1]">—</span>}
+                      </div>
+                    </td>
                     <td className="p-3 text-right">
                       {g.dias !== null ? (
                         <span className={`text-[11px] font-bold ${g.dias <= 0 ? 'text-danger' : g.dias <= 30 ? 'text-amber' : 'text-success'}`}>
                           {g.dias <= 0 ? 'Vencida' : `${g.dias}d`}
                         </span>
                       ) : (
-                        <span className="text-[11px] font-bold text-cobalt">Pendiente</span>
+                        <span className="text-[11px] font-bold" style={{ color: 'var(--org-primary)' }}>Pendiente</span>
                       )}
                     </td>
                   </tr>
                 )
               })}
               {vigentes.length === 0 && (
-                <tr><td colSpan={7} className="p-8 text-center text-slate">Sin garantias vigentes.</td></tr>
+                <tr><td colSpan={8} className="p-8 text-center text-slate">Sin garantias vigentes para obras activas.</td></tr>
               )}
             </tbody>
           </table>
@@ -152,27 +181,33 @@ export default function GarantiasViewer() {
                       {g.dias <= 0 ? 'Vencida' : `${g.dias}d`}
                     </span>
                   ) : (
-                    <span className="text-[11px] font-bold text-cobalt">Pendiente</span>
+                    <span className="text-[11px] font-bold" style={{ color: 'var(--org-primary)' }}>Pendiente</span>
                   )}
                 </div>
                 {g.fecha_vencimiento && <p className="text-[10px] text-slate mt-1">Venc: {fmtFecha(g.fecha_vencimiento)}</p>}
+                {(g.documento_url || g.comprobante_url) && (
+                  <div className="flex gap-2 mt-2 pt-2 border-t border-[#F1F5F9]">
+                    {g.documento_url && <a href={g.documento_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-semibold hover:underline" style={{ color: 'var(--org-primary)' }}>📄 Ver documento</a>}
+                    {g.comprobante_url && <a href={g.comprobante_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-semibold text-green-600 hover:underline">📋 Ver comprobante</a>}
+                  </div>
+                )}
               </motion.div>
             )
           })}
           {vigentes.length === 0 && (
             <div className="col-span-full bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate text-sm">
-              Sin garantias vigentes.
+              Sin garantias vigentes para obras activas.
             </div>
           )}
         </div>
       )}
 
-      {/* Modal solicitar — reutiliza GarantiaModal en modo crear con estado "solicitada" */}
+      {/* Modal solicitar */}
       <GarantiaModal
         open={solicitarModal}
         onClose={() => setSolicitarModal(false)}
         editing={null}
-        proyectos={proyectos}
+        proyectos={allProyectos.filter(p => proyectoIds.has(p.id))}
         entidades={entidades}
         defaultEstado="solicitada"
         onSave={async (input, id) => {

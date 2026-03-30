@@ -17,6 +17,10 @@ export interface GarantiaRow {
   fecha_vencimiento: string | null
   estado: GarantiaEstado
   observacion: string
+  documento_url: string
+  documento_nombre: string
+  comprobante_url: string
+  comprobante_nombre: string
   created_at: string
   updated_at: string
   // joined
@@ -87,6 +91,10 @@ export interface GarantiaInput {
   fecha_vencimiento: string | null
   estado: string
   observacion: string
+  documento_url?: string
+  documento_nombre?: string
+  comprobante_url?: string
+  comprobante_nombre?: string
 }
 
 export interface EntidadInput {
@@ -247,6 +255,10 @@ export function useGarantias() {
       fecha_vencimiento: input.fecha_vencimiento || null,
       estado: input.estado,
       observacion: input.observacion || '',
+      documento_url: input.documento_url || '',
+      documento_nombre: input.documento_nombre || '',
+      comprobante_url: input.comprobante_url || '',
+      comprobante_nombre: input.comprobante_nombre || '',
       updated_at: new Date().toISOString(),
     }
     const { error } = id
@@ -301,9 +313,20 @@ export function useGarantias() {
     return true
   }, [load])
 
+  // ── Upload file to storage ──
+  const uploadFile = useCallback(async (file: File, garantiaId: string, tipo: 'documento' | 'comprobante'): Promise<string> => {
+    const ext = file.name.split('.').pop() || 'pdf'
+    const path = `${garantiaId}/${tipo}_${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('garantias-docs').upload(path, file, { upsert: true })
+    if (error) throw new Error(error.message)
+    const { data } = supabase.storage.from('garantias-docs').getPublicUrl(path)
+    return data.publicUrl
+  }, [])
+
   return {
     loading,
     refresh: load,
+    uploadFile,
     // Raw
     garantias: garantiasUI,
     entidades: entidadesComputed,

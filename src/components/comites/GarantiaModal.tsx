@@ -35,10 +35,11 @@ interface Props {
   entidades: EntidadComputed[]
   onSave: (input: GarantiaInput, id?: string) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  onUpload?: (file: File, garantiaId: string, tipo: 'documento' | 'comprobante') => Promise<string>
   defaultEstado?: string
 }
 
-export default function GarantiaModal({ open, onClose, editing, proyectos, entidades, onSave, onDelete, defaultEstado }: Props) {
+export default function GarantiaModal({ open, onClose, editing, proyectos, entidades, onSave, onDelete, onUpload, defaultEstado }: Props) {
   const [proyectoId, setProyectoId] = useState('')
   const [instrumento, setInstrumento] = useState('')
   const [tipo, setTipo] = useState('')
@@ -51,6 +52,11 @@ export default function GarantiaModal({ open, onClose, editing, proyectos, entid
   const [estado, setEstado] = useState('solicitada')
   const [nDoc, setNDoc] = useState('')
   const [obs, setObs] = useState('')
+  const [docUrl, setDocUrl] = useState('')
+  const [docNombre, setDocNombre] = useState('')
+  const [compUrl, setCompUrl] = useState('')
+  const [compNombre, setCompNombre] = useState('')
+  const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -65,11 +71,27 @@ export default function GarantiaModal({ open, onClose, editing, proyectos, entid
       setFVencimiento(editing.fecha_vencimiento || '')
       setEstado(editing.estado)
       setObs(editing.observacion || '')
+      setDocUrl(editing.documento_url || '')
+      setDocNombre(editing.documento_nombre || '')
+      setCompUrl(editing.comprobante_url || '')
+      setCompNombre(editing.comprobante_nombre || '')
     } else {
       setProyectoId(''); setInstrumento(''); setTipo(''); setEntidad(''); setMonto(''); setDivisa('CLP')
       setFSolicitud(''); setFInicio(''); setFVencimiento(''); setEstado(defaultEstado || 'solicitada'); setNDoc(''); setObs('')
+      setDocUrl(''); setDocNombre(''); setCompUrl(''); setCompNombre('')
     }
   }, [editing, open, defaultEstado])
+
+  async function handleFileUpload(file: File, tipo: 'documento' | 'comprobante') {
+    if (!onUpload || !editing?.id) return
+    setUploading(true)
+    try {
+      const url = await onUpload(file, editing.id, tipo)
+      if (tipo === 'documento') { setDocUrl(url); setDocNombre(file.name) }
+      else { setCompUrl(url); setCompNombre(file.name) }
+    } catch { /* toast handled upstream */ }
+    setUploading(false)
+  }
 
   const isEdit = !!editing
 
@@ -97,6 +119,10 @@ export default function GarantiaModal({ open, onClose, editing, proyectos, entid
         fecha_vencimiento: fVencimiento || null,
         estado,
         observacion: obs,
+        documento_url: docUrl,
+        documento_nombre: docNombre,
+        comprobante_url: compUrl,
+        comprobante_nombre: compNombre,
       }, editing?.id)
     } catch (err) {
       setErrors([err instanceof Error ? err.message : 'Error al guardar'])
@@ -199,6 +225,42 @@ export default function GarantiaModal({ open, onClose, editing, proyectos, entid
 
       <Field label="Observaciones">
         <Input type="text" placeholder="Notas adicionales" value={obs} onChange={e => setObs(e.target.value)} />
+      </Field>
+
+      <Divider label="Documentos" />
+
+      {/* Documento de garantía */}
+      <Field label="Documento de garantia (PDF, foto del instrumento)">
+        {docUrl ? (
+          <div className="flex items-center gap-2 px-3 py-2 border border-[#E2E8F0] rounded-lg bg-[#F8FAFC]">
+            <span className="text-[11px]">📄</span>
+            <a href={docUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium hover:underline flex-1 truncate" style={{ color: 'var(--org-primary)' }}>{docNombre || 'Ver documento'}</a>
+            <button onClick={() => { setDocUrl(''); setDocNombre('') }} className="text-[10px] text-red-400 hover:text-red-600">✕</button>
+          </div>
+        ) : (
+          <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-[#CBD5E1] rounded-lg cursor-pointer hover:border-cobalt hover:bg-[#F8FAFC] transition-colors">
+            <span className="text-[11px]">📎</span>
+            <span className="text-[12px] text-[#9CA3AF]">{uploading ? 'Subiendo...' : isEdit ? 'Adjuntar documento' : 'Guardar primero para adjuntar'}</span>
+            {isEdit && <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" disabled={uploading} onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, 'documento') }} />}
+          </label>
+        )}
+      </Field>
+
+      {/* Comprobante de entrega/retiro */}
+      <Field label="Comprobante de entrega o retiro (correo, foto, PDF)">
+        {compUrl ? (
+          <div className="flex items-center gap-2 px-3 py-2 border border-[#E2E8F0] rounded-lg bg-[#F8FAFC]">
+            <span className="text-[11px]">📋</span>
+            <a href={compUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium hover:underline flex-1 truncate" style={{ color: 'var(--org-primary)' }}>{compNombre || 'Ver comprobante'}</a>
+            <button onClick={() => { setCompUrl(''); setCompNombre('') }} className="text-[10px] text-red-400 hover:text-red-600">✕</button>
+          </div>
+        ) : (
+          <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-[#CBD5E1] rounded-lg cursor-pointer hover:border-cobalt hover:bg-[#F8FAFC] transition-colors">
+            <span className="text-[11px]">📎</span>
+            <span className="text-[12px] text-[#9CA3AF]">{uploading ? 'Subiendo...' : isEdit ? 'Adjuntar comprobante' : 'Guardar primero para adjuntar'}</span>
+            {isEdit && <input type="file" accept=".pdf,.jpg,.jpeg,.png,.eml" className="hidden" disabled={uploading} onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, 'comprobante') }} />}
+          </label>
+        )}
       </Field>
     </Modal>
   )
