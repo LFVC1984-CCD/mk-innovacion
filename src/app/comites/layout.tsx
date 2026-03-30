@@ -13,7 +13,7 @@ interface NavSection { title: string; items: NavItem[] }
 
 const SIDEBAR_SECTIONS: NavSection[] = [
   { title: 'Principal', items: [
-    { href: '/comites', label: 'Dashboard', icon: '◉' },
+    { href: '/comites', label: 'Comités', icon: '◉' },
     { href: '/comites/reuniones-obra', label: 'Reuniones', icon: '◎', sub: [{ href: '/comites/reuniones-obra', label: 'Obra–Gerencia' }] },
   ] },
   { title: 'Gestión', items: [
@@ -34,6 +34,7 @@ const AREA_TABS = [
   { href: '/comites/prevencion', label: 'Prevención', id: 'prevencion' },
   { href: '/comites/rrhh', label: 'RRHH', id: 'rrhh' },
   { href: '/comites/eti', label: 'ETI', id: 'eti' },
+  { href: '/comites/ampliado', label: 'Ampliado', id: 'ampliado' },
 ]
 
 // ── Speed Dial actions per module ──
@@ -78,10 +79,11 @@ export default function ComitesLayout({ children }: { children: React.ReactNode 
     router.refresh()
   }
 
-  const isAreaPage = pathname.match(/^\/comites\/(finanzas|obras|estudios|legal|prevencion|rrhh|eti)/) || pathname.match(/^\/comites\/[a-f0-9-]+/)
-  const isAmpliadoPage = pathname.startsWith('/comites/ampliado')
+  const isAreaPage = pathname.match(/^\/comites\/(finanzas|obras|estudios|legal|prevencion|rrhh|eti|ampliado)/) || pathname.match(/^\/comites\/[a-f0-9-]+/)
   const isHome = pathname === '/comites'
   const isProfile = mobileTab === 'profile'
+  // Show area tabs on home + area pages, NOT on reuniones/proyectos/equipos/etc.
+  const isNonAreaPage = pathname.match(/^\/comites\/(reuniones|proyectos|equipos|historial|usuarios)/)
 
   // Current module for speed dial
   const currentModule = useMemo(() => {
@@ -262,10 +264,6 @@ export default function ComitesLayout({ children }: { children: React.ReactNode 
               <span className="text-lg">🔔</span>
               <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-danger text-white text-[9px] font-bold flex items-center justify-center">3</span>
             </button>
-            <Link href="/comites/ampliado" className="hidden sm:flex text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all"
-              style={{ borderColor: isAmpliadoPage ? 'var(--org-primary)' : 'var(--org-sidebar-border)', background: isAmpliadoPage ? 'var(--org-primary)' : 'white', color: isAmpliadoPage ? 'white' : 'var(--org-sidebar-text)' }}>
-              Ampliado
-            </Link>
             <button onClick={() => setLogoutConfirm(true)}
               className="hidden sm:flex items-center gap-1.5 bg-white border px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all hover:bg-gray-50"
               style={{ borderColor: 'var(--org-sidebar-border)', color: 'var(--org-sidebar-text)' }}>
@@ -275,7 +273,7 @@ export default function ComitesLayout({ children }: { children: React.ReactNode 
         </header>
 
         {/* ── Area tabs (pill style) — desktop + mobile ── */}
-        {(isAreaPage || isHome) && !isProfile && (
+        {(isAreaPage || isHome) && !isProfile && !isNonAreaPage && (
           <div className="px-3 sm:px-6 py-2 flex gap-1.5 overflow-x-auto border-b scrollbar-hide"
             style={{ background: 'var(--org-header-bg)', borderColor: 'var(--org-sidebar-border)' }}>
             {AREA_TABS.map(tab => {

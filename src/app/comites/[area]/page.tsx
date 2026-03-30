@@ -151,51 +151,39 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
 
   return (
     <>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <Link href="/comites" className="text-[10px] text-slate hover:text-cobalt transition-colors">← Comités</Link>
-          <h1 className="font-condensed font-black text-2xl text-ink">{areaInfo?.name || areaId}</h1>
-        </div>
-        <div className="flex gap-2">
-          <Link href={`/comites/${areaId}/proyectar`} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#E2E8F0] hover:border-cobalt hover:text-cobalt transition-all btn-scale">
-            Presentación →
-          </Link>
-        </div>
-      </div>
-
-      {/* ── Navigation Tabs ── */}
-      <div className="flex gap-1 mb-5 overflow-x-auto pb-1 -mx-1 px-1">
+      {/* ── Sub-tabs (Informe, Tareas, Módulo, Minutas) + Presentación ── */}
+      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
         {tabs.map(tab => {
           const isActive = activeTab === tab.id
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 ${
+              className={`relative px-3.5 py-1.5 rounded-lg text-[11px] font-bold transition-all shrink-0 ${
                 isActive
-                  ? 'bg-white text-cobalt shadow-sm border border-cobalt/20'
+                  ? 'bg-white shadow-sm border'
                   : 'text-slate hover:text-ink hover:bg-white/60 border border-transparent'
               }`}
+              style={isActive ? { color: 'var(--org-primary)', borderColor: 'rgba(var(--org-primary-rgb), 0.2)' } : undefined}
             >
               {tab.label}
               {tab.count !== undefined && tab.count > 0 && (
-                <span className={`ml-1.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
+                <span className={`ml-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
                   isActive ? 'bg-cobalt/10 text-cobalt' : 'bg-slate-100 text-slate'
                 }`}>
                   {tab.count}
                 </span>
               )}
-              {isActive && (
-                <motion.div
-                  layoutId="area-tab-indicator"
-                  className="absolute bottom-0 left-2 right-2 h-0.5 bg-cobalt rounded-full"
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
-              )}
             </button>
           )
         })}
+        {/* Presentación — al final de los sub-tabs */}
+        <div className="flex-1" />
+        <Link href={`/comites/${areaId}/proyectar`}
+          className="shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all hover-org"
+          style={{ borderColor: 'var(--org-sidebar-border)', color: 'var(--org-sidebar-text)' }}>
+          Presentar →
+        </Link>
       </div>
 
       {/* ── Tab Content ── */}
