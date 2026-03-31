@@ -227,7 +227,7 @@ export default function LegalPanel() {
             className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
           {ce && (
             <button onClick={() => setModalCausa({ proyecto_id: null, titulo: '', tipo: 'reclamo', estado: 'activa', contraparte: null, monto_reclamado: 0, monto_provision: 0, fecha_inicio: null, fecha_audiencia: null, abogado_responsable: null, descripcion: null, riesgo: 'medio' })}
-              className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors">
+              className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
               + Nueva causa
             </button>
           )}
@@ -277,15 +277,15 @@ export default function LegalPanel() {
                     {isExp && (
                       <div className="px-4 pb-4 border-t border-[#E2E8F0]">
                         <div className="grid grid-cols-4 gap-3 py-3 text-[11px]">
-                          <div><span className="text-[10px] font-bold uppercase tracking-wider text-slate block mb-0.5">Abogado</span><span className="text-ink font-semibold">{c.abogado_responsable || '—'}</span></div>
-                          <div><span className="text-[10px] font-bold uppercase tracking-wider text-slate block mb-0.5">Inicio</span><span className="text-ink font-semibold">{c.fecha_inicio ? fmtFecha(c.fecha_inicio) : '—'}</span></div>
-                          <div><span className="text-[10px] font-bold uppercase tracking-wider text-slate block mb-0.5">Audiencia</span><span className={`font-semibold ${c.fecha_audiencia && new Date(c.fecha_audiencia) <= new Date(Date.now() + 30*86400000) ? 'text-danger' : 'text-ink'}`}>{c.fecha_audiencia ? fmtFecha(c.fecha_audiencia) : '—'}</span></div>
-                          <div><span className="text-[10px] font-bold uppercase tracking-wider text-slate block mb-0.5">Provisión</span><span className="font-condensed font-bold" style={{ color: c.monto_provision > 0 ? '#DC2626' : '#64748B' }}>{c.monto_provision > 0 ? fmtMM(c.monto_provision) : '—'}</span></div>
+                          <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-0.5">Abogado</span><span className="text-ink font-semibold">{c.abogado_responsable || '—'}</span></div>
+                          <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-0.5">Inicio</span><span className="text-ink font-semibold">{c.fecha_inicio ? fmtFecha(c.fecha_inicio) : '—'}</span></div>
+                          <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-0.5">Audiencia</span><span className={`font-semibold ${c.fecha_audiencia && new Date(c.fecha_audiencia) <= new Date(Date.now() + 30*86400000) ? 'text-danger' : 'text-ink'}`}>{c.fecha_audiencia ? fmtFecha(c.fecha_audiencia) : '—'}</span></div>
+                          <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-0.5">Provisión</span><span className="font-condensed font-bold" style={{ color: c.monto_provision > 0 ? '#DC2626' : '#64748B' }}>{c.monto_provision > 0 ? fmtMM(c.monto_provision) : '—'}</span></div>
                         </div>
 
                         {c.descripcion && (
                           <div className="bg-[#F8FAFC] rounded-lg p-3 mb-3">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate block mb-1">Contexto</span>
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-1">Contexto</span>
                             <p className="text-xs text-ink leading-relaxed whitespace-pre-wrap">{c.descripcion}</p>
                           </div>
                         )}
@@ -293,7 +293,7 @@ export default function LegalPanel() {
                         {/* ── Documentos de esta causa ── */}
                         <div className="mb-3">
                           <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate">Documentos ({causaDocs.length})</span>
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate">Documentos ({causaDocs.length})</span>
                             {ce && (
                               <button onClick={() => { setAddingDocFor(addingDocFor === c.id ? null : c.id); setNewDoc({ tipo: 'contrato', nombre: '', url: '' }) }}
                                 className="text-[10px] font-bold text-cobalt hover:underline">
@@ -475,5 +475,5 @@ export default function LegalPanel() {
 
 // ── Small label ──
 function L({ children }: { children: React.ReactNode }) {
-  return <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">{children}</label>
+  return <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">{children}</label>
 }

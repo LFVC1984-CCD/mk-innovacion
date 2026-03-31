@@ -39,7 +39,7 @@ export default function AreaCard({ area, index, editHref, presentHref }: Props) 
       initial={{ opacity: 0, y: 18, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: index * 0.07, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-white rounded-xl border-2 border-[#E2E8F0] overflow-hidden hover:shadow-lg hover:-translate-y-1 hover:border-cobalt transition-all duration-200 cursor-pointer group relative"
+      className="bg-white rounded-xl border-2 border-[#E2E8F0] overflow-hidden hover:shadow-lg hover:-translate-y-0.5 hover:border-cobalt active:translate-y-0 active:shadow-sm transition-all duration-200 cursor-pointer group relative"
     >
       {/* Top accent bar with gradient */}
       <div className="h-1.5 relative overflow-hidden">

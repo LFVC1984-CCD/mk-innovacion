@@ -13,8 +13,11 @@ export default function EntidadCard({ e, index, onClick }: { e: Entidad; index: 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.3 }}
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className="bg-white rounded-xl border border-[#E2E8F0] p-4 relative overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer"
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.() } }}
+      className="bg-white rounded-xl border border-[#E2E8F0] p-4 relative overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt"
     >
       <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: e.tipo === 'Banco' ? '#1E293B' : '#64748B' }} />
       <div className="flex justify-between items-start mb-2">

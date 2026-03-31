@@ -309,7 +309,7 @@ export default function FinanzasPanel() {
           {/* Chart */}
           <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 mb-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate">Flujo de caja mensual ($MM)</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate">Flujo de caja mensual ($MM)</p>
               <div className="flex gap-3 text-[10px]">
                 <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-green-500" /> Ing real</span>
                 <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-green-500/30" /> Ing proy</span>
@@ -372,11 +372,11 @@ export default function FinanzasPanel() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
-                  <th className="text-left px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-slate">Mes</th>
-                  <th className="text-right px-2 py-2 text-[10px] font-bold uppercase text-green-600">Ingresos</th>
-                  <th className="text-right px-2 py-2 text-[10px] font-bold uppercase text-red-500">Egresos</th>
-                  <th className="text-right px-2 py-2 text-[10px] font-bold uppercase text-slate">Saldo</th>
-                  <th className="text-right px-3.5 py-2 text-[10px] font-bold uppercase text-cobalt">Acumulado</th>
+                  <th className="text-left px-3.5 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate">Mes</th>
+                  <th className="text-right px-2 py-2 text-[10px] font-extrabold uppercase tracking-wider text-green-600">Ingresos</th>
+                  <th className="text-right px-2 py-2 text-[10px] font-extrabold uppercase tracking-wider text-red-500">Egresos</th>
+                  <th className="text-right px-2 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate">Saldo</th>
+                  <th className="text-right px-3.5 py-2 text-[10px] font-extrabold uppercase tracking-wider text-cobalt">Acumulado</th>
                 </tr>
               </thead>
               <tbody>
@@ -467,11 +467,11 @@ export default function FinanzasPanel() {
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase text-slate">Proyecto</th>
-                <th className="text-right px-2 py-2.5 text-[10px] font-bold uppercase text-green-600">Ing. Prog.</th>
-                <th className="text-right px-2 py-2.5 text-[10px] font-bold uppercase text-red-500">Eg. Est.</th>
-                <th className="text-right px-2 py-2.5 text-[10px] font-bold uppercase text-slate">Saldo</th>
-                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase text-cobalt">Saldo x Fact.</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Proyecto</th>
+                <th className="text-right px-2 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-green-600">Ing. Prog.</th>
+                <th className="text-right px-2 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-red-500">Eg. Est.</th>
+                <th className="text-right px-2 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Saldo</th>
+                <th className="text-right px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-cobalt">Saldo x Fact.</th>
               </tr>
             </thead>
             <tbody>
@@ -661,5 +661,5 @@ export default function FinanzasPanel() {
 }
 
 function L({ children }: { children: React.ReactNode }) {
-  return <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">{children}</label>
+  return <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">{children}</label>
 }

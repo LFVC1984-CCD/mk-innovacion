@@ -16,7 +16,10 @@ export default function ProyectoCard({ proyecto: p, onEdit, onDelete }: Props) {
 
   return (
     <div
-      className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEdit?.() } }}
+      className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm hover:shadow-md transition-shadow overflow-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt"
       style={{ borderLeftWidth: 4, borderLeftColor: color }}
     >
       <div className="p-4">

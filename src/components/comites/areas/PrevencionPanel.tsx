@@ -153,19 +153,19 @@ export default function PrevencionPanel() {
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-slate-50 border-b border-[#E2E8F0]">
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Obra</th>
-                <th className="text-center px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-red-400">Accidentes</th>
-                <th className="text-center px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Incidentes</th>
-                <th className="text-center px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Días Perd.</th>
-                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">HH</th>
-                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Tasa Frec.</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Obra</th>
+                <th className="text-center px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-red-400">Accidentes</th>
+                <th className="text-center px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Incidentes</th>
+                <th className="text-center px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Días Perd.</th>
+                <th className="text-right px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">HH</th>
+                <th className="text-right px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Tasa Frec.</th>
               </tr>
             </thead>
             <tbody>
               {porProyecto.map(p => {
                 const tf = p.hh > 0 ? Math.round((p.accidentes * 1_000_000) / p.hh * 10) / 10 : 0
                 return (
-                  <tr key={p.nombre} className="border-b border-slate-100 hover:bg-slate-50/50">
+                  <tr key={p.nombre} className="border-b border-slate-100 hover:bg-[#F8FAFC] transition-colors">
                     <td className="px-3.5 py-2.5 font-semibold text-ink">{p.nombre}</td>
                     <td className="px-3.5 py-2.5 text-center">
                       <span className={`font-condensed font-bold ${p.accidentes > 0 ? 'text-red-500' : 'text-green-500'}`}>{p.accidentes}</span>
@@ -218,7 +218,7 @@ export default function PrevencionPanel() {
           <input type="text" placeholder="Buscar evento, trabajador..." value={search} onChange={e => setSearch(e.target.value)}
             className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
           {ce && (
-            <button onClick={() => setModalEvento({ ...EMPTY_EVENTO })} className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors">
+            <button onClick={() => setModalEvento({ ...EMPTY_EVENTO })} className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
               + Registrar evento
             </button>
           )}
@@ -260,42 +260,42 @@ export default function PrevencionPanel() {
             </div>
             <div className="px-5 py-4 grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Tipo</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Tipo</label>
                 <select value={modalEvento.tipo || 'incidente'} onChange={e => setModalEvento(p => ({ ...p!, tipo: e.target.value as TipoEvento }))} className="inp">
                   {Object.entries(TIPO_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Gravedad</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Gravedad</label>
                 <select value={modalEvento.gravedad || 'leve'} onChange={e => setModalEvento(p => ({ ...p!, gravedad: e.target.value as Gravedad }))} className="inp">
                   {Object.entries(GRAVEDAD_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Proyecto</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Proyecto</label>
                 <select value={modalEvento.proyecto_id || ''} onChange={e => setModalEvento(p => ({ ...p!, proyecto_id: e.target.value || null }))} className="inp">
                   <option value="">General</option>
                   {projects.filter(p => ['adjudicado', 'activo'].includes(p.estado)).map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Fecha</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Fecha</label>
                 <input type="date" value={modalEvento.fecha || ''} onChange={e => setModalEvento(p => ({ ...p!, fecha: e.target.value || null }))} className="inp" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Trabajador</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Trabajador</label>
                 <input value={modalEvento.trabajador || ''} onChange={e => setModalEvento(p => ({ ...p!, trabajador: e.target.value }))} className="inp" placeholder="Nombre" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Días perdidos</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Días perdidos</label>
                 <input type="number" value={modalEvento.dias_perdidos || ''} onChange={e => setModalEvento(p => ({ ...p!, dias_perdidos: parseInt(e.target.value) || 0 }))} className="inp" placeholder="0" />
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Descripción</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Descripción</label>
                 <textarea value={modalEvento.descripcion || ''} onChange={e => setModalEvento(p => ({ ...p!, descripcion: e.target.value }))} className="inp min-h-[60px]" placeholder="Qué pasó, dónde, circunstancias" />
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Acción correctiva</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Acción correctiva</label>
                 <textarea value={modalEvento.accion_correctiva || ''} onChange={e => setModalEvento(p => ({ ...p!, accion_correctiva: e.target.value }))} className="inp min-h-[60px]" placeholder="Medidas tomadas o por tomar" />
               </div>
             </div>
@@ -342,13 +342,13 @@ function EventoRow({ evento: e, proyectoName, expanded, onToggle, onEdit, onDele
         <div className="px-4 pb-3 border-t border-[#E2E8F0] pt-3">
           {e.descripcion && (
             <div className="bg-slate-50 rounded-lg p-2.5 mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Descripción</span>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Descripción</span>
               <p className="text-xs text-ink mt-1 whitespace-pre-wrap">{e.descripcion}</p>
             </div>
           )}
           {e.accion_correctiva && (
             <div className="bg-blue-50 rounded-lg p-2.5 mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-cobalt">Acción correctiva</span>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-cobalt">Acción correctiva</span>
               <p className="text-xs text-ink mt-1 whitespace-pre-wrap">{e.accion_correctiva}</p>
             </div>
           )}

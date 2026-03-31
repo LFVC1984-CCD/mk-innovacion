@@ -19,7 +19,10 @@ export default function GarantiaCard({ g, index }: { g: Garantia; index: number 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.3 }}
-      className="bg-white rounded-xl border border-[#E2E8F0] p-4 relative overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault() } }}
+      className="bg-white rounded-xl border border-[#E2E8F0] p-4 relative overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt"
     >
       {/* Top stripe */}
       <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: estado.color }} />

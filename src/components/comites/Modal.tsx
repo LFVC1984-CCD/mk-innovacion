@@ -115,7 +115,7 @@ export default function Modal({ open, onClose, title, accent, children, footer }
 export function Field({ label, children, htmlFor }: { label: string; children: React.ReactNode; htmlFor?: string }) {
   return (
     <div className="mb-3.5">
-      <label htmlFor={htmlFor} className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">{label}</label>
+      <label htmlFor={htmlFor} className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">{label}</label>
       {children}
     </div>
   )
@@ -151,7 +151,7 @@ export function Row3({ children }: { children: React.ReactNode }) {
 
 export function Divider({ label }: { label: string }) {
   return (
-    <p className="text-[10px] font-bold uppercase tracking-wider text-slate mt-4 mb-2 pb-1 border-b border-[#E2E8F0]">
+    <p className="text-[10px] font-extrabold uppercase tracking-widerr text-slate mt-4 mb-2 pb-1 border-b border-[#E2E8F0]">
       {label}
     </p>
   )

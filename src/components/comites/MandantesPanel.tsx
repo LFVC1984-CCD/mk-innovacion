@@ -77,7 +77,7 @@ export default function MandantesPanel() {
             className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
           <ViewToggle view={view} onChange={v => setView(v as typeof view)} options={['cards', 'tabla']} />
           {isAdmin && (
-            <button onClick={openNew} className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors">
+            <button onClick={openNew} className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
               + Nuevo mandante
             </button>
           )}
@@ -124,7 +124,7 @@ export default function MandantesPanel() {
                 {m.email && <p className="text-[11px] text-cobalt">{m.email}</p>}
                 {proys.length > 0 && (
                   <div className="mt-3 pt-2 border-t border-[#E2E8F0]">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate mb-1">{proys.length} proyecto{proys.length > 1 ? 's' : ''}</p>
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">{proys.length} proyecto{proys.length > 1 ? 's' : ''}</p>
                     <div className="space-y-0.5">
                       {proys.slice(0, 4).map(p => (
                         <p key={p.id} className="text-[11px] text-ink truncate">{p.nombre}</p>

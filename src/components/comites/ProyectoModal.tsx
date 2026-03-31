@@ -230,7 +230,7 @@ export default function ProyectoModal({ open, onClose, onSave, proyecto, equipoN
           {/* Referencia de estudio (colapsable) */}
           {form.monto_licitacion > 0 && (
             <div className="bg-slate-50 border border-[#E2E8F0] rounded-lg p-3 mt-1">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Datos de estudio (referencia)</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Datos de estudio (referencia)</p>
               <div className="flex gap-4 text-[11px] text-slate-500">
                 <span>Monto licit: <strong className="text-ink">${form.monto_licitacion} MM</strong></span>
                 <span>Margen est: <strong className="text-ink">{form.margen_estudio_pct}%</strong></span>

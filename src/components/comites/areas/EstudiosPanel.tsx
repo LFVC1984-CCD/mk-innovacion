@@ -139,20 +139,20 @@ export default function EstudiosPanel() {
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-slate-50 border-b border-[#E2E8F0]">
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Proyecto</th>
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Mandante</th>
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Estado</th>
-                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Monto ($MM)</th>
-                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Margen Est.</th>
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Oferta</th>
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Obs.</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Proyecto</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Mandante</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Estado</th>
+                <th className="text-right px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Monto ($MM)</th>
+                <th className="text-right px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Margen Est.</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Oferta</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Obs.</th>
               </tr>
             </thead>
             <tbody>
               {pipeline.map(p => {
                 const margenEst = p.monto_licitacion * (p.margen_estudio_pct / 100)
                 return (
-                  <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                  <tr key={p.id} className="border-b border-slate-100 hover:bg-[#F8FAFC] cursor-pointer transition-colors">
                     <td className="px-3.5 py-2.5 font-semibold text-ink">{p.nombre}</td>
                     <td className="px-3.5 py-2.5 text-slate-500">{p.mandante || '—'}</td>
                     <td className="px-3.5 py-2.5">
@@ -205,7 +205,7 @@ export default function EstudiosPanel() {
       {/* Resultados recientes */}
       {resultados.length > 0 && (
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-2">
             Resultados recientes
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

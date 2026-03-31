@@ -112,7 +112,7 @@ export default function ProcedimientosPanel({ areaId }: Props) {
         ].map(k => (
           <div key={k.l} className="bg-white rounded-xl border border-[#E2E8F0] p-3 text-center">
             <p className="font-condensed text-2xl font-black" style={{ color: k.c }}>{k.v}</p>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate">{k.l}</p>
+            <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate">{k.l}</p>
           </div>
         ))}
       </div>
@@ -135,7 +135,7 @@ export default function ProcedimientosPanel({ areaId }: Props) {
           ))}
         </div>
         {ce && (
-          <button onClick={openNew} className="text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors" style={{ background: 'var(--org-primary)' }}>
+          <button onClick={openNew} className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
             + Nuevo procedimiento
           </button>
         )}
@@ -165,7 +165,7 @@ export default function ProcedimientosPanel({ areaId }: Props) {
                       <span className="text-xs font-bold text-ink truncate">{p.nombre}</span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded font-bold" style={{ background: cfg.color + '18', color: cfg.color }}>{cfg.label}</span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#F1F5F9] text-slate font-medium">{tipoLabel(p.tipo)}</span>
-                      {p.video_url && <span className="text-[10px]" title="Tiene video">▶</span>}
+                      {p.video_url && <span title="Tiene video"><svg className="w-3 h-3 inline-block" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg></span>}
                     </div>
                     <EtapaBar proc={p} />
                   </div>
@@ -211,17 +211,17 @@ export default function ProcedimientosPanel({ areaId }: Props) {
                         <div className="flex gap-3 flex-wrap">
                           {p.documento_url && (
                             <a href={p.documento_url} target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold hover:underline" style={{ color: 'var(--org-primary)' }}>
-                              📄 {p.documento_nombre || 'Documento'}
+                              <svg className="w-3.5 h-3.5 inline-block mr-1 align-text-bottom" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>{p.documento_nombre || 'Documento'}
                             </a>
                           )}
                           {p.diagrama_url && (
                             <a href={p.diagrama_url} target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold text-purple-600 hover:underline">
-                              📊 {p.diagrama_nombre || 'Diagrama de flujo'}
+                              <svg className="w-3.5 h-3.5 inline-block mr-1 align-text-bottom" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>{p.diagrama_nombre || 'Diagrama de flujo'}
                             </a>
                           )}
                           {p.video_url && (
                             <a href={p.video_url} target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold text-red-500 hover:underline">
-                              ▶ {p.video_titulo || 'Video capacitación'}
+                              <svg className="w-3.5 h-3.5 inline-block mr-1 align-text-bottom" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg>{p.video_titulo || 'Video capacitación'}
                             </a>
                           )}
                         </div>
@@ -296,13 +296,13 @@ export default function ProcedimientosPanel({ areaId }: Props) {
         <Field label="Documento del procedimiento (PDF, Word)">
           {form.documento_url ? (
             <div className="flex items-center gap-2 px-3 py-2 border border-[#E2E8F0] rounded-lg bg-[#F8FAFC]">
-              <span className="text-[11px]">📄</span>
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
               <a href={form.documento_url} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium hover:underline flex-1 truncate" style={{ color: 'var(--org-primary)' }}>{form.documento_nombre || 'Documento'}</a>
               <button type="button" onClick={() => setForm(f => ({ ...f, documento_url: '', documento_nombre: '' }))} className="text-[10px] text-red-400 hover:text-red-600">✕</button>
             </div>
           ) : (
             <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-[#CBD5E1] rounded-lg cursor-pointer hover:border-cobalt hover:bg-[#F8FAFC] transition-colors">
-              <span className="text-[11px]">📎</span>
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" /></svg>
               <span className="text-[12px] text-[#9CA3AF]">{uploading ? 'Subiendo...' : typeof modal === 'object' && modal !== null ? 'Adjuntar documento' : 'Guardar primero para adjuntar'}</span>
               {typeof modal === 'object' && modal !== null && (
                 <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" className="hidden" disabled={uploading} onChange={async e => {
@@ -321,13 +321,13 @@ export default function ProcedimientosPanel({ areaId }: Props) {
         <Field label="Diagrama de flujo (PDF, imagen)">
           {form.diagrama_url ? (
             <div className="flex items-center gap-2 px-3 py-2 border border-[#E2E8F0] rounded-lg bg-[#F8FAFC]">
-              <span className="text-[11px]">📊</span>
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
               <a href={form.diagrama_url} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-purple-600 hover:underline flex-1 truncate">{form.diagrama_nombre || 'Diagrama'}</a>
               <button type="button" onClick={() => setForm(f => ({ ...f, diagrama_url: '', diagrama_nombre: '' }))} className="text-[10px] text-red-400 hover:text-red-600">✕</button>
             </div>
           ) : (
             <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-[#CBD5E1] rounded-lg cursor-pointer hover:border-cobalt hover:bg-[#F8FAFC] transition-colors">
-              <span className="text-[11px]">📎</span>
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" /></svg>
               <span className="text-[12px] text-[#9CA3AF]">{uploading ? 'Subiendo...' : typeof modal === 'object' && modal !== null ? 'Adjuntar diagrama' : 'Guardar primero para adjuntar'}</span>
               {typeof modal === 'object' && modal !== null && (
                 <input type="file" accept=".pdf,.jpg,.jpeg,.png,.svg,.webp" className="hidden" disabled={uploading} onChange={async e => {

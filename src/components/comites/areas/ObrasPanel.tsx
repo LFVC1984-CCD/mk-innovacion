@@ -115,7 +115,7 @@ export default function ObrasPanel() {
         <>
           {activas.length > 0 && (
             <>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-2">
                 Obras Activas ({activas.length})
               </p>
               {activas.map(p => (
@@ -131,7 +131,7 @@ export default function ObrasPanel() {
 
           {conSaldo.length > 0 && (
             <>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2 mt-5">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-2 mt-5">
                 Cerradas con Saldo ({conSaldo.length})
               </p>
               {conSaldo.map(p => (

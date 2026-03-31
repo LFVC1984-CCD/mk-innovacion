@@ -19,7 +19,7 @@ export default function MiniGauge({ value, max = 2, label, sublabel, size = 64, 
   return (
     <div className="flex flex-col items-center gap-1">
       <div className="relative" style={{ width: size, height: size }}>
-        <svg width={size} height={size} className="-rotate-90">
+        <svg width={size} height={size} className="-rotate-90" role="img" aria-label={`${label}: ${value}`}>
           <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#E2E8F0" strokeWidth={4} />
           <motion.circle
             cx={size / 2}
@@ -39,7 +39,7 @@ export default function MiniGauge({ value, max = 2, label, sublabel, size = 64, 
           <span className="font-condensed font-black text-sm" style={{ color }}>{value}</span>
         </div>
       </div>
-      <span className="text-[10px] font-bold uppercase tracking-wider text-slate">{label}</span>
+      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate">{label}</span>
       {sublabel && <span className="text-[8px] text-slate -mt-1">{sublabel}</span>}
     </div>
   )

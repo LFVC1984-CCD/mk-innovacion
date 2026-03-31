@@ -35,21 +35,21 @@ export default function InnovacionGantt({ proyectos, onEdit }: Props) {
 
       {internos.length > 0 && (
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate mb-2">Desarrollo interno</p>
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-2.5">Desarrollo interno</p>
           <GanttBlock proyectos={internos} etapas={ETAPAS_DESARROLLO} onEdit={onEdit} />
         </div>
       )}
 
       {contratados.length > 0 && (
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate mb-2">Contratación de servicio</p>
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-2.5">Contratación de servicio</p>
           <GanttBlock proyectos={contratados} etapas={ETAPAS_CONTRATACION} onEdit={onEdit} />
         </div>
       )}
 
       {descartados.length > 0 && (
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate mb-2">Descartados ({descartados.length})</p>
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-2.5">Descartados ({descartados.length})</p>
           <div className="flex flex-wrap gap-1.5">
             {descartados.map(p => (
               <span key={p.id} className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate line-through cursor-pointer hover:bg-slate-200"
@@ -73,20 +73,20 @@ function GanttBlock({ proyectos, etapas, onEdit }: {
     <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
       {/* Header */}
       <div className="flex border-b border-[#E2E8F0] bg-[#F8FAFC]">
-        <div className="w-[150px] shrink-0 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate">
+        <div className="w-[150px] shrink-0 px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate">
           Proyecto
         </div>
         <div className="flex-1 flex min-w-[300px]">
           {etapas.map(e => {
             const cfg = ETAPA_CONFIG[e]
             return (
-              <div key={e} className="flex-1 px-1 py-2 text-center text-[10px] font-bold uppercase" style={{ color: cfg.color }}>
+              <div key={e} className="flex-1 px-1 py-2 text-center text-[10px] font-extrabold uppercase" style={{ color: cfg.color }}>
                 {cfg.short}
               </div>
             )
           })}
         </div>
-        <div className="w-[130px] shrink-0 px-2 py-2 text-[10px] font-bold uppercase tracking-wider text-slate text-center">
+        <div className="w-[130px] shrink-0 px-2 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate text-center">
           Fechas
         </div>
       </div>

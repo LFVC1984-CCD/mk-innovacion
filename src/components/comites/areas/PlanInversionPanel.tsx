@@ -103,7 +103,7 @@ export default function PlanInversionPanel() {
         <div className="flex gap-2 items-center">
           <ViewToggle view={view} onChange={v => setView(v as typeof view)} options={['cards', 'tabla']} />
           {ce && (
-            <button onClick={openNew} className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors">
+            <button onClick={openNew} className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
               + Nueva oportunidad
             </button>
           )}

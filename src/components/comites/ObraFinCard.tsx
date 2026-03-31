@@ -17,7 +17,7 @@ function NumField({ label, value, onChange }: {
 }) {
   return (
     <div>
-      <label className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">{label}</label>
+      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">{label}</label>
       <input
         type="number"
         value={value || ''}
@@ -32,7 +32,7 @@ function NumField({ label, value, onChange }: {
 function ReadOnly({ label, value, color, sub }: { label: string; value: string; color?: string; sub?: string }) {
   return (
     <div>
-      <label className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">{label}</label>
+      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">{label}</label>
       <div className="font-condensed text-lg font-extrabold leading-tight" style={{ color: color || '#0B5ED7' }}>{value}</div>
       {sub && <div className="text-[10px] text-slate mt-0.5">{sub}</div>}
     </div>
@@ -98,7 +98,10 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
     <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden shadow-sm mb-3">
       {/* Header */}
       <div
-        className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(o => !o) } }}
+        className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt"
         onClick={() => setOpen(o => !o)}
       >
         <div className="flex items-center gap-2.5">
@@ -131,7 +134,7 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
           </div>
 
           {/* ── VENTA ── */}
-          <p className="text-[10px] font-bold uppercase tracking-wider text-cobalt mt-2 mb-2">Venta</p>
+          <p className="text-[10px] font-extrabold uppercase tracking-widerr text-cobalt mt-2 mb-2">Venta</p>
           <div className="grid grid-cols-5 gap-2.5">
             <NumField label="Contrato ($MM)" value={lp.contrato} onChange={v => upd('contrato', v)} />
             <NumField label="NDC Aprobadas ($MM)" value={lp.ndc} onChange={v => upd('ndc', v)} />
@@ -141,7 +144,7 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
           </div>
 
           {/* ── COMPROMETIDO (desglose) ── */}
-          <p className="text-[10px] font-bold uppercase tracking-wider text-amber mt-4 mb-2">Comprometido (desglose)</p>
+          <p className="text-[10px] font-extrabold uppercase tracking-widerr text-amber mt-4 mb-2">Comprometido (desglose)</p>
           <div className="grid grid-cols-6 gap-2.5">
             <NumField label="OC ($MM)" value={lp.oc} onChange={v => upd('oc', v)} />
             <NumField label="SC ($MM)" value={lp.sc} onChange={v => upd('sc', v)} />
@@ -152,7 +155,7 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
           </div>
 
           {/* ── GASTO ── */}
-          <p className="text-[10px] font-bold uppercase tracking-wider text-danger mt-4 mb-2">Gasto</p>
+          <p className="text-[10px] font-extrabold uppercase tracking-widerr text-danger mt-4 mb-2">Gasto</p>
           <div className="grid grid-cols-4 gap-2.5">
             <NumField label="Gastado / Facturas ($MM)" value={lp.gastado} onChange={v => upd('gastado', v)} />
             <ReadOnly label="Mano de Obra" value={`$${lp.mano_obra} MM`} color="#64748B" sub="(ingresado arriba)" />
@@ -161,7 +164,7 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
           </div>
 
           {/* ── AVANCE ── */}
-          <p className="text-[10px] font-bold uppercase tracking-wider text-success mt-4 mb-2">Avance</p>
+          <p className="text-[10px] font-extrabold uppercase tracking-widerr text-success mt-4 mb-2">Avance</p>
           <div className="grid grid-cols-4 gap-2.5 items-end">
             <NumField label="Avance Real (%)" value={lp.avance_real} onChange={v => upd('avance_real', v)} />
             <NumField label="Avance Prog. (%)" value={lp.avance_prog} onChange={v => upd('avance_prog', v)} />
@@ -194,7 +197,7 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
 
           {/* Comentario */}
           <div className="mt-3">
-            <label className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">Comentario</label>
+            <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">Comentario</label>
             <input
               value={lp.comentario_financiero || ''}
               onChange={e => updLocal('comentario_financiero', e.target.value)}

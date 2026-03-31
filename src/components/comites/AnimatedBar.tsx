@@ -22,7 +22,12 @@ export default function AnimatedBar({
   const pct2 = secondValue !== undefined && max > 0 ? Math.min((secondValue / max) * 100, 100) : 0
 
   return (
-    <div>
+    <div
+      role="progressbar"
+      aria-valuenow={value}
+      aria-valuemax={max}
+      aria-label="Progreso"
+    >
       <div className="rounded-full overflow-hidden relative" style={{ height, background: bgColor }}>
         {secondValue !== undefined && (
           <motion.div

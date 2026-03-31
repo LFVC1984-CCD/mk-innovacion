@@ -38,7 +38,7 @@ export default function KPIDashboard({ kpis, areaColor = '#0B5ED7' }: Props) {
             {/* Label + status dot */}
             <div className="flex items-center gap-1.5 mb-1.5">
               <span className={`w-2 h-2 rounded-full shrink-0 ${kpi.status === 'bad' ? 'pulse-critical' : ''}`} style={{ background: sc.text }} />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate truncate">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate truncate">
                 {kpi.nombre}
               </span>
             </div>

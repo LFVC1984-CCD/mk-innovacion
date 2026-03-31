@@ -174,7 +174,7 @@ function DotacionTab({ metricas, ultimo, canEdit, onSave, onRemove, docs, capaci
         <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate">{metricas.length} mes{metricas.length !== 1 ? 'es' : ''} registrado{metricas.length !== 1 ? 's' : ''}</p>
         {canEdit && (
           <button onClick={() => { setEditing(null); setModal(true) }}
-            className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors">
+            className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
             + Registrar mes
           </button>
         )}
@@ -291,7 +291,7 @@ function AuditoriasTab({ auditorias, canEdit, onSave, onRemove }: {
             className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
           {canEdit && (
             <button onClick={() => { setEditing(null); setModal(true) }}
-              className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors">
+              className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
               + Nueva auditoria
             </button>
           )}
@@ -410,7 +410,7 @@ function DocumentacionTab({ docs, canEdit, onSave, onRemove }: {
             className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
           {canEdit && (
             <button onClick={() => { setEditing(null); setModal(true) }}
-              className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors">
+              className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
               + Nuevo documento
             </button>
           )}
@@ -518,7 +518,7 @@ function CapacitacionesTab({ capacitaciones, projects, canEdit, onSave, onRemove
             className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
           {canEdit && (
             <button onClick={() => { setEditing(null); setModal(true) }}
-              className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors">
+              className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
               + Nueva capacitacion
             </button>
           )}

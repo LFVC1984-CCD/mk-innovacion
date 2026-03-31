@@ -33,7 +33,7 @@ export default function SummaryCard({ value, label, color, delta, index = 0 }: P
         >
           {value}
         </motion.p>
-        <p className="text-[10px] text-slate font-bold uppercase tracking-wider mt-0.5">{label}</p>
+        <p className="text-[10px] text-slate font-extrabold uppercase tracking-wider mt-0.5">{label}</p>
         {delta && (
           <motion.p
             initial={{ opacity: 0 }}

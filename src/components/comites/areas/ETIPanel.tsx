@@ -228,13 +228,13 @@ export default function ETIPanel() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-slate-50 border-b border-[#E2E8F0]">
-                  <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Herramienta</th>
-                  <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Cat.</th>
-                  <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Estado</th>
-                  <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">$/mes</th>
-                  <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">$/año</th>
-                  <th className="text-center px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Users</th>
-                  <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Resp.</th>
+                  <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Herramienta</th>
+                  <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Cat.</th>
+                  <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Estado</th>
+                  <th className="text-right px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">$/mes</th>
+                  <th className="text-right px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">$/año</th>
+                  <th className="text-center px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Users</th>
+                  <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Resp.</th>
                   {ce && <th className="w-16" />}
                 </tr>
               </thead>
@@ -313,13 +313,13 @@ export default function ETIPanel() {
               <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
                 <table className="w-full text-xs min-w-[700px]">
                   <thead><tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
-                    <th className="text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Proyecto</th>
-                    <th className="text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Etapa</th>
-                    <th className="text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Ruta</th>
-                    <th className="text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Responsable</th>
-                    <th className="text-right px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Presupuesto</th>
-                    <th className="text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Inicio</th>
-                    <th className="text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Meta</th>
+                    <th className="text-left px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Proyecto</th>
+                    <th className="text-left px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Etapa</th>
+                    <th className="text-left px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Ruta</th>
+                    <th className="text-left px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Responsable</th>
+                    <th className="text-right px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Presupuesto</th>
+                    <th className="text-left px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Inicio</th>
+                    <th className="text-left px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Meta</th>
                     {ce && <th className="w-16" />}
                   </tr></thead>
                   <tbody>
@@ -393,12 +393,12 @@ export default function ETIPanel() {
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Nombre</th>
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Cargo</th>
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Rol</th>
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Dedicación</th>
-                <th className="text-right px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">USD/mes</th>
-                <th className="text-left px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate">Email</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Nombre</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Cargo</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Rol</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Dedicación</th>
+                <th className="text-right px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">USD/mes</th>
+                <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Email</th>
                 {ce && <th className="w-20" />}
               </tr>
             </thead>
@@ -449,47 +449,47 @@ export default function ETIPanel() {
             </div>
             <div className="px-5 py-4 grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Nombre</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Nombre</label>
                 <input value={modalHerr.nombre || ''} onChange={e => setModalHerr(p => ({ ...p!, nombre: e.target.value }))} className="inp" placeholder="Ej: Microsoft 365" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Categoría</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Categoría</label>
                 <select value={modalHerr.categoria || 'software'} onChange={e => setModalHerr(p => ({ ...p!, categoria: e.target.value as HerramientaCategoria }))} className="inp">
                   {Object.entries(CAT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Estado</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Estado</label>
                 <select value={modalHerr.estado || 'activa'} onChange={e => setModalHerr(p => ({ ...p!, estado: e.target.value as HerramientaEstado }))} className="inp">
                   {Object.entries(ESTADO_HERR).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Proveedor</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Proveedor</label>
                 <input value={modalHerr.proveedor || ''} onChange={e => setModalHerr(p => ({ ...p!, proveedor: e.target.value }))} className="inp" placeholder="Empresa" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Responsable</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Responsable</label>
                 <input value={modalHerr.responsable || ''} onChange={e => setModalHerr(p => ({ ...p!, responsable: e.target.value }))} className="inp" placeholder="Nombre" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Costo mensual (USD)</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Costo mensual (USD)</label>
                 <input type="number" value={modalHerr.costo_mensual_usd || ''} onChange={e => setModalHerr(p => ({ ...p!, costo_mensual_usd: parseFloat(e.target.value) || 0 }))} className="inp" placeholder="0" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Costo anual (USD)</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Costo anual (USD)</label>
                 <input type="number" value={modalHerr.costo_anual_usd || ''} onChange={e => setModalHerr(p => ({ ...p!, costo_anual_usd: parseFloat(e.target.value) || 0 }))} className="inp" placeholder="0" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Usuarios</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Usuarios</label>
                 <input type="number" value={modalHerr.usuarios || ''} onChange={e => setModalHerr(p => ({ ...p!, usuarios: parseInt(e.target.value) || 0 }))} className="inp" placeholder="0" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">URL</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">URL</label>
                 <input value={modalHerr.url || ''} onChange={e => setModalHerr(p => ({ ...p!, url: e.target.value }))} className="inp" placeholder="https://..." />
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Descripción / uso</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Descripción / uso</label>
                 <textarea value={modalHerr.descripcion || ''} onChange={e => setModalHerr(p => ({ ...p!, descripcion: e.target.value }))} className="inp min-h-[60px]" placeholder="Para qué se usa, qué área la ocupa" />
               </div>
             </div>
@@ -511,18 +511,18 @@ export default function ETIPanel() {
             </div>
             <div className="px-5 py-4 grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Nombre</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Nombre</label>
                 <input value={modalProy.nombre || ''} onChange={e => setModalProy(p => ({ ...p!, nombre: e.target.value }))} className="inp" placeholder="Nombre del proyecto" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Ruta</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Ruta</label>
                 <select value={modalProy.tipo_ruta || 'desarrollo_interno'} onChange={e => setModalProy(p => ({ ...p!, tipo_ruta: e.target.value as TipoRutaInnovacion }))} className="inp">
                   <option value="desarrollo_interno">Desarrollo interno</option>
                   <option value="contratacion_servicio">Contratación de servicio</option>
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Etapa actual</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Etapa actual</label>
                 <select value={modalProy.etapa || 'necesidad'} onChange={e => setModalProy(p => ({ ...p!, etapa: e.target.value as EtapaInnovacion }))} className="inp">
                   {((modalProy.tipo_ruta || 'desarrollo_interno') === 'contratacion_servicio' ? ETAPAS_CONTRATACION : ETAPAS_DESARROLLO).map(e => (
                     <option key={e} value={e}>{ETAPA_CONFIG[e].label}</option>
@@ -531,27 +531,27 @@ export default function ETIPanel() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Responsable</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Responsable</label>
                 <input value={modalProy.responsable || ''} onChange={e => setModalProy(p => ({ ...p!, responsable: e.target.value }))} className="inp" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Presupuesto (USD)</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Presupuesto (USD)</label>
                 <input type="number" value={modalProy.presupuesto_usd || ''} onChange={e => setModalProy(p => ({ ...p!, presupuesto_usd: parseFloat(e.target.value) || 0 }))} className="inp" placeholder="0" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Fecha inicio</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Fecha inicio</label>
                 <input type="date" value={modalProy.fecha_inicio || ''} onChange={e => setModalProy(p => ({ ...p!, fecha_inicio: e.target.value || null }))} className="inp" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Fecha objetivo</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Fecha objetivo</label>
                 <input type="date" value={modalProy.fecha_objetivo || ''} onChange={e => setModalProy(p => ({ ...p!, fecha_objetivo: e.target.value || null }))} className="inp" />
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Descripción</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Descripción</label>
                 <textarea value={modalProy.descripcion || ''} onChange={e => setModalProy(p => ({ ...p!, descripcion: e.target.value }))} className="inp min-h-[60px]" placeholder="Qué se quiere lograr" />
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Impacto esperado</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Impacto esperado</label>
                 <textarea value={modalProy.impacto_esperado || ''} onChange={e => setModalProy(p => ({ ...p!, impacto_esperado: e.target.value }))} className="inp min-h-[60px]" placeholder="Ahorro, eficiencia, calidad, etc." />
               </div>
             </div>
@@ -573,42 +573,42 @@ export default function ETIPanel() {
             </div>
             <div className="px-5 py-4 grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Nombre</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">Nombre</label>
                 <input value={modalMiembro.nombre || ''} onChange={e => setModalMiembro(p => ({ ...p!, nombre: e.target.value }))} className="inp" placeholder="Nombre completo" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Cargo</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">Cargo</label>
                 <input value={modalMiembro.cargo || ''} onChange={e => setModalMiembro(p => ({ ...p!, cargo: e.target.value }))} className="inp" placeholder="Ej: Desarrollador Senior" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Rol</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">Rol</label>
                 <select value={modalMiembro.rol || 'miembro'} onChange={e => setModalMiembro(p => ({ ...p!, rol: e.target.value }))} className="inp">
                   {Object.entries(ROL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Dedicación</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">Dedicación</label>
                 <select value={modalMiembro.dedicacion || 'completa'} onChange={e => setModalMiembro(p => ({ ...p!, dedicacion: e.target.value }))} className="inp">
                   {Object.entries(DEDIC_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Costo mensual (USD)</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">Costo mensual (USD)</label>
                 <input type="number" value={modalMiembro.costo_mensual_usd || ''} onChange={e => setModalMiembro(p => ({ ...p!, costo_mensual_usd: parseFloat(e.target.value) || 0 }))} className="inp" placeholder="0" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Email</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">Email</label>
                 <input value={modalMiembro.email || ''} onChange={e => setModalMiembro(p => ({ ...p!, email: e.target.value }))} className="inp" placeholder="email@empresa.com" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Estado</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">Estado</label>
                 <select value={modalMiembro.activo ? 'true' : 'false'} onChange={e => setModalMiembro(p => ({ ...p!, activo: e.target.value === 'true' }))} className="inp">
                   <option value="true">Activo</option>
                   <option value="false">Inactivo</option>
                 </select>
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate mb-1">Observación</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">Observación</label>
                 <input value={modalMiembro.observacion || ''} onChange={e => setModalMiembro(p => ({ ...p!, observacion: e.target.value }))} className="inp" placeholder="Notas adicionales" />
               </div>
             </div>

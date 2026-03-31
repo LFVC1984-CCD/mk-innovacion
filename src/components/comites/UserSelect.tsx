@@ -51,11 +51,15 @@ export default function UserSelect({ value, onChange, placeholder = 'Buscar usua
         onFocus={() => setOpen(true)}
         placeholder={placeholder}
         className="inp w-full"
+        aria-haspopup="listbox"
+        aria-expanded={open}
       />
       {open && filtered.length > 0 && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-[#E2E8F0] rounded-lg shadow-lg max-h-[200px] overflow-y-auto">
+        <div role="listbox" className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-[#E2E8F0] rounded-lg shadow-lg max-h-[200px] overflow-y-auto">
           {filtered.map(u => (
             <button key={u.id} type="button"
+              role="option"
+              aria-selected={value === u.nombre}
               onClick={() => { onChange(u.nombre); setSearch(u.nombre); setOpen(false) }}
               className="w-full text-left px-3 py-2 text-xs hover:bg-[#F9FAFB] transition-colors flex items-center justify-between"
               style={{ borderBottom: '1px solid #F1F5F9' }}>

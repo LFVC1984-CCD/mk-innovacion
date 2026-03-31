@@ -200,7 +200,7 @@ export default function ReunionesObraPanel() {
                 const isOpen = selected?.id === r.id
                 return (
                   <div key={r.id}>
-                    <div className="px-4 py-2.5 flex items-center gap-3 cursor-pointer hover:bg-[#FAFBFD] transition-colors"
+                    <div className="px-4 py-2.5 flex items-center gap-3 cursor-pointer hover:bg-[#F8FAFC] transition-colors"
                       onClick={() => setSelected(isOpen ? null : r)}>
                       <div className="w-8 h-8 rounded-lg bg-cobalt/10 flex items-center justify-center text-cobalt font-condensed font-bold text-sm">
                         {parseInt(r.fecha.split('-')[2])}

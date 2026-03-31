@@ -10,7 +10,7 @@ function urgencyColor(dias: number) {
 export default function Timeline() {
   return (
     <div className="bg-white rounded-[14px] border border-[#E2E8F0] p-5">
-      <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate mb-3">
+      <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-slate mb-3">
         Próximos vencimientos
       </h3>
       <div className="flex flex-col">

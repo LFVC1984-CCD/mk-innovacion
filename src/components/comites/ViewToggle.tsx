@@ -19,7 +19,8 @@ export default function ViewToggle({ view, onChange, options = ['cards', 'tabla'
     <div className="flex gap-0.5 bg-[#F1F5F9] rounded-lg p-0.5 border border-[#E2E8F0]">
       {options.map(v => (
         <button key={v} onClick={() => onChange(v)}
-          className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${
+          aria-current={view === v ? 'page' : undefined}
+          className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt ${
             view === v ? 'bg-white text-ink shadow-sm' : 'text-slate hover:text-ink'
           }`}>
           {LABELS[v]}
