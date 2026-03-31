@@ -9,6 +9,9 @@ import MandantesPanel from '@/components/comites/MandantesPanel'
 import type { Proyecto, ProyectoEstado } from '@/lib/types'
 import { ESTADO_LABELS, ESTADO_COLORS } from '@/lib/types'
 import { toast } from '@/components/ui/Toast'
+import ViewToggle from '@/components/comites/ViewToggle'
+import type { ViewMode } from '@/components/comites/ViewToggle'
+import { fmtFecha, fmtMM } from '@/lib/comites/data'
 
 type FilterKey = 'todos' | 'estudio' | 'adjudicados' | 'cerrados' | 'no_adjudicados'
 
@@ -29,6 +32,7 @@ export default function ProyectosPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Proyecto | null>(null)
   const [pageTab, setPageTab] = useState<PageTab>('proyectos')
+  const [view, setView] = useState<ViewMode>('cards')
 
   const filtered = useMemo(() => {
     const f = FILTERS.find(x => x.key === filter)!
@@ -164,12 +168,18 @@ export default function ProyectosPage() {
               ))}
             </div>
 
-            {/* Grid */}
+            {/* View toggle */}
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate">{filtered.length} proyecto{filtered.length !== 1 ? 's' : ''}</p>
+              <ViewToggle view={view} onChange={setView} options={['cards', 'tabla']} />
+            </div>
+
+            {/* Content */}
             {filtered.length === 0 ? (
               <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-400 text-sm">
                 Sin proyectos en este filtro.
               </div>
-            ) : (
+            ) : view === 'cards' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {filtered.map(p => (
                   <ProyectoCard
@@ -179,6 +189,52 @@ export default function ProyectosPage() {
                     onDelete={() => handleDelete(p)}
                   />
                 ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                      <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Proyecto</th>
+                      <th className="text-left px-2 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Estado</th>
+                      <th className="text-left px-2 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Mandante</th>
+                      <th className="text-right px-2 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Contrato</th>
+                      <th className="text-right px-2 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Avance</th>
+                      <th className="text-left px-2 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Inicio</th>
+                      <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Término</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map(p => (
+                      <tr key={p.id}
+                        className="border-b border-[#F1F5F9] hover:bg-[#F8FAFC] cursor-pointer transition-colors"
+                        onClick={() => openEdit(p)}>
+                        <td className="px-3.5 py-2.5">
+                          <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-6 rounded-full shrink-0" style={{ background: ESTADO_COLORS[p.estado] }} />
+                            <span className="font-semibold text-ink">{p.nombre}</span>
+                          </div>
+                        </td>
+                        <td className="px-2 py-2.5">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: ESTADO_COLORS[p.estado] + '15', color: ESTADO_COLORS[p.estado] }}>
+                            {ESTADO_LABELS[p.estado]}
+                          </span>
+                        </td>
+                        <td className="px-2 py-2.5 text-slate">{p.mandante || '—'}</td>
+                        <td className="px-2 py-2.5 text-right font-condensed font-bold text-ink">{p.contrato > 0 ? fmtMM(p.contrato) : '—'}</td>
+                        <td className="px-2 py-2.5 text-right">
+                          {p.avance_real > 0 ? (
+                            <span className="font-condensed font-bold" style={{ color: p.avance_real >= p.avance_prog ? '#16A34A' : '#DC2626' }}>
+                              {p.avance_real}%
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td className="px-2 py-2.5 text-slate">{p.fecha_inicio ? fmtFecha(p.fecha_inicio) : '—'}</td>
+                        <td className="px-3.5 py-2.5 text-slate">{p.fecha_termino ? fmtFecha(p.fecha_termino) : '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
 
