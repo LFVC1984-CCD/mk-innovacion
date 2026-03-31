@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { fmtFechaDate } from '@/lib/comites/data'
 
 interface Props {
   renderSlide: (slideIndex: number) => HTMLDivElement | null
@@ -53,7 +54,7 @@ export default function PDFExportButton({ renderSlide, slideCount, filename = 'c
         p.text(`MK Ingeniería — ${areaName}`, margin, 8)
         p.setTextColor(225, 186, 16)
         p.setFontSize(8)
-        p.text(`${new Date().toLocaleDateString('es-CL')}  ·  ${pageNum}/${totalPages}`, pageW - margin, 8, { align: 'right' })
+        p.text(`${fmtFechaDate(new Date())}  ·  ${pageNum}/${totalPages}`, pageW - margin, 8, { align: 'right' })
       }
 
       const drawFooter = (p: typeof pdf) => {

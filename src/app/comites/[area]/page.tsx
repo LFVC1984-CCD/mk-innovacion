@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth, useAreaData } from '@/lib/comites/hooks'
 import { useAutoKpis } from '@/lib/comites/use-auto-kpis'
-import { fmtFecha } from '@/lib/comites/data'
+import { fmtFecha, fmtFechaDate } from '@/lib/comites/data'
 import { toast } from '@/components/ui/Toast'
 import { createClient } from '@/lib/supabase/client'
 import { AREAS_LIST, AREA_NAMES, TAREA_TIPO_LABELS, TAREA_TIPO_COLORS } from '@/lib/types'
@@ -400,7 +400,7 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
                         <div className="w-1 h-8 rounded-full shrink-0" style={{ background: areaInfo?.color || '#64748B' }} />
                         <div className="flex-1 min-w-0">
                           <h3 className="text-xs font-bold text-ink">
-                            Minuta — {fecha.toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' })}
+                            Minuta — {fmtFechaDate(fecha)}
                           </h3>
                           <p className="text-[10px] text-slate mt-0.5">
                             {AREA_NAMES[m.area_id] || m.area_id}

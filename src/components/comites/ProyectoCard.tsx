@@ -44,11 +44,11 @@ export default function ProyectoCard({ proyecto: p, onEdit, onDelete }: Props) {
         {/* Dates */}
         {(p.fecha_inicio || p.fecha_termino) && (
           <div className="flex gap-3 mt-1.5 text-[10px] text-slate-500 flex-wrap">
-            {p.fecha_inicio && <span>📅 Inicio: {fmtFecha(p.fecha_inicio)}</span>}
-            {p.fecha_termino && <span>🏁 Contractual: {fmtFecha(p.fecha_termino)}</span>}
+            {p.fecha_inicio && <span>Inicio: {fmtFecha(p.fecha_inicio)}</span>}
+            {p.fecha_termino && <span>Contractual: {fmtFecha(p.fecha_termino)}</span>}
             {p.fecha_fin_asbuilt && (
               <span style={{ color: new Date(p.fecha_fin_asbuilt) > new Date(p.fecha_termino || '') ? '#DC2626' : '#16A34A', fontWeight: 600 }}>
-                🔧 Asbuilt: {fmtFecha(p.fecha_fin_asbuilt)}
+                Asbuilt: {fmtFecha(p.fecha_fin_asbuilt)}
               </span>
             )}
           </div>

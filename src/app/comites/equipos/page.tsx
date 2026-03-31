@@ -247,7 +247,7 @@ function CalendarioView({ equipo, projects }: { equipo: Miembro[]; projects: Pro
     const d = new Date(today.getFullYear(), today.getMonth() + i, 1)
     const end = new Date(today.getFullYear(), today.getMonth() + i + 1, 0)
     months.push({
-      label: `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(2)}`,
+      label: `${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getFullYear()).slice(2)}`,
       start: d,
       end,
     })
