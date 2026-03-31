@@ -75,7 +75,7 @@ export default function ObrasPanel() {
   return (
     <div>
       {/* Consolidado */}
-      {obras.length > 0 && (
+      {obras.length > 0 && (<>
         <KpiCards items={[
           { label: 'Contratos Totales', value: fmtMM(consol.tC), color: '#E1BA10', sub: `${consol.activas} activa${consol.activas !== 1 ? 's' : ''}${consol.conSaldo > 0 ? ` · ${consol.conSaldo} con saldo` : ''}` },
           { label: 'Flujo Financiero', value: `${consol.flujoFin >= 0 ? '+' : ''}${fmtMM(consol.flujoFin)}`, color: consol.flujoFin >= 0 ? '#E1BA10' : '#DC2626', sub: 'Facturado - Gasto Real' },
@@ -83,7 +83,23 @@ export default function ObrasPanel() {
           { label: 'Saldo Proveedores', value: fmtMM(consol.saldoProv), color: '#DC2626', sub: 'Comp - Gastado - MO' },
           { label: 'Margen Consolidado', value: `${consol.margen >= 0 ? '+' : ''}${fmtMM(consol.margen)}`, color: consol.margen >= 0 ? '#E1BA10' : '#DC2626', sub: `${consol.margenPct}%` },
         ]} />
-      )}
+
+        {/* Insight narrativo obras */}
+        {activas.length > 0 && (() => {
+          const sobreCosto = activas.filter(p => p.cpi > 0 && p.cpi < 0.85)
+          const atrasadas = activas.filter(p => p.spi > 0 && p.spi < 0.85)
+          return (
+            <div className="mt-0 mb-4 p-3 rounded-lg bg-cobalt-light border border-cobalt/10">
+              <p className="text-[11px] text-cobalt-dark leading-relaxed">
+                <span className="font-bold">Margen consolidado: {consol.margenPct}% ({consol.margen >= 0 ? '+' : ''}{fmtMM(consol.margen)})</span>
+                {' — '}{consol.activas} obra{consol.activas !== 1 ? 's' : ''} activa{consol.activas !== 1 ? 's' : ''}, {fmtMM(consol.saldoFact)} por facturar.
+                {sobreCosto.length > 0 && <><br /><span className="text-red-600 font-bold">{sobreCosto.length} obra{sobreCosto.length > 1 ? 's' : ''} con CPI &lt; 0.85 (sobrecosto):</span> {sobreCosto.map(p => `${p.nombre} (${p.cpi})`).join(', ')}.</>}
+                {atrasadas.length > 0 && <><br /><span className="text-red-600 font-bold">{atrasadas.length} obra{atrasadas.length > 1 ? 's' : ''} con SPI &lt; 0.85 (atraso):</span> {atrasadas.map(p => `${p.nombre} (${p.spi})`).join(', ')}.</>}
+              </p>
+            </div>
+          )
+        })()}
+      </>)}
 
       {/* Obras list */}
       {obras.length === 0 ? (

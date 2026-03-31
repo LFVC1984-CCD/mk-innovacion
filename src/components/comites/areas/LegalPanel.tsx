@@ -188,6 +188,23 @@ export default function LegalPanel() {
         { label: 'Documentos', value: consol.totalDocs, color: '#0B5ED7' },
       ]} />
 
+      {/* Insight narrativo legal */}
+      {causas.length > 0 && (() => {
+        const cobertura = consol.totalReclamado > 0 ? Math.round((consol.totalProvision / consol.totalReclamado) * 100) : 0
+        const altasActivas = causasActivas.filter(c => c.riesgo === 'alto')
+        const proxAud = consol.proxAudiencia
+        return (
+          <div className="mt-0 mb-4 p-3 rounded-lg bg-cobalt-light border border-cobalt/10">
+            <p className="text-[11px] text-cobalt-dark leading-relaxed">
+              <span className="font-bold">Exposicion total: {fmtMM(consol.totalReclamado)}</span>
+              {' — '}provisionado {fmtMM(consol.totalProvision)} ({cobertura}% de cobertura).
+              {altasActivas.length > 0 && <><br /><span className="text-red-600 font-bold">{altasActivas.length} causa{altasActivas.length > 1 ? 's' : ''} activa{altasActivas.length > 1 ? 's' : ''} de riesgo alto:</span> {altasActivas.map(c => c.titulo).join(', ')}.</>}
+              {proxAud && <><br />Proxima audiencia: <b>{proxAud.titulo}</b> el {fmtFecha(proxAud.fecha_audiencia)}.</>}
+            </p>
+          </div>
+        )
+      })()}
+
       {/* ── Controls ── */}
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <div className="flex gap-1.5">

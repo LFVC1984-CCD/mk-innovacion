@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useProjects } from '@/lib/comites/use-projects'
 import { useAuth } from '@/lib/comites/hooks'
@@ -94,6 +94,7 @@ export default function FinanzasPanel() {
   const [loading, setLoading] = useState(true)
   const [nivel, setNivel] = useState<1 | 2 | 3>(1)
   const [expandedProy, setExpandedProy] = useState<string | null>(null)
+  const [expandedMes, setExpandedMes] = useState<string | null>(null)
 
   // Modal
   const [modal, setModal] = useState<{
@@ -255,7 +256,6 @@ export default function FinanzasPanel() {
     load()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function deleteFlujo(id: string, isOficina: boolean) {
     if (!confirm('¿Eliminar esta línea?')) return
     if (isOficina) await supabase.from('flujo_financiero').delete().eq('id', id)
@@ -381,18 +381,78 @@ export default function FinanzasPanel() {
                 </tr>
               </thead>
               <tbody>
-                {porMesAcum.filter(m => m.totalIng > 0 || m.totalEg > 0).map(m => (
-                  <tr key={m.mes} className={`border-b border-[#F1F5F9] ${m.isCurrent ? 'bg-blue-50/50' : ''}`}>
-                    <td className="px-3.5 py-2 font-semibold">
-                      {fmtMes(m.mes)}
-                      {m.isCurrent && <span className="text-[10px] text-cobalt font-bold ml-1">actual</span>}
-                    </td>
-                    <td className="px-2 py-2 text-right font-condensed font-bold text-green-600">{m.totalIng > 0 ? fmtMM(m.totalIng) : '—'}</td>
-                    <td className="px-2 py-2 text-right font-condensed font-bold text-red-500">{m.totalEg > 0 ? fmtMM(m.totalEg) : '—'}</td>
-                    <td className="px-2 py-2 text-right font-condensed font-bold" style={{ color: m.saldo >= 0 ? '#16A34A' : '#DC2626' }}>{fmtMM(m.saldo)}</td>
-                    <td className="px-3.5 py-2 text-right font-condensed font-bold" style={{ color: m.acumulado >= 0 ? '#0B5ED7' : '#DC2626' }}>{fmtMM(m.acumulado)}</td>
-                  </tr>
-                ))}
+                {porMesAcum.filter(m => m.totalIng > 0 || m.totalEg > 0).map(m => {
+                  const isExp = expandedMes === m.mes
+                  const mesFlujoProy = flujoProyectos.filter(f => f.mes === m.mes)
+                  const mesCentral = lineasCentral.filter(l => l.mes === m.mes)
+                  const detailLines = [
+                    ...mesFlujoProy.map(f => ({ ...f, isOficina: false, label: `${projects.find(p => p.id === f.proyecto_id)?.nombre || '?'} — ${catLabel(f.categoria)}`, obs: f.observacion })),
+                    ...mesCentral.map(l => ({ id: l.id, tipo: l.tipo, categoria: l.categoria, monto: l.monto, real: l.real, isOficina: true, label: `Oficina: ${l.concepto || catLabel(l.categoria)}`, obs: '', proyecto_id: '', mes: l.mes, observacion: '' })),
+                  ]
+                  return (
+                    <React.Fragment key={m.mes}>
+                      <tr
+                        className={`border-b border-[#F1F5F9] cursor-pointer transition-colors hover:bg-[#F8FAFC] ${m.isCurrent ? 'bg-blue-50/50' : ''} ${isExp ? 'bg-[#F8FAFC]' : ''}`}
+                        style={{ borderLeft: isExp ? '3px solid #0B5ED7' : '3px solid transparent' }}
+                        onClick={() => setExpandedMes(isExp ? null : m.mes)}
+                      >
+                        <td className="px-3.5 py-2 font-semibold">
+                          <span className={`inline-block transition-transform mr-1 text-[10px] text-slate ${isExp ? 'rotate-90' : ''}`}>&#9654;</span>
+                          {fmtMes(m.mes)}
+                          {m.isCurrent && <span className="text-[10px] text-cobalt font-bold ml-1">actual</span>}
+                          <span className="text-[10px] text-slate ml-1.5">{detailLines.length} líneas</span>
+                        </td>
+                        <td className="px-2 py-2 text-right font-condensed font-bold text-green-600">{m.totalIng > 0 ? fmtMM(m.totalIng) : '—'}</td>
+                        <td className="px-2 py-2 text-right font-condensed font-bold text-red-500">{m.totalEg > 0 ? fmtMM(m.totalEg) : '—'}</td>
+                        <td className="px-2 py-2 text-right font-condensed font-bold" style={{ color: m.saldo >= 0 ? '#16A34A' : '#DC2626' }}>{fmtMM(m.saldo)}</td>
+                        <td className="px-3.5 py-2 text-right font-condensed font-bold" style={{ color: m.acumulado >= 0 ? '#0B5ED7' : '#DC2626' }}>{fmtMM(m.acumulado)}</td>
+                      </tr>
+                      {isExp && detailLines.map(line => (
+                        <tr
+                          key={line.id}
+                          className="group border-b border-[#F1F5F9] bg-[#FAFBFC] transition-colors hover:bg-[#F1F5F9] cursor-pointer"
+                          style={{ borderLeft: `3px solid ${line.tipo === 'ingreso' ? '#16A34A' : '#DC2626'}` }}
+                          onClick={() => {
+                            if (!ce) return
+                            if (line.isOficina) {
+                              const lc = mesCentral.find(l => l.id === line.id)!
+                              setModal({ proyectoId: '', tipo: lc.tipo, categoria: lc.categoria, mes: lc.mes, monto: String(lc.monto), repetir: '1', real: lc.real, obs: lc.concepto || '', editId: lc.id, isOficina: true })
+                            } else {
+                              const fp = mesFlujoProy.find(f => f.id === line.id)!
+                              setModal({ proyectoId: fp.proyecto_id, tipo: fp.tipo, categoria: fp.categoria, mes: fp.mes, monto: String(fp.monto), repetir: '1', real: fp.real, obs: fp.observacion || '', editId: fp.id, isOficina: false })
+                            }
+                          }}
+                        >
+                          <td className="pl-8 pr-3.5 py-1.5 text-[11px] text-ink" colSpan={2}>
+                            <div className="flex items-center gap-1.5">
+                              <span className={`w-1.5 h-1.5 rounded-full ${line.real ? 'bg-green-500' : 'bg-slate-300'}`} />
+                              <span>{line.label}</span>
+                              {line.real && <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1 rounded">Real</span>}
+                            </div>
+                          </td>
+                          <td className="px-2 py-1.5 text-right text-[11px] font-condensed font-semibold" style={{ color: line.tipo === 'ingreso' ? '#16A34A' : '#DC2626' }} colSpan={2}>
+                            {line.tipo === 'ingreso' ? '+' : '-'}{fmtMM(line.monto)}
+                          </td>
+                          <td className="px-3.5 py-1.5 text-right">
+                            {ce && (
+                              <button
+                                className="text-[10px] text-red-400 opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-600 font-semibold"
+                                onClick={e => { e.stopPropagation(); deleteFlujo(line.id, line.isOficina) }}
+                              >
+                                Eliminar
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                      {isExp && detailLines.length === 0 && (
+                        <tr className="bg-[#FAFBFC]">
+                          <td colSpan={5} className="pl-8 py-3 text-[11px] text-slate italic">Sin líneas de detalle para este mes.</td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  )
+                })}
               </tbody>
             </table>
             {porMes.every(m => m.totalIng === 0 && m.totalEg === 0) && (
@@ -419,21 +479,76 @@ export default function FinanzasPanel() {
               {porProyecto.map(p => {
                 const saldo = p.ing - p.eg
                 const isExp = expandedProy === p.id
+                // Detail lines: for projects use flujo_proyectos, for oficina use lineasCentral
+                const detailLines = p.tipo === 'oficina'
+                  ? lineasCentral.map(l => ({ id: l.id, tipo: l.tipo, categoria: l.categoria, monto: l.monto, real: l.real, mes: l.mes, isOficina: true, label: `${fmtMes(l.mes)} — ${l.concepto || catLabel(l.categoria)}`, obs: l.concepto || '' }))
+                  : p.flujos.map(f => ({ id: f.id, tipo: f.tipo, categoria: f.categoria, monto: f.monto, real: f.real, mes: f.mes, isOficina: false, label: `${fmtMes(f.mes)} — ${catLabel(f.categoria)}`, obs: f.observacion || '' }))
                 return (
-                  <tr key={p.id} className="border-b border-[#F1F5F9] hover:bg-[#F8FAFC] cursor-pointer" onClick={() => setExpandedProy(isExp ? null : p.id)}>
-                    <td className="px-3.5 py-2.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-semibold text-ink">{p.nombre}</span>
-                        {p.tipo === 'lead' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cobalt-light text-cobalt">Lead</span>}
-                        {p.tipo === 'oficina' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate">Oficina</span>}
-                        {p.flujos.length > 0 && <span className="text-[10px] text-slate">{p.flujos.length} líneas</span>}
-                      </div>
-                    </td>
-                    <td className="px-2 py-2.5 text-right font-condensed font-bold text-green-600">{p.ing > 0 ? fmtMM(p.ing) : '—'}</td>
-                    <td className="px-2 py-2.5 text-right font-condensed font-bold text-red-500">{p.eg > 0 ? fmtMM(p.eg) : '—'}</td>
-                    <td className="px-2 py-2.5 text-right font-condensed font-bold" style={{ color: saldo >= 0 ? '#16A34A' : '#DC2626' }}>{fmtMM(saldo)}</td>
-                    <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-cobalt">{p.saldoFact > 0 ? fmtMM(p.saldoFact) : '—'}</td>
-                  </tr>
+                  <React.Fragment key={p.id}>
+                    <tr
+                      className={`border-b border-[#F1F5F9] hover:bg-[#F8FAFC] cursor-pointer transition-colors ${isExp ? 'bg-[#F8FAFC]' : ''}`}
+                      style={{ borderLeft: isExp ? '3px solid #0B5ED7' : '3px solid transparent' }}
+                      onClick={() => setExpandedProy(isExp ? null : p.id)}
+                    >
+                      <td className="px-3.5 py-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`inline-block transition-transform mr-0.5 text-[10px] text-slate ${isExp ? 'rotate-90' : ''}`}>&#9654;</span>
+                          <span className="font-semibold text-ink">{p.nombre}</span>
+                          {p.tipo === 'lead' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cobalt-light text-cobalt">Lead</span>}
+                          {p.tipo === 'oficina' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate">Oficina</span>}
+                          {detailLines.length > 0 && <span className="text-[10px] text-slate">{detailLines.length} líneas</span>}
+                        </div>
+                      </td>
+                      <td className="px-2 py-2.5 text-right font-condensed font-bold text-green-600">{p.ing > 0 ? fmtMM(p.ing) : '—'}</td>
+                      <td className="px-2 py-2.5 text-right font-condensed font-bold text-red-500">{p.eg > 0 ? fmtMM(p.eg) : '—'}</td>
+                      <td className="px-2 py-2.5 text-right font-condensed font-bold" style={{ color: saldo >= 0 ? '#16A34A' : '#DC2626' }}>{fmtMM(saldo)}</td>
+                      <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-cobalt">{p.saldoFact > 0 ? fmtMM(p.saldoFact) : '—'}</td>
+                    </tr>
+                    {isExp && detailLines.map(line => (
+                      <tr
+                        key={line.id}
+                        className="group border-b border-[#F1F5F9] bg-[#FAFBFC] transition-colors hover:bg-[#F1F5F9] cursor-pointer"
+                        style={{ borderLeft: `3px solid ${line.tipo === 'ingreso' ? '#16A34A' : '#DC2626'}` }}
+                        onClick={() => {
+                          if (!ce) return
+                          if (line.isOficina) {
+                            const lc = lineasCentral.find(l => l.id === line.id)!
+                            setModal({ proyectoId: '', tipo: lc.tipo, categoria: lc.categoria, mes: lc.mes, monto: String(lc.monto), repetir: '1', real: lc.real, obs: lc.concepto || '', editId: lc.id, isOficina: true })
+                          } else {
+                            const fp = p.flujos.find(f => f.id === line.id)!
+                            setModal({ proyectoId: fp.proyecto_id, tipo: fp.tipo, categoria: fp.categoria, mes: fp.mes, monto: String(fp.monto), repetir: '1', real: fp.real, obs: fp.observacion || '', editId: fp.id, isOficina: false })
+                          }
+                        }}
+                      >
+                        <td className="pl-8 pr-3.5 py-1.5 text-[11px] text-ink" colSpan={2}>
+                          <div className="flex items-center gap-1.5">
+                            <span className={`w-1.5 h-1.5 rounded-full ${line.real ? 'bg-green-500' : 'bg-slate-300'}`} />
+                            <span>{line.label}</span>
+                            {line.real && <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1 rounded">Real</span>}
+                            {line.obs && <span className="text-[10px] text-slate truncate max-w-[140px]">{line.obs}</span>}
+                          </div>
+                        </td>
+                        <td className="px-2 py-1.5 text-right text-[11px] font-condensed font-semibold" style={{ color: line.tipo === 'ingreso' ? '#16A34A' : '#DC2626' }} colSpan={2}>
+                          {line.tipo === 'ingreso' ? '+' : '-'}{fmtMM(line.monto)}
+                        </td>
+                        <td className="px-3.5 py-1.5 text-right">
+                          {ce && (
+                            <button
+                              className="text-[10px] text-red-400 opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-600 font-semibold"
+                              onClick={e => { e.stopPropagation(); deleteFlujo(line.id, line.isOficina) }}
+                            >
+                              Eliminar
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {isExp && detailLines.length === 0 && (
+                      <tr className="bg-[#FAFBFC]">
+                        <td colSpan={5} className="pl-8 py-3 text-[11px] text-slate italic">Sin líneas de detalle para este proyecto.</td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 )
               })}
               {/* Totals row */}

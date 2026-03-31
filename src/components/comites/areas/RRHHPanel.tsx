@@ -96,7 +96,8 @@ export default function RRHHPanel() {
         {subTab === 'dotacion' && (
           <motion.div key="dotacion" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
             <DotacionTab metricas={metricas} ultimo={ultimo} canEdit={ce}
-              onSave={saveMetrica} onRemove={removeMetrica} />
+              onSave={saveMetrica} onRemove={removeMetrica}
+              docs={docs} capacitaciones={capacitaciones} />
           </motion.div>
         )}
         {subTab === 'auditorias' && (
@@ -125,9 +126,10 @@ export default function RRHHPanel() {
 //  DOTACIÓN — Métricas consolidadas mensuales
 // ══════════════════════════════════════
 
-function DotacionTab({ metricas, ultimo, canEdit, onSave, onRemove }: {
+function DotacionTab({ metricas, ultimo, canEdit, onSave, onRemove, docs, capacitaciones }: {
   metricas: MetricaRRHH[]; ultimo: MetricaRRHH | undefined; canEdit: boolean
   onSave: (m: MetricaRRHHInput & { id?: string }) => Promise<void>; onRemove: (id: string) => Promise<void>
+  docs: DocRRHH[]; capacitaciones: Capacitacion[]
 }) {
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<MetricaRRHH | null>(null)
@@ -142,6 +144,25 @@ function DotacionTab({ metricas, ultimo, canEdit, onSave, onRemove }: {
         { label: 'Tasa Asistencia', value: ultimo?.tasa_asistencia ? `${ultimo.tasa_asistencia}%` : '—', color: (ultimo?.tasa_asistencia ?? 0) >= 90 ? '#16A34A' : (ultimo?.tasa_asistencia ?? 0) >= 80 ? '#D97706' : '#DC2626' },
         { label: 'Movimientos', value: `+${ultimo?.contrataciones ?? 0} / -${ultimo?.desvinculaciones ?? 0}`, color: '#0B5ED7', sub: `${ultimo?.licencias_medicas ?? 0} lic · ${ultimo?.vacaciones ?? 0} vac` },
       ]} />
+
+      {/* Insight narrativo dotacion */}
+      {ultimo && (() => {
+        const totalDot = (ultimo.dotacion_constructora || 0) + (ultimo.dotacion_subcontrato || 0)
+        const docsVencidos = docs.filter(d => d.estado === 'vencido').length
+        const docsPorVencer = docs.filter(d => d.estado === 'por_vencer').length
+        const horasCompletadas = capacitaciones.filter(c => c.estado === 'completada').reduce((s, c) => s + c.horas, 0)
+        const horasProgramadas = capacitaciones.filter(c => c.estado === 'programada').reduce((s, c) => s + c.horas, 0)
+        return (
+          <div className="mt-0 mb-4 p-3 rounded-lg bg-cobalt-light border border-cobalt/10">
+            <p className="text-[11px] text-cobalt-dark leading-relaxed">
+              <span className="font-bold">Dotacion total: {totalDot} personas</span>
+              {' — '}{ultimo.dotacion_constructora} Constructora + {ultimo.dotacion_subcontrato} subcontratos ({fmtMes(ultimo.mes)}).
+              {(docsVencidos > 0 || docsPorVencer > 0) && <><br /><span className={docsVencidos > 0 ? 'text-red-600 font-bold' : 'font-bold'}>{docsVencidos > 0 ? `${docsVencidos} documento${docsVencidos !== 1 ? 's' : ''} vencido${docsVencidos !== 1 ? 's' : ''}` : ''}{docsVencidos > 0 && docsPorVencer > 0 ? ' y ' : ''}{docsPorVencer > 0 ? `${docsPorVencer} por vencer` : ''}</span> — requiere atencion.</>}
+              {(horasCompletadas > 0 || horasProgramadas > 0) && <><br />Capacitacion: <b>{horasCompletadas}h realizadas</b>{horasProgramadas > 0 ? `, ${horasProgramadas}h programadas` : ''}.</>}
+            </p>
+          </div>
+        )
+      })()}
 
       {/* Controls */}
       <div className="flex items-center justify-between mb-3">

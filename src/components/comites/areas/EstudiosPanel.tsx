@@ -107,6 +107,23 @@ export default function EstudiosPanel() {
         { label: 'Por Estado', value: consol.total, color: '#0B5ED7', sub: ESTUDIO_ESTADOS.filter(est => consol.porEstado[est]).map(est => `${ESTADO_LABELS[est]}: ${consol.porEstado[est]!.count}`).join(' · ') },
       ]} />
 
+      {/* Insight narrativo pipeline */}
+      {pipeline.length > 0 && (() => {
+        const sinInfo = pipeline.filter(p => p.estado === 'sin_informacion').length
+        const adj = resultados.filter(p => p.estado === 'adjudicado').length
+        const noAdj = resultados.filter(p => p.estado === 'no_adjudicado').length
+        return (
+          <div className="mt-0 mb-4 p-3 rounded-lg bg-cobalt-light border border-cobalt/10">
+            <p className="text-[11px] text-cobalt-dark leading-relaxed">
+              <span className="font-bold">Pipeline: {fmtMM(consol.totalMonto)} en {consol.total} proyecto{consol.total !== 1 ? 's' : ''}</span>
+              {' — '}tasa de adjudicacion historica: <b>{tasaAdj}%</b>.
+              {sinInfo > 0 && <><br /><span className="text-red-600 font-bold">{sinInfo} proyecto{sinInfo > 1 ? 's' : ''} sin informacion actualizada</span> — requiere{sinInfo === 1 ? '' : 'n'} seguimiento.</>}
+              {(adj > 0 || noAdj > 0) && <><br />Resultados recientes: <span className="text-green-700 font-bold">{adj} adjudicado{adj !== 1 ? 's' : ''}</span> vs <span className="text-red-600 font-bold">{noAdj} no adjudicado{noAdj !== 1 ? 's' : ''}</span>.</>}
+            </p>
+          </div>
+        )
+      })()}
+
       {/* Pipeline tabla */}
       {pipeline.length === 0 ? (
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-500 text-sm">

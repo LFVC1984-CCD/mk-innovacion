@@ -183,6 +183,24 @@ export default function GarantiasPanel() {
               {instrumentos.length === 0 && <p className="text-xs text-slate text-center py-4">Sin instrumentos registrados</p>}
             </div>
 
+            {/* Insight narrativo garantias */}
+            {garantias.length > 0 && (() => {
+              const pctUtil = totalAprobado > 0 ? Math.round(totalComprometido / totalAprobado * 100) : 0
+              const entCriticas = entidades.filter(e => e.linea > 0 && e.consumo / e.linea > 0.8)
+              const mejorTasa = entidades.filter(e => e.tasa_interes > 0).sort((a, b) => a.tasa_interes - b.tasa_interes)[0]
+              return (
+                <div className="mt-0 mb-5 p-3 rounded-lg bg-cobalt-light border border-cobalt/10">
+                  <p className="text-[11px] text-cobalt-dark leading-relaxed">
+                    <span className="font-bold">Utilizacion de lineas: {pctUtil}%</span>
+                    {' — '}{fmtMM(totalComprometido)} comprometido de {fmtMM(totalAprobado)} aprobado.
+                    {entCriticas.length > 0 && <><br /><span className="text-red-600 font-bold">{entCriticas.length} entidad{entCriticas.length > 1 ? 'es' : ''} sobre 80% de utilizacion:</span> {entCriticas.map(e => e.nombre).join(', ')}.</>}
+                    {porVencer.length > 0 && <><br /><span className="font-bold">{porVencer.length} garantia{porVencer.length > 1 ? 's' : ''} vence{porVencer.length === 1 ? '' : 'n'} en 30 dias</span> por {fmtMM(totalPorVencer)} — gestionar renovacion.</>}
+                    {mejorTasa && <><br />Mejor tasa disponible: <b>{mejorTasa.nombre}</b> ({mejorTasa.tasa_interes}% anual).</>}
+                  </p>
+                </div>
+              )
+            })()}
+
             {/* Filters + Toggle */}
             <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
               <div className="flex gap-1 flex-wrap">

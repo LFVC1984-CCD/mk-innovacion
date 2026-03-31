@@ -280,6 +280,24 @@ export default function ETIPanel() {
           </div>
         ) : (
           <>
+            {/* Insight narrativo innovacion */}
+            {(() => {
+              const enDesarrollo = proyectos.filter(p => ['idea', 'en_desarrollo', 'piloto'].includes(p.estado)).length
+              const implementados = proyectos.filter(p => p.estado === 'implementado').length
+              const totalPresup = proyectos.filter(p => p.estado !== 'descartado').reduce((s, p) => s + p.presupuesto_usd, 0)
+              const vencidos = proyectos.filter(p => p.fecha_objetivo && new Date(p.fecha_objetivo) < new Date() && !['implementado', 'descartado'].includes(p.estado))
+              return (
+                <div className="mb-4 p-3 rounded-lg bg-cobalt-light border border-cobalt/10">
+                  <p className="text-[11px] text-cobalt-dark leading-relaxed">
+                    <span className="font-bold">{enDesarrollo} proyecto{enDesarrollo !== 1 ? 's' : ''} en desarrollo</span>, {implementados} implementado{implementados !== 1 ? 's' : ''}.
+                    {totalPresup > 0 && <>{' '}Presupuesto total: <b>${totalPresup.toLocaleString()} USD</b>.</>}
+                    {consol.totalCosto > 0 && <>{' '}Gasto anual en herramientas: <b>${consol.totalCosto.toLocaleString()} USD</b>.</>}
+                    {vencidos.length > 0 && <><br /><span className="text-red-600 font-bold">{vencidos.length} proyecto{vencidos.length > 1 ? 's' : ''} con fecha objetivo vencida:</span> {vencidos.map(p => p.nombre).join(', ')} — revisar avance o reprogramar.</>}
+                  </p>
+                </div>
+              )
+            })()}
+
             {/* Gantt view */}
             {viewInn === 'gantt' && (
               <InnovacionGantt proyectos={proyectos} onEdit={ce ? (p) => setModalProy({ ...p }) : undefined} />
