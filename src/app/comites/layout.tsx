@@ -176,7 +176,7 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
   }
 
   const searchParams = useSearchParams()
-  const isAreaPage = pathname.match(/^\/comites\/(finanzas|obras|estudios|legal|prevencion|rrhh|eti|ampliado)/) || pathname.match(/^\/comites\/[a-f0-9-]+/)
+  const isAreaPage = pathname.match(/^\/comites\/(finanzas|obras|estudios|legal|prevencion|rrhh|eti|ampliado)/)
   const isHome = pathname === '/comites'
   const isProfile = mobileTab === 'profile'
   const isNonAreaPage = pathname.match(/^\/comites\/(reuniones|proyectos|equipos|historial|usuarios)/)
