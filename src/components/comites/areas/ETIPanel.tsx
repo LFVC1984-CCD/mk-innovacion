@@ -161,7 +161,12 @@ export default function ETIPanel() {
   }
 
   if (loading) {
-    return <div className="py-8 text-center text-slate-500 text-sm">Cargando datos ETI...</div>
+    return (
+      <div className="space-y-3">
+        <div className="h-20 skeleton rounded-xl" />
+        <div className="h-48 skeleton rounded-xl" />
+      </div>
+    )
   }
 
   return (
@@ -436,7 +441,7 @@ export default function ETIPanel() {
 
       {/* ══ MODAL HERRAMIENTA ══ */}
       {modalHerr && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setModalHerr(null)}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0F172A]/60 backdrop-blur-md" onClick={() => setModalHerr(null)}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-[560px] max-h-[85vh] overflow-y-auto mx-4" onClick={e => e.stopPropagation()}>
             <div className="px-5 py-3.5 border-b border-[#E2E8F0] flex items-center justify-between">
               <h3 className="font-condensed font-bold text-lg text-ink">{(modalHerr as HerramientaETI).id ? 'Editar herramienta' : 'Nueva herramienta'}</h3>
@@ -498,7 +503,7 @@ export default function ETIPanel() {
 
       {/* ══ MODAL PROYECTO INNOVACIÓN ══ */}
       {modalProy && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setModalProy(null)}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0F172A]/60 backdrop-blur-md" onClick={() => setModalProy(null)}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-[560px] max-h-[85vh] overflow-y-auto mx-4" onClick={e => e.stopPropagation()}>
             <div className="px-5 py-3.5 border-b border-[#E2E8F0] flex items-center justify-between">
               <h3 className="font-condensed font-bold text-lg text-ink">{(modalProy as ProyectoInnovacion).id ? 'Editar proyecto' : 'Nuevo proyecto'}</h3>
@@ -560,7 +565,7 @@ export default function ETIPanel() {
 
       {/* ══ MODAL MIEMBRO ETI ══ */}
       {modalMiembro && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setModalMiembro(null)}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0F172A]/60 backdrop-blur-md" onClick={() => setModalMiembro(null)}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-[480px] max-h-[85vh] overflow-y-auto mx-4" onClick={e => e.stopPropagation()}>
             <div className="px-5 py-3.5 border-b border-[#E2E8F0] flex items-center justify-between">
               <h3 className="font-condensed font-bold text-lg text-ink">{(modalMiembro as MiembroETI).id ? 'Editar miembro' : 'Agregar miembro'}</h3>

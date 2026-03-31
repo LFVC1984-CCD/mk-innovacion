@@ -281,7 +281,6 @@ export default function FinanzasPanel() {
         { label: 'Ingresos Prog.', value: fmtMM(totalIng), color: '#16A34A' },
         { label: 'Egresos Prog.', value: fmtMM(totalEg), color: '#DC2626' },
         { label: 'Saldo Neto', value: `${totalIng - totalEg >= 0 ? '+' : ''}${fmtMM(totalIng - totalEg)}`, color: totalIng - totalEg >= 0 ? '#E1BA10' : '#DC2626' },
-        { label: 'Obras', value: obras.length, color: '#0B5ED7' },
         { label: 'Leads Pipeline', value: fmtMM(leadsPipeline), color: '#0B5ED7', sub: `${estudios.length} en estudio` },
       ]} />
 

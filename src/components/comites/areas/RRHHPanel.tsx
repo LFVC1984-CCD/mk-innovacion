@@ -62,7 +62,12 @@ export default function RRHHPanel() {
   const ultimo = metricas[0] // ya ordenado desc
 
   if (loading) {
-    return <div className="py-8 text-center text-slate-500 text-sm">Cargando...</div>
+    return (
+      <div className="space-y-3">
+        <div className="h-20 skeleton rounded-xl" />
+        <div className="h-48 skeleton rounded-xl" />
+      </div>
+    )
   }
 
   return (

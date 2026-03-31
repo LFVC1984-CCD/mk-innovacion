@@ -19,7 +19,7 @@ interface AreaSummary {
 // ── Skeleton card ──
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-[14px] border border-[#E2E8F0] overflow-hidden">
+    <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
       <div className="h-1.5 skeleton" />
       <div className="p-4 space-y-2.5">
         <div className="h-5 w-3/4 skeleton" />
@@ -136,7 +136,7 @@ export default function ComitesHomePage() {
             Historial
           </button>
           <button className="bg-gold text-[#0F172A] px-5 py-2 rounded-lg text-xs font-bold whitespace-nowrap hover:bg-gold-dark transition-all btn-scale shadow-lg shadow-gold/20">
-            Iniciar sesión →
+            Ir al Comité →
           </button>
         </div>
       </motion.div>

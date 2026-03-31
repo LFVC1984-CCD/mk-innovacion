@@ -272,10 +272,10 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
               {/* User card */}
               <div className="px-3 py-3 border-t" style={{ borderColor: 'var(--org-sidebar-border)' }}>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'var(--org-primary)' }}>FV</div>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'var(--org-primary)' }}>{perfil?.nombre?.split(' ').map(n => n[0]).slice(0, 2).join('') || '?'}</div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold truncate" style={{ color: 'var(--org-sidebar-text)' }}>Felipe Valenzuela</p>
-                    <p className="text-[10px] truncate" style={{ color: '#9CA3AF' }}>Administrador · NEGRETPAR002</p>
+                    <p className="text-xs font-bold truncate" style={{ color: 'var(--org-sidebar-text)' }}>{perfil?.nombre || 'Usuario'}</p>
+                    <p className="text-[10px] truncate" style={{ color: '#9CA3AF' }}>{perfil?.cargo || perfil?.area_id || ''}</p>
                   </div>
                 </div>
               </div>
@@ -368,10 +368,10 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
             {isProfile && (
               <div className="lg:hidden">
                 <div className="flex flex-col items-center py-6">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold mb-3" style={{ background: 'var(--org-primary)' }}>FV</div>
-                  <h2 className="font-condensed text-lg font-bold text-ink">Felipe Valenzuela</h2>
-                  <p className="text-xs text-slate">Administrador</p>
-                  <span className="mt-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full" style={{ background: 'var(--org-primary-light)', color: 'var(--org-primary)' }}>NEGRETPAR002 · MK</span>
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold mb-3" style={{ background: 'var(--org-primary)' }}>{perfil?.nombre?.split(' ').map(n => n[0]).slice(0, 2).join('') || '?'}</div>
+                  <h2 className="font-condensed text-lg font-bold text-ink">{perfil?.nombre || 'Usuario'}</h2>
+                  <p className="text-xs text-slate">{perfil?.cargo || perfil?.area_id || ''}</p>
+                  <span className="mt-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full" style={{ background: 'var(--org-primary-light)', color: 'var(--org-primary)' }}>{perfil?.area_id || 'MK'}</span>
                 </div>
                 <div className="space-y-1">
                   {PROFILE_MENU.map(item => (

@@ -62,8 +62,9 @@ export default function PlanInversionPanel() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-3 border-cobalt border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-3">
+        <div className="h-20 skeleton rounded-xl" />
+        <div className="h-48 skeleton rounded-xl" />
       </div>
     )
   }

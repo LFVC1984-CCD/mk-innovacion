@@ -130,7 +130,12 @@ export default function PrevencionPanel() {
   }, [eventos, eventosAbiertos, eventosCerrados, filtro, search, proyectoName])
 
   if (loading) {
-    return <div className="py-8 text-center text-slate-500 text-sm">Cargando datos de seguridad...</div>
+    return (
+      <div className="space-y-3">
+        <div className="h-20 skeleton rounded-xl" />
+        <div className="h-48 skeleton rounded-xl" />
+      </div>
+    )
   }
 
   return (
@@ -139,7 +144,6 @@ export default function PrevencionPanel() {
         { label: 'Accidentes', value: consol.accidentes, color: consol.accidentes === 0 ? '#16A34A' : '#DC2626', sub: `${consol.diasPerdidos} dias perdidos` },
         { label: 'Tasa Frecuencia', value: consol.tasaFrec, color: consol.tasaFrec === 0 ? '#16A34A' : consol.tasaFrec < 5 ? '#D97706' : '#DC2626', sub: 'Acc x 10⁶ / HH' },
         { label: 'Tasa Gravedad', value: consol.tasaGrav, color: consol.tasaGrav === 0 ? '#16A34A' : consol.tasaGrav < 50 ? '#D97706' : '#DC2626', sub: 'Dias x 10⁶ / HH' },
-        { label: 'HH Trabajadas', value: consol.totalHH > 0 ? `${(consol.totalHH / 1000).toFixed(0)}K` : '0', color: '#0B5ED7', sub: `${consol.totalCapacitacion}h capacitacion` },
         { label: 'Sin Cerrar', value: consol.sinCerrar, color: consol.sinCerrar === 0 ? '#16A34A' : '#D97706', sub: `de ${consol.totalEventos} eventos` },
       ]} />
 
@@ -186,7 +190,8 @@ export default function PrevencionPanel() {
                   {consol.sinCerrar > 0 && <> <span className="text-red-600 font-bold">{consol.sinCerrar} evento{consol.sinCerrar > 1 ? 's' : ''} sin cerrar</span> — requiere{consol.sinCerrar > 1 ? 'n' : ''} accion correctiva.</>}
                 </>
               }
-              {consol.totalCapacitacion > 0 && <> {consol.totalCapacitacion}h de capacitacion acumuladas en el periodo.</>}
+              {consol.totalHH > 0 && <> {(consol.totalHH / 1000).toFixed(0)}K HH trabajadas en el periodo.</>}
+              {consol.totalCapacitacion > 0 && <> {consol.totalCapacitacion}h de capacitacion acumuladas.</>}
             </p>
           </div>
         </div>
@@ -245,7 +250,7 @@ export default function PrevencionPanel() {
 
       {/* ══ MODAL EVENTO ══ */}
       {modalEvento && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setModalEvento(null)}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0F172A]/60 backdrop-blur-md" onClick={() => setModalEvento(null)}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-[560px] max-h-[85vh] overflow-y-auto mx-4" onClick={e => e.stopPropagation()}>
             <div className="px-5 py-3.5 border-b border-[#E2E8F0] flex items-center justify-between">
               <h3 className="font-condensed font-bold text-lg text-ink">

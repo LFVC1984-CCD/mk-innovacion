@@ -27,7 +27,7 @@
     --org-tab-active-text: #FFFFFF;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Barlow', sans-serif; background: #F1F5F9; color: #1E293B; }
+  body { font-family: 'Barlow', sans-serif; background: #F9FAFB; color: #1E293B; }
 }
 
 @layer utilities {

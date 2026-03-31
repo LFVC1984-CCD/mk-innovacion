@@ -69,7 +69,12 @@ export default function ObrasPanel() {
   }
 
   if (loading || eqLoading) {
-    return <div className="py-8 text-center text-slate-500 text-sm">Cargando datos financieros...</div>
+    return (
+      <div className="space-y-3">
+        <div className="h-20 skeleton rounded-xl" />
+        <div className="h-48 skeleton rounded-xl" />
+      </div>
+    )
   }
 
   return (
@@ -80,7 +85,6 @@ export default function ObrasPanel() {
           { label: 'Contratos Totales', value: fmtMM(consol.tC), color: '#E1BA10', sub: `${consol.activas} activa${consol.activas !== 1 ? 's' : ''}${consol.conSaldo > 0 ? ` · ${consol.conSaldo} con saldo` : ''}` },
           { label: 'Flujo Financiero', value: `${consol.flujoFin >= 0 ? '+' : ''}${fmtMM(consol.flujoFin)}`, color: consol.flujoFin >= 0 ? '#E1BA10' : '#DC2626', sub: 'Facturado - Gasto Real' },
           { label: 'Por Facturar', value: fmtMM(consol.saldoFact), color: '#D97706', sub: `${consol.pctF}% facturado` },
-          { label: 'Saldo Proveedores', value: fmtMM(consol.saldoProv), color: '#DC2626', sub: 'Comp - Gastado - MO' },
           { label: 'Margen Consolidado', value: `${consol.margen >= 0 ? '+' : ''}${fmtMM(consol.margen)}`, color: consol.margen >= 0 ? '#E1BA10' : '#DC2626', sub: `${consol.margenPct}%` },
         ]} />
 
@@ -93,6 +97,7 @@ export default function ObrasPanel() {
               <p className="text-[11px] text-cobalt-dark leading-relaxed">
                 <span className="font-bold">Margen consolidado: {consol.margenPct}% ({consol.margen >= 0 ? '+' : ''}{fmtMM(consol.margen)})</span>
                 {' — '}{consol.activas} obra{consol.activas !== 1 ? 's' : ''} activa{consol.activas !== 1 ? 's' : ''}, {fmtMM(consol.saldoFact)} por facturar.
+                {consol.saldoProv > 0 && <> Saldo proveedores: <b>{fmtMM(consol.saldoProv)}</b> (comprometido - gastado - MO).</>}
                 {sobreCosto.length > 0 && <><br /><span className="text-red-600 font-bold">{sobreCosto.length} obra{sobreCosto.length > 1 ? 's' : ''} con CPI &lt; 0.85 (sobrecosto):</span> {sobreCosto.map(p => `${p.nombre} (${p.cpi})`).join(', ')}.</>}
                 {atrasadas.length > 0 && <><br /><span className="text-red-600 font-bold">{atrasadas.length} obra{atrasadas.length > 1 ? 's' : ''} con SPI &lt; 0.85 (atraso):</span> {atrasadas.map(p => `${p.nombre} (${p.spi})`).join(', ')}.</>}
               </p>
