@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/lib/comites/hooks'
 import { applyOrgTheme, THEME_PRESETS } from '@/lib/theme'
 import ToastContainer from '@/components/ui/Toast'
 
@@ -86,6 +87,7 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const { perfil } = useAuth()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [logoutConfirm, setLogoutConfirm] = useState(false)
@@ -212,18 +214,33 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 overflow-y-auto py-2 px-2">
           <NavItems collapsed={sidebarCollapsed} />
         </nav>
-        {/* Project selector */}
-        <div className="px-3 py-3 border-t" style={{ borderColor: 'var(--org-sidebar-border)' }}>
+        {/* User profile + settings */}
+        <div className="px-3 py-3 border-t space-y-1" style={{ borderColor: 'var(--org-sidebar-border)' }}>
           {!sidebarCollapsed ? (
-            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg" style={{ background: 'var(--org-primary-light)' }}>
-              <div className="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold text-white" style={{ background: 'var(--org-primary)' }}>N</div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-bold truncate" style={{ color: 'var(--org-primary)' }}>NEGRETPAR002</p>
-                <p className="text-[10px] truncate" style={{ color: '#9CA3AF' }}>MK Ingeniería</p>
+            <>
+              <div className="flex items-center gap-2.5 px-2 py-1.5">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0" style={{ background: 'var(--org-primary)' }}>
+                  {perfil?.nombre?.split(' ').map(n => n[0]).slice(0, 2).join('') || '?'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-bold truncate" style={{ color: 'var(--org-sidebar-text)' }}>{perfil?.nombre || 'Usuario'}</p>
+                  <p className="text-[10px] truncate" style={{ color: '#9CA3AF' }}>{perfil?.cargo || perfil?.area_id || ''}</p>
+                </div>
               </div>
-            </div>
+              <div className="flex gap-1 px-1">
+                <button onClick={() => setLogoutConfirm(true)}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-semibold transition-colors hover:bg-red-50 text-red-500 hover:text-red-600"
+                  style={{ border: '1px solid #FEE2E2' }}>
+                  Salir
+                </button>
+              </div>
+            </>
           ) : (
-            <div className="w-8 h-8 mx-auto rounded flex items-center justify-center text-[10px] font-bold text-white" style={{ background: 'var(--org-primary)' }}>N</div>
+            <button onClick={() => setLogoutConfirm(true)} title="Cerrar sesión"
+              className="w-8 h-8 mx-auto rounded-full flex items-center justify-center text-white text-[11px] font-bold hover:ring-2 hover:ring-red-300 transition-all"
+              style={{ background: 'var(--org-primary)' }}>
+              {perfil?.nombre?.split(' ').map(n => n[0]).slice(0, 2).join('') || '?'}
+            </button>
           )}
         </div>
         <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
