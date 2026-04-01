@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/comites/hooks'
 import { applyOrgTheme, THEME_PRESETS } from '@/lib/theme'
 import ToastContainer from '@/components/ui/Toast'
+import { APP_VERSION, APP_ENV } from '@/lib/version'
 
 // ── Sidebar module structure ──
 interface NavItem { href: string; label: string; icon: string; badge?: number; sub?: { href: string; label: string }[] }
@@ -313,6 +314,11 @@ function ComitesLayoutInner({ children }: { children: React.ReactNode }) {
             </button>
           )}
         </div>
+        {!sidebarCollapsed && (
+          <div className="px-4 py-2 text-[9px] text-[#9CA3AF]">
+            v{APP_VERSION}{APP_ENV !== 'production' && <span className="ml-1 px-1 py-0.5 rounded bg-amber-100 text-amber-700 font-bold uppercase">{APP_ENV}</span>}
+          </div>
+        )}
         <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           className="absolute -right-3 top-[72px] w-6 h-6 rounded-full bg-white border flex items-center justify-center text-[10px] text-slate shadow-sm hover:shadow-md transition-shadow z-50"
           style={{ borderColor: 'var(--org-sidebar-border)' }}>
