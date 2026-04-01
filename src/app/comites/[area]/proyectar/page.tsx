@@ -7,8 +7,8 @@ import { useAutoKpis } from '@/lib/comites/use-auto-kpis'
 import { toast } from '@/components/ui/Toast'
 import { fmtFecha, fmtFechaDate } from '@/lib/comites/data'
 import { createClient } from '@/lib/supabase/client'
-import { AREAS_LIST } from '@/lib/types'
-import type { AreaId } from '@/lib/types'
+import { AREAS_LIST, TAREA_TIPO_LABELS, TAREA_TIPO_COLORS } from '@/lib/types'
+import type { AreaId, TareaTipo } from '@/lib/types'
 import KPIDashboard from '@/components/comites/KPIDashboard'
 import PDFExportButton from '@/components/comites/PDFExportButton'
 
@@ -70,6 +70,8 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
     ? autoKpis.filter(k => kpiSelectedKeys.includes(k.key))
     : autoKpis
 
+  const [scoreView, setScoreView] = useState<'cards' | 'tabla'>('cards')
+  const [taskView, setTaskView] = useState<'cards' | 'tabla'>('cards')
   const [slide, setSlide] = useState(0)
   const [minutaLines, setMinutaLines] = useState<{ tag: string; text: string }[]>([])
   const [minutas, setMinutas] = useState<MinutaRow[]>([])
@@ -199,24 +201,88 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
 
         {/* ── Slide 0: Scoreboard ── */}
         <div ref={el => { slideRefs.current[0] = el }} style={{ display: show(0) ? 'block' : 'none' }}>
-          <Hdr color={areaInfo?.color} text="Momento 1 · Scoreboard" />
+          <Hdr color={areaInfo?.color} text="Momento 1 · Scoreboard" right={<ViewToggleInline view={scoreView} setView={setScoreView} />} />
 
-          {!isRRHH && visibleAutoKpis.length > 0 ? (
-            <KPIDashboard kpis={visibleAutoKpis.slice(0, 8)} areaColor={areaInfo?.color} />
+          {scoreView === 'cards' ? (
+            <>
+              {!isRRHH && visibleAutoKpis.length > 0 ? (
+                <KPIDashboard kpis={visibleAutoKpis.slice(0, 8)} areaColor={areaInfo?.color} />
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                  {kpis.slice(0, 8).map(k => {
+                    const color = k.status === 'verde' ? '#16A34A' : k.status === 'amarillo' ? '#D97706' : '#DC2626'
+                    return (
+                      <div key={k.id} className="bg-[#F8FAFC] rounded-lg p-4 border border-[#E2E8F0]" style={{ borderLeftWidth: 4, borderLeftColor: color }}>
+                        <div className="text-xs font-bold uppercase text-slate mb-2">{k.nombre}</div>
+                        <div className="flex items-baseline gap-2.5">
+                          <span className="font-condensed font-black text-4xl" style={{ color }}>{k.valor}</span>
+                          {k.meta && <span className="text-xs text-slate">meta: {k.meta}</span>}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-              {kpis.slice(0, 8).map(k => {
-                const color = k.status === 'verde' ? '#16A34A' : k.status === 'amarillo' ? '#D97706' : '#DC2626'
-                return (
-                  <div key={k.id} className="bg-[#F8FAFC] rounded-lg p-4 border border-[#E2E8F0]" style={{ borderLeftWidth: 4, borderLeftColor: color }}>
-                    <div className="text-xs font-bold uppercase text-slate mb-2">{k.nombre}</div>
-                    <div className="flex items-baseline gap-2.5">
-                      <span className="font-condensed font-black text-4xl" style={{ color }}>{k.valor}</span>
-                      {k.meta && <span className="text-xs text-slate">meta: {k.meta}</span>}
-                    </div>
-                  </div>
-                )
-              })}
+            /* Tabla view for Scoreboard */
+            <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                    <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate">Indicador</th>
+                    <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate">Valor</th>
+                    <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate">Meta</th>
+                    <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate">Estado</th>
+                    <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate">Tendencia</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    const kpiList = (!isRRHH && visibleAutoKpis.length > 0)
+                      ? visibleAutoKpis.slice(0, 8).map(k => ({
+                          id: k.key,
+                          nombre: k.nombre,
+                          valor: k.valor,
+                          meta: k.meta || null,
+                          statusKey: k.status,
+                          statusColor: k.status === 'ok' ? '#16A34A' : k.status === 'warn' ? '#D97706' : '#DC2626',
+                          statusLabel: k.status === 'ok' ? 'En meta' : k.status === 'warn' ? 'Alerta' : 'Critico',
+                        }))
+                      : kpis.slice(0, 8).map(k => ({
+                          id: k.id,
+                          nombre: k.nombre,
+                          valor: k.valor || '—',
+                          meta: k.meta,
+                          statusKey: k.status === 'verde' ? 'ok' : k.status === 'amarillo' ? 'warn' : 'bad',
+                          statusColor: k.status === 'verde' ? '#16A34A' : k.status === 'amarillo' ? '#D97706' : '#DC2626',
+                          statusLabel: k.status === 'verde' ? 'En meta' : k.status === 'amarillo' ? 'Alerta' : 'Critico',
+                        }))
+                    return kpiList.map(k => (
+                      <tr key={k.id} className="border-b border-[#F1F5F9] hover:bg-[#F8FAFC] transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: k.statusColor }} />
+                            <span className="font-semibold text-ink">{k.nombre}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 font-condensed text-xl font-black" style={{ color: areaInfo?.color || '#0B5ED7' }}>{k.valor}</td>
+                        <td className="px-4 py-3 text-slate">{k.meta || '—'}</td>
+                        <td className="px-4 py-3">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded"
+                            style={{
+                              background: k.statusKey === 'ok' ? '#DCFCE7' : k.statusKey === 'warn' ? '#FEF3C7' : '#FEE2E2',
+                              color: k.statusColor,
+                            }}>
+                            {k.statusLabel}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-slate">—</td>
+                      </tr>
+                    ))
+                  })()}
+                </tbody>
+              </table>
             </div>
           )}
 
@@ -225,76 +291,151 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
 
         {/* ── Slide 1: Estado de Tareas ── */}
         <div ref={el => { slideRefs.current[1] = el }} style={{ display: show(1) ? 'block' : 'none' }}>
-          <Hdr color="#D97706" text="Momento 2 · Estado de Tareas" />
+          <Hdr color="#D97706" text="Momento 2 · Estado de Tareas" right={<ViewToggleInline view={taskView} setView={setTaskView} />} />
 
-          {/* 4 stat cards */}
-          <div className="grid grid-cols-4 gap-3 mb-5">
-            {[
-              { label: 'Bloqueadas', value: byEstado.bloqueada, color: '#DC2626', bg: '#FEE2E2' },
-              { label: 'En proceso', value: byEstado['en-proceso'], color: '#0B5ED7', bg: '#EFF6FF' },
-              { label: 'Abiertas', value: byEstado.pendiente, color: '#D97706', bg: '#FEF3C7' },
-              { label: 'Completadas', value: byEstado.completada, color: '#16A34A', bg: '#DCFCE7' },
-            ].map((s, i) => (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 16, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: i * 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="rounded-xl p-5 text-center"
-                style={{ background: s.bg }}
-              >
-                <p className="font-condensed text-6xl font-black leading-none" style={{ color: s.color }}>{s.value}</p>
-                <p className="text-xs font-bold mt-2" style={{ color: s.color }}>{s.label}</p>
-                <p className="text-[10px] text-slate mt-0.5">{totalTareas > 0 ? Math.round((s.value / totalTareas) * 100) : 0}%</p>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Animated horizontal bar chart */}
-          <div className="bg-[#F8FAFC] rounded-xl p-5 border border-[#E2E8F0]">
-            <div className="space-y-3">
-              <StatBar label="Bloqueadas" value={byEstado.bloqueada} max={maxEstado} color="#DC2626" total={totalTareas} delay={0} />
-              <StatBar label="En proceso" value={byEstado['en-proceso']} max={maxEstado} color="#0B5ED7" total={totalTareas} delay={0.1} />
-              <StatBar label="Abiertas" value={byEstado.pendiente} max={maxEstado} color="#D97706" total={totalTareas} delay={0.2} />
-              <StatBar label="Completadas" value={byEstado.completada} max={maxEstado} color="#16A34A" total={totalTareas} delay={0.3} />
-            </div>
-          </div>
-
-          {/* Stacked bar */}
-          {totalTareas > 0 && (
-            <div className="mt-4">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate mb-2">Distribución</p>
-              <div className="h-4 rounded-full overflow-hidden flex">
+          {taskView === 'cards' ? (
+            <>
+              {/* 4 stat cards */}
+              <div className="grid grid-cols-4 gap-3 mb-5">
                 {[
-                  { pct: byEstado.bloqueada / totalTareas * 100, color: '#DC2626' },
-                  { pct: byEstado['en-proceso'] / totalTareas * 100, color: '#0B5ED7' },
-                  { pct: byEstado.pendiente / totalTareas * 100, color: '#D97706' },
-                  { pct: byEstado.completada / totalTareas * 100, color: '#16A34A' },
+                  { label: 'Bloqueadas', value: byEstado.bloqueada, color: '#DC2626', bg: '#FEE2E2' },
+                  { label: 'En proceso', value: byEstado['en-proceso'], color: '#0B5ED7', bg: '#EFF6FF' },
+                  { label: 'Abiertas', value: byEstado.pendiente, color: '#D97706', bg: '#FEF3C7' },
+                  { label: 'Completadas', value: byEstado.completada, color: '#16A34A', bg: '#DCFCE7' },
                 ].map((s, i) => (
                   <motion.div
-                    key={i}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${s.pct}%` }}
-                    transition={{ duration: 0.8, delay: 0.3 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ background: s.color, minWidth: s.pct > 0 ? 3 : 0 }}
-                  />
+                    key={s.label}
+                    initial={{ opacity: 0, y: 16, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ delay: i * 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    className="rounded-xl p-5 text-center"
+                    style={{ background: s.bg }}
+                  >
+                    <p className="font-condensed text-6xl font-black leading-none" style={{ color: s.color }}>{s.value}</p>
+                    <p className="text-xs font-bold mt-2" style={{ color: s.color }}>{s.label}</p>
+                    <p className="text-[10px] text-slate mt-0.5">{totalTareas > 0 ? Math.round((s.value / totalTareas) * 100) : 0}%</p>
+                  </motion.div>
                 ))}
               </div>
-            </div>
-          )}
 
-          {/* Top 3 bloqueadas alert */}
-          {bloqueadas.length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
-              <p className="text-xs font-bold text-danger uppercase tracking-wider mb-2">Requieren atención</p>
-              {bloqueadas.map(t => (
-                <div key={t.id} className="flex items-center gap-2.5 py-1.5 border-b border-red-100 last:border-0">
-                  <div className="w-2 h-2 rounded-full bg-danger shrink-0" />
-                  <span className="flex-1 text-xs text-ink">{t.texto}</span>
-                  <span className="text-[10px] text-slate">{t.responsable || '—'}</span>
+              {/* Animated horizontal bar chart */}
+              <div className="bg-[#F8FAFC] rounded-xl p-5 border border-[#E2E8F0]">
+                <div className="space-y-3">
+                  <StatBar label="Bloqueadas" value={byEstado.bloqueada} max={maxEstado} color="#DC2626" total={totalTareas} delay={0} />
+                  <StatBar label="En proceso" value={byEstado['en-proceso']} max={maxEstado} color="#0B5ED7" total={totalTareas} delay={0.1} />
+                  <StatBar label="Abiertas" value={byEstado.pendiente} max={maxEstado} color="#D97706" total={totalTareas} delay={0.2} />
+                  <StatBar label="Completadas" value={byEstado.completada} max={maxEstado} color="#16A34A" total={totalTareas} delay={0.3} />
                 </div>
-              ))}
-            </div>
+              </div>
+
+              {/* Stacked bar */}
+              {totalTareas > 0 && (
+                <div className="mt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate mb-2">Distribución</p>
+                  <div className="h-4 rounded-full overflow-hidden flex">
+                    {[
+                      { pct: byEstado.bloqueada / totalTareas * 100, color: '#DC2626' },
+                      { pct: byEstado['en-proceso'] / totalTareas * 100, color: '#0B5ED7' },
+                      { pct: byEstado.pendiente / totalTareas * 100, color: '#D97706' },
+                      { pct: byEstado.completada / totalTareas * 100, color: '#16A34A' },
+                    ].map((s, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${s.pct}%` }}
+                        transition={{ duration: 0.8, delay: 0.3 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                        style={{ background: s.color, minWidth: s.pct > 0 ? 3 : 0 }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Top 3 bloqueadas alert */}
+              {bloqueadas.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
+                  <p className="text-xs font-bold text-danger uppercase tracking-wider mb-2">Requieren atención</p>
+                  {bloqueadas.map(t => (
+                    <div key={t.id} className="flex items-center gap-2.5 py-1.5 border-b border-red-100 last:border-0">
+                      <div className="w-2 h-2 rounded-full bg-danger shrink-0" />
+                      <span className="flex-1 text-xs text-ink">{t.texto}</span>
+                      <span className="text-[10px] text-slate">{t.responsable || '—'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            /* Tabla view for Tareas */
+            (() => {
+              const today = new Date().toISOString().slice(0, 10)
+              const estadoOrder: Record<string, number> = { bloqueada: 0, 'en-proceso': 1, pendiente: 2, completada: 3 }
+              const estadoColors: Record<string, string> = { bloqueada: '#DC2626', 'en-proceso': '#0B5ED7', pendiente: '#D97706', completada: '#16A34A' }
+              const estadoIcons: Record<string, string> = { bloqueada: '!', 'en-proceso': '▶', pendiente: '○', completada: '✓' }
+              const estadoLabels: Record<string, string> = { bloqueada: 'Bloqueada', 'en-proceso': 'En proceso', pendiente: 'Pendiente', completada: 'Completada' }
+              const sorted = [...tareas].sort((a, b) => (estadoOrder[a.estado] ?? 9) - (estadoOrder[b.estado] ?? 9))
+              const areaNames: Record<string, string> = {}
+              AREAS_LIST.forEach(a => { areaNames[a.id] = a.name })
+
+              return (
+                <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                        <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate w-24">Estado</th>
+                        <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate">Tarea</th>
+                        <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate">Responsable</th>
+                        <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate">Tipo</th>
+                        <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate">Fecha compromiso</th>
+                        <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate">Area destino</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sorted.length === 0 && (
+                        <tr><td colSpan={6} className="px-4 py-8 text-center text-slate text-xs">Sin tareas registradas.</td></tr>
+                      )}
+                      {sorted.map(t => {
+                        const isOverdue = t.fecha_compromiso && t.fecha_compromiso < today && t.estado !== 'completada'
+                        const eColor = estadoColors[t.estado] || '#94A3B8'
+                        const tipoLabel = TAREA_TIPO_LABELS[t.tipo as TareaTipo] || t.tipo
+                        const tipoColor = TAREA_TIPO_COLORS[t.tipo as TareaTipo] || '#64748B'
+
+                        return (
+                          <tr key={t.id} className="border-b border-[#F1F5F9] hover:bg-[#F8FAFC] transition-colors">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white shrink-0" style={{ background: eColor }}>
+                                  {estadoIcons[t.estado] || '?'}
+                                </span>
+                                <span className="text-[10px] font-bold" style={{ color: eColor }}>{estadoLabels[t.estado] || t.estado}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 max-w-[280px]">
+                              <span className="text-xs text-ink truncate block">{t.texto}</span>
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate">{t.responsable || '—'}</td>
+                            <td className="px-4 py-3">
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: tipoColor + '18', color: tipoColor }}>
+                                {tipoLabel}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`text-xs font-semibold ${isOverdue ? 'text-[#DC2626]' : 'text-slate'}`}>
+                                {t.fecha_compromiso ? fmtFecha(t.fecha_compromiso) : '—'}
+                              </span>
+                              {isOverdue && <span className="text-[9px] text-[#DC2626] font-bold ml-1">VENCIDA</span>}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate">
+                              {t.area_destino && t.area_destino !== areaId ? areaNames[t.area_destino] || t.area_destino : '—'}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            })()
           )}
 
           {ce && <SlideComment slideIdx={1} />}
@@ -382,11 +523,27 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
   )
 }
 
-function Hdr({ color, text }: { color?: string; text: string }) {
+function Hdr({ color, text, right }: { color?: string; text: string; right?: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-4">
       <div className="w-0.5 h-4 rounded" style={{ background: color || '#64748B' }} />
-      <span className="text-xs font-black uppercase tracking-wider text-slate">{text}</span>
+      <span className="text-xs font-black uppercase tracking-wider text-slate flex-1">{text}</span>
+      {right}
+    </div>
+  )
+}
+
+function ViewToggleInline({ view, setView }: { view: 'cards' | 'tabla'; setView: (v: 'cards' | 'tabla') => void }) {
+  return (
+    <div className="flex gap-1 bg-[#F1F5F9] rounded p-0.5">
+      <button onClick={() => setView('cards')}
+        className={`px-2.5 py-1 rounded text-[10px] font-bold transition-all ${view === 'cards' ? 'bg-white text-ink shadow-sm' : 'text-slate hover:text-ink'}`}>
+        Tarjetas
+      </button>
+      <button onClick={() => setView('tabla')}
+        className={`px-2.5 py-1 rounded text-[10px] font-bold transition-all ${view === 'tabla' ? 'bg-white text-ink shadow-sm' : 'text-slate hover:text-ink'}`}>
+        Tabla
+      </button>
     </div>
   )
 }
