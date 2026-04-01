@@ -47,6 +47,29 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
   const areaInfo = AREAS_LIST.find(a => a.id === areaId)
   const isRRHH = areaId === 'rrhh'
 
+  // KPI visibility preferences
+  const [kpiSelectedKeys, setKpiSelectedKeys] = useState<string[] | null>(null)
+
+  useEffect(() => {
+    const sb = createClient()
+    sb.from('comentarios_area')
+      .select('clave, valor')
+      .eq('area_id', areaId)
+      .like('clave', 'kpi_visible_%')
+      .then(({ data }: { data: { clave: string; valor: string }[] | null }) => {
+        if (data) {
+          const selected = data.filter(d => d.valor === '1').map(d => d.clave.replace('kpi_visible_', ''))
+          setKpiSelectedKeys(selected)
+        }
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [areaId])
+
+  // Filter autoKpis: if some are selected, show only those; if none selected, show all
+  const visibleAutoKpis = (kpiSelectedKeys && kpiSelectedKeys.length > 0)
+    ? autoKpis.filter(k => kpiSelectedKeys.includes(k.key))
+    : autoKpis
+
   const [slide, setSlide] = useState(0)
   const [minutaLines, setMinutaLines] = useState<{ tag: string; text: string }[]>([])
   const [minutas, setMinutas] = useState<MinutaRow[]>([])
@@ -178,8 +201,8 @@ export default function ProyectarPage({ params }: { params: { area: string } }) 
         <div ref={el => { slideRefs.current[0] = el }} style={{ display: show(0) ? 'block' : 'none' }}>
           <Hdr color={areaInfo?.color} text="Momento 1 · Scoreboard" />
 
-          {!isRRHH && autoKpis.length > 0 ? (
-            <KPIDashboard kpis={autoKpis.slice(0, 8)} areaColor={areaInfo?.color} />
+          {!isRRHH && visibleAutoKpis.length > 0 ? (
+            <KPIDashboard kpis={visibleAutoKpis.slice(0, 8)} areaColor={areaInfo?.color} />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
               {kpis.slice(0, 8).map(k => {

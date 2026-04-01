@@ -41,7 +41,7 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
   const { kpis: autoKpis, loading: autoLoading } = useAutoKpis(areaId as AreaId)
   const areaInfo = AREAS_LIST.find(a => a.id === areaId)
   const isRRHH = areaId === 'rrhh'
-  const hasAutoKpis = !isRRHH && autoKpis.length > 0
+  const hasAutoKpis = autoKpis.length > 0
   const AreaPanel = AREA_PANELS[areaId as AreaId]
 
   // ── Tabs — read from URL search params (controlled by layout ribbon) ──
@@ -72,6 +72,40 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
   const [etFecha, setEtFecha] = useState('')
   const [etTipo, setEtTipo] = useState<TareaTipo>('seguimiento')
   const [etEstado, setEtEstado] = useState('pendiente')
+
+  // KPI visibility preferences
+  const [kpiSelectedKeys, setKpiSelectedKeys] = useState<string[]>([])
+  const [kpiPrefsLoaded, setKpiPrefsLoaded] = useState(false)
+  const kpiPrefsSupa = createClient()
+
+  useEffect(() => {
+    async function loadKpiPrefs() {
+      const { data } = await kpiPrefsSupa.from('comentarios_area')
+        .select('clave, valor')
+        .eq('area_id', areaId)
+        .like('clave', 'kpi_visible_%')
+      if (data) {
+        const rows = data as { clave: string; valor: string }[]
+        setKpiSelectedKeys(rows.filter(d => d.valor === '1').map(d => d.clave.replace('kpi_visible_', '')))
+      }
+      setKpiPrefsLoaded(true)
+    }
+    loadKpiPrefs()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [areaId])
+
+  async function toggleKpiVisibility(key: string) {
+    const isCurrentlySelected = kpiSelectedKeys.includes(key)
+    const clave = `kpi_visible_${key}`
+    const valor = isCurrentlySelected ? '0' : '1'
+    await kpiPrefsSupa.from('comentarios_area').upsert(
+      { area_id: areaId, clave, valor } as Record<string, string>,
+      { onConflict: 'area_id,clave' }
+    )
+    setKpiSelectedKeys(prev =>
+      isCurrentlySelected ? prev.filter(k => k !== key) : [...prev, key]
+    )
+  }
 
   // Minutas
   const [minutas, setMinutas] = useState<MinutaRow[]>([])
@@ -156,17 +190,26 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
             {/* Auto-KPI Dashboard */}
             {hasAutoKpis && !autoLoading && (
               <div className="mb-4">
-                <KPIDashboard kpis={autoKpis} areaColor={areaInfo?.color} />
+                <KPIDashboard
+                  kpis={autoKpis}
+                  areaColor={areaInfo?.color}
+                  editable={true}
+                  selectedKeys={kpiPrefsLoaded ? kpiSelectedKeys : undefined}
+                  onToggle={toggleKpiVisibility}
+                />
+                <p className="text-[10px] text-slate mt-1.5 ml-1">
+                  Marca los indicadores que quieres mostrar en la presentaci&oacute;n
+                </p>
               </div>
             )}
 
-            {/* Manual KPIs (RRHH only) */}
-            {isRRHH && (
+            {/* Manual KPIs (RRHH — secondary when auto-KPIs exist) */}
+            {isRRHH && (kpis.length > 0 || !hasAutoKpis) && (
               <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden shadow-sm mb-4">
                 <div className="px-3.5 py-2.5 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-0.5 h-4 rounded" style={{ background: areaInfo?.color || '#64748B' }} />
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate">Indicadores clave</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate">{hasAutoKpis ? 'Indicadores adicionales' : 'Indicadores clave'}</span>
                   </div>
                   <button onClick={() => setShowKpiForm(!showKpiForm)} className="text-xs text-cobalt font-semibold hover:bg-cobalt-light px-2 py-0.5 rounded">+ Agregar</button>
                 </div>
