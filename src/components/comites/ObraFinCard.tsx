@@ -33,7 +33,7 @@ function ReadOnly({ label, value, color, sub }: { label: string; value: string; 
   return (
     <div>
       <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate mb-1">{label}</label>
-      <div className="font-condensed text-lg font-extrabold leading-tight" style={{ color: color || '#0B5ED7' }}>{value}</div>
+      <div className="font-condensed text-lg font-extrabold leading-tight" style={{ color: color || 'var(--org-primary)' }}>{value}</div>
       {sub && <div className="text-[10px] text-slate mt-0.5">{sub}</div>}
     </div>
   )
@@ -85,8 +85,15 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
   const spi = lp.avance_prog > 0 ? Math.round((lp.avance_real / lp.avance_prog) * 100) / 100 : 0
   const cpi = gastoReal > 0 ? Math.round((lp.facturado / gastoReal) * 100) / 100 : 0
 
-  const spiColor = spi >= 1 ? '#16A34A' : spi >= 0.85 ? '#D97706' : '#DC2626'
-  const cpiColor = cpi >= 1 ? '#16A34A' : cpi >= 0.85 ? '#D97706' : '#DC2626'
+  const COLOR_SUCCESS = '#16A34A'
+  const COLOR_WARNING = '#D97706'
+  const COLOR_DANGER  = '#DC2626'
+  const COLOR_COBALT  = '#0B5ED7'
+  const COLOR_GOLD    = '#E1BA10'
+  const COLOR_SLATE   = '#64748B'
+
+  const spiColor = spi >= 1 ? COLOR_SUCCESS : spi >= 0.85 ? COLOR_WARNING : COLOR_DANGER
+  const cpiColor = cpi >= 1 ? COLOR_SUCCESS : cpi >= 0.85 ? COLOR_WARNING : COLOR_DANGER
   const spiLabel = spi >= 1 ? 'En línea' : spi >= 0.85 ? 'Alerta' : 'Retraso'
   const cpiLabel = cpi >= 1 ? 'Productivo' : cpi > 0 ? 'Sobre costo' : '—'
 
@@ -126,7 +133,7 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
             {lp.administrador && <span>Admin: <strong className="text-ink">{lp.administrador}</strong></span>}
             {lp.fecha_termino && <span>Contractual: <strong className="text-ink">{fmtFecha(lp.fecha_termino)}</strong></span>}
             {lp.fecha_fin_asbuilt && (
-              <span style={{ color: new Date(lp.fecha_fin_asbuilt) > new Date(lp.fecha_termino || '') ? '#DC2626' : '#16A34A' }}>
+              <span style={{ color: new Date(lp.fecha_fin_asbuilt) > new Date(lp.fecha_termino || '') ? COLOR_DANGER : COLOR_SUCCESS }}>
                 Asbuilt: <strong>{fmtFecha(lp.fecha_fin_asbuilt)}</strong>
               </span>
             )}
@@ -151,16 +158,16 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
             <NumField label="Adicionales ($MM)" value={lp.adicionales} onChange={v => upd('adicionales', v)} />
             <NumField label="Gastos Matriz ($MM)" value={lp.gastos_matriz} onChange={v => upd('gastos_matriz', v)} />
             <NumField label="Mano de Obra ($MM)" value={lp.mano_obra} onChange={v => upd('mano_obra', v)} />
-            <ReadOnly label="Total Comprometido" value={`$${comprometido} MM`} color="#D97706" />
+            <ReadOnly label="Total Comprometido" value={`$${comprometido} MM`} color={COLOR_WARNING} />
           </div>
 
           {/* ── GASTO ── */}
           <p className="text-[10px] font-extrabold uppercase tracking-widerr text-danger mt-4 mb-2">Gasto</p>
           <div className="grid grid-cols-4 gap-2.5">
             <NumField label="Gastado / Facturas ($MM)" value={lp.gastado} onChange={v => upd('gastado', v)} />
-            <ReadOnly label="Mano de Obra" value={`$${lp.mano_obra} MM`} color="#64748B" sub="(ingresado arriba)" />
-            <ReadOnly label="Gasto Real" value={`$${gastoReal} MM`} color="#DC2626" sub="Facturas + MO" />
-            <ReadOnly label="Saldo Proveedores" value={`$${saldoProveedores} MM`} color={saldoProveedores > 0 ? '#DC2626' : '#16A34A'} sub="Comprometido − Gastado − MO" />
+            <ReadOnly label="Mano de Obra" value={`$${lp.mano_obra} MM`} color={COLOR_SLATE} sub="(ingresado arriba)" />
+            <ReadOnly label="Gasto Real" value={`$${gastoReal} MM`} color={COLOR_DANGER} sub="Facturas + MO" />
+            <ReadOnly label="Saldo Proveedores" value={`$${saldoProveedores} MM`} color={saldoProveedores > 0 ? COLOR_DANGER : COLOR_SUCCESS} sub="Comprometido − Gastado − MO" />
           </div>
 
           {/* ── AVANCE ── */}
@@ -179,20 +186,20 @@ export default function ObraFinCard({ proyecto: p, equipoNames, onUpdate }: Prop
             <AnimatedBar
               value={lp.avance_real}
               secondValue={lp.avance_prog}
-              secondColor="#0B5ED730"
-              color={lp.avance_real >= lp.avance_prog ? '#16A34A' : '#DC2626'}
+              secondColor={COLOR_COBALT + '30'}
+              color={lp.avance_real >= lp.avance_prog ? COLOR_SUCCESS : COLOR_DANGER}
               showLabel
             />
           </div>
 
           {/* ── KPIs RESUMEN ── */}
           <div className="grid grid-cols-6 gap-2.5 mt-4 bg-white border border-[#E2E8F0] rounded-xl p-3.5">
-            <ReadOnly label="Flujo Financiero" value={`$${flujoFinanciero} MM`} color={flujoFinanciero >= 0 ? '#E1BA10' : '#DC2626'} sub="Facturado − Gasto Real" />
-            <ReadOnly label="Saldo x Facturar" value={`$${saldoFacturar} MM`} color="#D97706" sub={`${pctFacturado}% facturado`} />
-            <ReadOnly label="Saldo Proveedores" value={`$${saldoProveedores} MM`} color={saldoProveedores > 0 ? '#DC2626' : '#16A34A'} />
-            <ReadOnly label="Margen $" value={`${margen >= 0 ? '+' : ''}$${margen} MM`} color={margen >= 0 ? '#16A34A' : '#DC2626'} />
-            <ReadOnly label="Margen %" value={`${margenPct}%`} color={margenPct >= 15 ? '#16A34A' : '#D97706'} />
-            <ReadOnly label="NDC en Revisión" value={`$${lp.ndc_revision} MM`} color="#0B5ED7" sub="Pendiente aprobación" />
+            <ReadOnly label="Flujo Financiero" value={`$${flujoFinanciero} MM`} color={flujoFinanciero >= 0 ? COLOR_GOLD : COLOR_DANGER} sub="Facturado − Gasto Real" />
+            <ReadOnly label="Saldo x Facturar" value={`$${saldoFacturar} MM`} color={COLOR_WARNING} sub={`${pctFacturado}% facturado`} />
+            <ReadOnly label="Saldo Proveedores" value={`$${saldoProveedores} MM`} color={saldoProveedores > 0 ? COLOR_DANGER : COLOR_SUCCESS} />
+            <ReadOnly label="Margen $" value={`${margen >= 0 ? '+' : ''}$${margen} MM`} color={margen >= 0 ? COLOR_SUCCESS : COLOR_DANGER} />
+            <ReadOnly label="Margen %" value={`${margenPct}%`} color={margenPct >= 15 ? COLOR_SUCCESS : COLOR_WARNING} />
+            <ReadOnly label="NDC en Revisión" value={`$${lp.ndc_revision} MM`} color={COLOR_COBALT} sub="Pendiente aprobación" />
           </div>
 
           {/* Comentario */}

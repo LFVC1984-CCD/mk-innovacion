@@ -15,9 +15,11 @@ const config: Config = {
         success: '#16A34A',
         danger: '#DC2626',
         amber: '#D97706',
-        ink: '#1E293B',
+        ink: '#111827',
         ink2: '#475569',
+        slate: '#64748B',
         navy: '#0F172A',
+        warning: '#D97706',
       },
       fontFamily: {
         condensed: ['Barlow Condensed', 'sans-serif'],

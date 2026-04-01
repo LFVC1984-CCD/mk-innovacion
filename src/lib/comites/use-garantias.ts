@@ -291,11 +291,9 @@ export function useGarantias() {
   // ── CRUD: Entidades ──
   const saveEntidad = useCallback(async (input: EntidadInput, id?: string): Promise<boolean> => {
     const row = { nombre: input.nombre, tipo: input.tipo, contacto: input.contacto || '', observacion: input.observacion || '', tasa_interes: input.tasa_interes || 0 }
-    console.log('[saveEntidad]', id ? 'UPDATE' : 'INSERT', row, id)
     const result = id
       ? await supabase.from('entidades').update(row).eq('id', id)
       : await supabase.from('entidades').insert(row)
-    console.log('[saveEntidad] result:', result)
     if (result.error) { console.error('Error saving entidad:', result.error); throw new Error(result.error.message) }
     await load()
     return true

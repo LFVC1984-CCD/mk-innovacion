@@ -2,6 +2,14 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { AREA_NAMES } from '@/lib/types'
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 export async function POST(req: NextRequest) {
   const supabase = createServerSupabase()
 
@@ -37,17 +45,17 @@ export async function POST(req: NextRequest) {
     <div style="font-family: 'Barlow', Arial, sans-serif; max-width: 640px; margin: 0 auto;">
       <div style="background: #0B5ED7; padding: 20px 24px; border-radius: 8px 8px 0 0;">
         <h1 style="margin: 0; color: #fff; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
-          Minuta de Comité — ${areaName}
+          Minuta de Comité — ${escapeHtml(areaName)}
         </h1>
-        <p style="margin: 4px 0 0; color: rgba(255,255,255,.6); font-size: 12px;">${fecha} · MK Ingeniería</p>
+        <p style="margin: 4px 0 0; color: rgba(255,255,255,.6); font-size: 12px;">${escapeHtml(fecha)} · MK Ingeniería</p>
       </div>
       <div style="background: #f8fafc; padding: 24px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
         ${texto_completo
           ? texto_completo.split('\n').map((line: string) => {
-              if (line.startsWith('## ')) return `<h2 style="color:#0B5ED7; font-size:16px; margin:20px 0 8px; font-weight:700;">${line.replace('## ', '')}</h2>`
-              if (line.startsWith('- ')) return `<div style="padding:2px 0 2px 12px; font-size:14px; color:#334155;">• ${line.replace('- ', '')}</div>`
+              if (line.startsWith('## ')) return `<h2 style="color:#0B5ED7; font-size:16px; margin:20px 0 8px; font-weight:700;">${escapeHtml(line.replace('## ', ''))}</h2>`
+              if (line.startsWith('- ')) return `<div style="padding:2px 0 2px 12px; font-size:14px; color:#334155;">• ${escapeHtml(line.replace('- ', ''))}</div>`
               if (line.trim() === '') return '<br/>'
-              return `<p style="font-size:14px; color:#334155; margin:4px 0;">${line}</p>`
+              return `<p style="font-size:14px; color:#334155; margin:4px 0;">${escapeHtml(line)}</p>`
             }).join('')
           : '<p style="color:#94a3b8;">Sin contenido</p>'
         }

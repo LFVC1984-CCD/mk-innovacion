@@ -20,6 +20,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 })
   }
 
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (typeof email !== 'string' || !emailRegex.test(email)) {
+    return NextResponse.json({ error: 'Email inválido' }, { status: 400 })
+  }
+
+  // Validate nombre is a non-empty string with reasonable length
+  if (typeof nombre !== 'string' || nombre.trim().length < 2 || nombre.length > 100) {
+    return NextResponse.json({ error: 'Nombre debe tener entre 2 y 100 caracteres' }, { status: 400 })
+  }
+
+  // Validate password minimum length
+  if (typeof password !== 'string' || password.length < 6) {
+    return NextResponse.json({ error: 'Contraseña debe tener al menos 6 caracteres' }, { status: 400 })
+  }
+
+  // Validate area_id is a known value
+  const validAreas = ['admin', 'finanzas', 'rrhh', 'legal', 'prevencion', 'estudios', 'obras', 'eti']
+  if (typeof area_id !== 'string' || !validAreas.includes(area_id)) {
+    return NextResponse.json({ error: 'Área inválida' }, { status: 400 })
+  }
+
   // Create auth user
   const { data: authData, error: authErr } = await supabase.auth.admin.createUser({
     email,
