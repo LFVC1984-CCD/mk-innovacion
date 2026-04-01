@@ -37,7 +37,7 @@ interface MinutaRow {
 export default function AreaEditPage({ params }: { params: { area: string } }) {
   const areaId = params.area
   const { perfil, loading: authLoading, canEdit } = useAuth()
-  const { kpis, tareas, loading, refresh, supabase } = useAreaData(areaId as AreaId)
+  const { kpis, tareas, loading, refresh, supabase, setTareas } = useAreaData(areaId as AreaId)
   const { kpis: autoKpis, loading: autoLoading } = useAutoKpis(areaId as AreaId)
   const areaInfo = AREAS_LIST.find(a => a.id === areaId)
   const isRRHH = areaId === 'rrhh'
@@ -71,7 +71,7 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
   const [etResp, setEtResp] = useState('')
   const [etFecha, setEtFecha] = useState('')
   const [etTipo, setEtTipo] = useState<TareaTipo>('seguimiento')
-  const [etEstado, setEtEstado] = useState('pendiente')
+  const [etEstado, setEtEstado] = useState<Tarea['estado']>('pendiente')
 
   // KPI visibility preferences
   const [kpiSelectedKeys, setKpiSelectedKeys] = useState<string[]>([])
@@ -163,8 +163,13 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
   }
   async function saveEditTask() {
     if (!editTask) return
-    await supabase.from('tareas').update({ texto: etText, responsable: etResp || null, fecha_compromiso: etFecha || null, tipo: etTipo, estado: etEstado }).eq('id', editTask.id)
-    setEditTask(null); refresh(); toast('Tarea actualizada')
+    // Optimistic: update local state immediately so the card moves in Kanban
+    const updatedFields = { texto: etText, responsable: etResp || null, fecha_compromiso: etFecha || null, tipo: etTipo, estado: etEstado as Tarea['estado'] }
+    setTareas(prev => prev.map(t => t.id === editTask.id ? { ...t, ...updatedFields } : t))
+    setEditTask(null)
+    toast('Tarea actualizada')
+    await supabase.from('tareas').update(updatedFields).eq('id', editTask.id)
+    refresh()
   }
   async function deleteEditTask() {
     if (!editTask || !confirm('Eliminar esta tarea?')) return
@@ -488,12 +493,12 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
         </Field>
         <Field label="Estado">
           <div className="flex gap-1.5">
-            {[
-              { id: 'pendiente', label: 'Pendiente', color: '#64748B', bg: '#F8FAFC' },
-              { id: 'en-proceso', label: 'En proceso', color: '#0B5ED7', bg: '#EFF6FF' },
-              { id: 'completada', label: 'Completada', color: '#16A34A', bg: '#F0FDF4' },
-              { id: 'bloqueada', label: 'Bloqueada', color: '#DC2626', bg: '#FEF2F2' },
-            ].map(s => (
+            {([
+              { id: 'pendiente' as const, label: 'Pendiente', color: '#64748B', bg: '#F8FAFC' },
+              { id: 'en-proceso' as const, label: 'En proceso', color: '#0B5ED7', bg: '#EFF6FF' },
+              { id: 'completada' as const, label: 'Completada', color: '#16A34A', bg: '#F0FDF4' },
+              { id: 'bloqueada' as const, label: 'Bloqueada', color: '#DC2626', bg: '#FEF2F2' },
+            ]).map(s => (
               <button key={s.id} type="button" onClick={() => setEtEstado(s.id)}
                 className="flex-1 py-2 rounded-lg text-[11px] font-bold border-2 transition-all"
                 style={{

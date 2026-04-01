@@ -5,6 +5,7 @@ import { useProjects } from '@/lib/comites/use-projects'
 import { useAuth } from '@/lib/comites/hooks'
 import MiembroCard from '@/components/comites/MiembroCard'
 import MiembroModal from '@/components/comites/MiembroModal'
+import ViewToggle, { type ViewMode } from '@/components/comites/ViewToggle'
 import type { Miembro, Proyecto } from '@/lib/types'
 import { toast } from '@/components/ui/Toast'
 import { ESTADO_COLORS, fechaTerminoEfectiva } from '@/lib/types'
@@ -162,26 +163,37 @@ function ListadoView({
   onEdit: (m: Miembro) => void
   onDelete: (m: Miembro) => void
 }) {
+  const [viewMode, setViewMode] = useState<ViewMode>('cards')
+
+  const ESTADO_BADGE: Record<string, { label: string; bg: string; text: string }> = {
+    activo: { label: 'Activo', bg: '#DCFCE7', text: '#16A34A' },
+    disponible: { label: 'Sin proyecto', bg: '#FEF3C7', text: '#D97706' },
+    inactivo: { label: 'Inactivo', bg: '#F1F5F9', text: '#64748B' },
+  }
+
   return (
     <>
-      {/* Estado filters */}
-      <div className="flex gap-1.5 flex-wrap mb-3">
-        {ESTADO_FILTERS.map(f => (
-          <button
-            key={f.key}
-            onClick={() => setEstadoFilter(f.key)}
-            className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
-              estadoFilter === f.key
-                ? 'bg-cobalt text-white border-cobalt'
-                : 'bg-white border-[#E2E8F0] text-slate-500 hover:border-cobalt hover:text-cobalt'
-            }`}
-          >
-            {f.label}
-            <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${
-              estadoFilter === f.key ? 'bg-white/20' : 'bg-slate-100'
-            }`}>{counts[f.key]}</span>
-          </button>
-        ))}
+      {/* Estado filters + view toggle */}
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+        <div className="flex gap-1.5 flex-wrap">
+          {ESTADO_FILTERS.map(f => (
+            <button
+              key={f.key}
+              onClick={() => setEstadoFilter(f.key)}
+              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
+                estadoFilter === f.key
+                  ? 'bg-cobalt text-white border-cobalt'
+                  : 'bg-white border-[#E2E8F0] text-slate-500 hover:border-cobalt hover:text-cobalt'
+              }`}
+            >
+              {f.label}
+              <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${
+                estadoFilter === f.key ? 'bg-white/20' : 'bg-slate-100'
+              }`}>{counts[f.key]}</span>
+            </button>
+          ))}
+        </div>
+        <ViewToggle view={viewMode} onChange={setViewMode} options={['cards', 'tabla']} />
       </div>
 
       {/* Proyecto + Cargo filters */}
@@ -215,12 +227,12 @@ function ListadoView({
         )}
       </div>
 
-      {/* Grid */}
+      {/* Content */}
       {filtered.length === 0 ? (
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-500 text-sm">
           Sin profesionales en este filtro.
         </div>
-      ) : (
+      ) : viewMode === 'cards' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {filtered.map(m => (
             <MiembroCard
@@ -231,6 +243,52 @@ function ListadoView({
               onDelete={() => onDelete(m)}
             />
           ))}
+        </div>
+      ) : (
+        /* Tabla view */
+        <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden shadow-sm">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                <th className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Nombre</th>
+                <th className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Cargo</th>
+                <th className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Proyecto</th>
+                <th className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Estado</th>
+                <th className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Contacto</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(m => {
+                const badge = ESTADO_BADGE[m.estado] || ESTADO_BADGE.inactivo
+                const projColor = m.proyecto_id ? projColorMap[m.proyecto_id] : undefined
+                return (
+                  <tr
+                    key={m.id}
+                    onClick={() => onEdit(m)}
+                    className="border-b border-[#E2E8F0] last:border-b-0 hover:bg-[#F8FAFC] cursor-pointer transition-colors"
+                  >
+                    <td className="px-4 py-2.5 text-xs font-bold text-ink">{m.nombre}</td>
+                    <td className="px-4 py-2.5 text-xs text-slate-600">{m.cargo || '—'}</td>
+                    <td className="px-4 py-2.5 text-xs text-slate-600">
+                      <span className="flex items-center gap-1.5">
+                        {projColor && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: projColor }} />}
+                        {m.proyecto_nombre || <span className="text-slate-400 italic">Sin asignar</span>}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: badge.bg, color: badge.text }}
+                      >
+                        {badge.label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-xs text-slate-600">{m.contacto || '—'}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </>

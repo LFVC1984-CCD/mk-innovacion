@@ -368,6 +368,9 @@ export interface HerramientaETI {
   fecha_renovacion: string | null
   descripcion: string | null
   url: string | null
+  contacto_nombre: string | null
+  contacto_telefono: string | null
+  contacto_email: string | null
   created_at?: string
 }
 

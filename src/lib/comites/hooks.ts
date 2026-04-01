@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Perfil, KPI, Tarea, AreaId } from '@/lib/types'
 
@@ -69,9 +69,11 @@ export function useAreaData(areaId: AreaId | null) {
   const [tareas, setTareas] = useState<Tarea[]>([])
   const [loading, setLoading] = useState(true)
 
+  const initialLoadDone = useRef(false)
+
   async function refresh() {
     if (!areaId) return
-    setLoading(true)
+    if (!initialLoadDone.current) setLoading(true)
     const [kRes, tRes, tCrossRes] = await Promise.all([
       supabase.from('kpis').select('*').eq('area_id', areaId).order('orden'),
       supabase.from('tareas').select('*').eq('area_id', areaId).order('created_at'),
@@ -84,9 +86,10 @@ export function useAreaData(areaId: AreaId | null) {
     const merged = [...propias, ...cross.filter(t => !ids.has(t.id))]
     setTareas(merged)
     setLoading(false)
+    initialLoadDone.current = true
   }
 
-  useEffect(() => { refresh() }, [areaId])
+  useEffect(() => { initialLoadDone.current = false; refresh() }, [areaId])
 
   return { kpis, tareas, loading, refresh, setKpis, setTareas, supabase }
 }

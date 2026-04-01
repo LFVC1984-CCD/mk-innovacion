@@ -44,10 +44,12 @@ export default function KPIDashboard({ kpis, areaColor = '#0B5ED7', editable = f
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onToggle(kpi.key) }}
-                className="absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center rounded-full hover:bg-[#F1F5F9] transition-colors"
+                className={`absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center rounded-full transition-colors ${
+                  isSelected ? 'bg-[#FEF9C3] hover:bg-[#FDE68A]' : 'bg-[#F1F5F9] hover:bg-[#E2E8F0]'
+                }`}
                 title={isSelected ? 'Quitar de presentación' : 'Mostrar en presentación'}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill={isSelected ? '#E1BA10' : 'none'} stroke={isSelected ? '#E1BA10' : '#CBD5E1'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill={isSelected ? '#E1BA10' : 'none'} stroke={isSelected ? '#E1BA10' : '#94A3B8'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
               </button>

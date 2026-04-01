@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtMoney } from '@/lib/comites/data'
 import KpiCards from '@/components/comites/KpiCards'
+import ViewToggle from '@/components/comites/ViewToggle'
+import type { ViewMode } from '@/components/comites/ViewToggle'
 import type { HerramientaETI, HerramientaEstado, HerramientaCategoria, ProyectoInnovacion, EtapaInnovacion, TipoRutaInnovacion } from '@/lib/types'
 import { ETAPA_CONFIG, ETAPAS_DESARROLLO, ETAPAS_CONTRATACION } from '@/lib/types'
 import InnovacionGantt from '@/components/comites/InnovacionGantt'
@@ -12,6 +14,7 @@ const EMPTY_HERRAMIENTA: Omit<HerramientaETI, 'id'> = {
   nombre: '', categoria: 'software', estado: 'activa', proveedor: null,
   costo_mensual_usd: 0, costo_anual_usd: 0, usuarios: 0, responsable: null,
   fecha_contratacion: null, fecha_renovacion: null, descripcion: null, url: null,
+  contacto_nombre: null, contacto_telefono: null, contacto_email: null,
 }
 
 const EMPTY_PROYECTO_INN: Omit<ProyectoInnovacion, 'id'> = {
@@ -71,6 +74,7 @@ export default function ETIPanel() {
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'herramientas' | 'innovacion' | 'equipo'>('herramientas')
   const [viewInn, setViewInn] = useState<'gantt' | 'cards' | 'tabla'>('gantt')
+  const [viewHerr, setViewHerr] = useState<ViewMode>('tabla')
   const [modalHerr, setModalHerr] = useState<Partial<HerramientaETI> | null>(null)
   const [modalProy, setModalProy] = useState<Partial<ProyectoInnovacion> | null>(null)
   const [modalMiembro, setModalMiembro] = useState<Partial<MiembroETI> | null>(null)
@@ -106,11 +110,13 @@ export default function ETIPanel() {
   // ── CRUD Herramientas ──
   async function saveHerr() {
     if (!modalHerr || !modalHerr.nombre?.trim()) return
-    if ((modalHerr as HerramientaETI).id) {
-      const { id, ...rest } = modalHerr as HerramientaETI
-      await supabase.from('herramientas_eti').update(rest).eq('id', id)
+    // Strip non-column fields before sending to Supabase
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, created_at, ...payload } = modalHerr as HerramientaETI & { created_at?: string }
+    if (id) {
+      await supabase.from('herramientas_eti').update(payload).eq('id', id)
     } else {
-      await supabase.from('herramientas_eti').insert(modalHerr)
+      await supabase.from('herramientas_eti').insert(payload)
     }
     setModalHerr(null)
     load()
@@ -195,8 +201,11 @@ export default function ETIPanel() {
           </button>
         ))}
         <div className="flex-1" />
-        {ce && tab === 'herramientas' && (
-          <button onClick={() => setModalHerr({ ...EMPTY_HERRAMIENTA })} className="bg-cobalt text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold">+ Nueva herramienta</button>
+        {tab === 'herramientas' && (
+          <div className="flex items-center gap-2">
+            <ViewToggle view={viewHerr} onChange={v => setViewHerr(v)} options={['cards', 'tabla', 'grafico']} />
+            {ce && <button onClick={() => setModalHerr({ ...EMPTY_HERRAMIENTA })} className="bg-cobalt text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold">+ Nueva herramienta</button>}
+          </div>
         )}
         {ce && tab === 'innovacion' && (
           <div className="flex items-center gap-2">
@@ -224,56 +233,123 @@ export default function ETIPanel() {
             Sin herramientas registradas. Agrega licencias, suscripciones y plataformas.
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="bg-slate-50 border-b border-[#E2E8F0]">
-                  <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Herramienta</th>
-                  <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Cat.</th>
-                  <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Estado</th>
-                  <th className="text-right px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">$/mes</th>
-                  <th className="text-right px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">$/año</th>
-                  <th className="text-center px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Users</th>
-                  <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Resp.</th>
-                  {ce && <th className="w-16" />}
-                </tr>
-              </thead>
-              <tbody>
+          <>
+            {/* Cards view */}
+            {viewHerr === 'cards' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {herramientas.map(h => {
                   const est = ESTADO_HERR[h.estado]
                   return (
-                    <tr key={h.id} className="border-b border-slate-100 hover:bg-slate-50/50">
-                      <td className="px-3.5 py-2.5 font-semibold text-ink">
-                        {h.url ? <a href={h.url} target="_blank" rel="noopener noreferrer" className="text-cobalt hover:underline">{h.nombre}</a> : h.nombre}
-                        {h.proveedor && <span className="text-slate-500 font-normal ml-1">({h.proveedor})</span>}
-                      </td>
-                      <td className="px-3.5 py-2.5"><span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">{CAT_LABELS[h.categoria]}</span></td>
-                      <td className="px-3.5 py-2.5"><span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: est.color + '15', color: est.color }}>{est.label}</span></td>
-                      <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-ink">{h.costo_mensual_usd > 0 ? `$${h.costo_mensual_usd}` : '—'}</td>
-                      <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-slate-500">{h.costo_anual_usd > 0 ? `$${h.costo_anual_usd}` : '—'}</td>
-                      <td className="px-3.5 py-2.5 text-center">{h.usuarios || '—'}</td>
-                      <td className="px-3.5 py-2.5 text-slate-500">{h.responsable || '—'}</td>
-                      {ce && (
-                        <td className="px-2 py-2.5 text-right">
-                          <button onClick={() => setModalHerr({ ...h })} className="text-slate-500 hover:text-cobalt text-[10px] mr-1">editar</button>
-                          <button onClick={() => deleteHerr(h.id)} className="text-slate-300 hover:text-red-500 text-sm">×</button>
-                        </td>
-                      )}
-                    </tr>
+                    <div key={h.id} className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md transition-shadow cursor-pointer" style={{ borderLeftWidth: 3, borderLeftColor: est.color }}
+                      onClick={() => ce && setModalHerr({ ...h })}>
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h4 className="text-xs font-bold text-ink">{h.nombre}</h4>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">{CAT_LABELS[h.categoria]}</span>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: est.color + '15', color: est.color }}>{est.label}</span>
+                          </div>
+                        </div>
+                        {ce && <button onClick={e => { e.stopPropagation(); deleteHerr(h.id) }} className="text-slate-300 hover:text-red-500 text-sm">×</button>}
+                      </div>
+                      {h.proveedor && <p className="text-[11px] text-slate-500 mb-1">{h.proveedor}</p>}
+                      <div className="flex items-center gap-3 mt-2 text-[11px]">
+                        {h.costo_mensual_usd > 0 && <span className="font-condensed font-bold text-cobalt">${h.costo_mensual_usd}/mes</span>}
+                        {h.costo_anual_usd > 0 && <span className="font-condensed font-bold text-slate-500">${h.costo_anual_usd}/año</span>}
+                        {h.usuarios > 0 && <span className="text-slate-400">{h.usuarios} users</span>}
+                      </div>
+                      {h.responsable && <p className="text-[10px] text-slate-400 mt-1.5">{h.responsable}</p>}
+                    </div>
                   )
                 })}
-              </tbody>
-              <tfoot>
-                <tr className="bg-slate-50 border-t border-[#E2E8F0]">
-                  <td className="px-3.5 py-2.5 font-bold text-ink" colSpan={3}>Total activas ({herramientas.filter(h => h.estado === 'activa').length})</td>
-                  <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-cobalt">${consol.costoMensual}</td>
-                  <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-slate-500">${herramientas.filter(h => h.estado === 'activa').reduce((s, h) => s + h.costo_anual_usd, 0)}</td>
-                  <td className="px-3.5 py-2.5 text-center font-bold">{consol.totalUsuarios}</td>
-                  <td colSpan={ce ? 2 : 1} />
-                </tr>
-              </tfoot>
-            </table>
-          </div>
+              </div>
+            )}
+
+            {/* Tabla view */}
+            {viewHerr === 'tabla' && (
+              <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-[#E2E8F0]">
+                      <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Herramienta</th>
+                      <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Cat.</th>
+                      <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Estado</th>
+                      <th className="text-right px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">$/mes</th>
+                      <th className="text-right px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">$/año</th>
+                      <th className="text-center px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Users</th>
+                      <th className="text-left px-3.5 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Resp.</th>
+                      {ce && <th className="w-16" />}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {herramientas.map(h => {
+                      const est = ESTADO_HERR[h.estado]
+                      return (
+                        <tr key={h.id} className="border-b border-slate-100 hover:bg-slate-50/50 cursor-pointer" onClick={() => ce && setModalHerr({ ...h })}>
+                          <td className="px-3.5 py-2.5 font-semibold text-ink">
+                            {h.url ? <a href={h.url} target="_blank" rel="noopener noreferrer" className="text-cobalt hover:underline" onClick={e => e.stopPropagation()}>{h.nombre}</a> : h.nombre}
+                            {h.proveedor && <span className="text-slate-500 font-normal ml-1">({h.proveedor})</span>}
+                          </td>
+                          <td className="px-3.5 py-2.5"><span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">{CAT_LABELS[h.categoria]}</span></td>
+                          <td className="px-3.5 py-2.5"><span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: est.color + '15', color: est.color }}>{est.label}</span></td>
+                          <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-ink">{h.costo_mensual_usd > 0 ? `$${h.costo_mensual_usd}` : '—'}</td>
+                          <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-slate-500">{h.costo_anual_usd > 0 ? `$${h.costo_anual_usd}` : '—'}</td>
+                          <td className="px-3.5 py-2.5 text-center">{h.usuarios || '—'}</td>
+                          <td className="px-3.5 py-2.5 text-slate-500">{h.responsable || '—'}</td>
+                          {ce && (
+                            <td className="px-2 py-2.5 text-right">
+                              <button onClick={e => { e.stopPropagation(); setModalHerr({ ...h }) }} className="text-slate-500 hover:text-cobalt text-[10px] mr-1">editar</button>
+                              <button onClick={e => { e.stopPropagation(); deleteHerr(h.id) }} className="text-slate-300 hover:text-red-500 text-sm">×</button>
+                            </td>
+                          )}
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-slate-50 border-t border-[#E2E8F0]">
+                      <td className="px-3.5 py-2.5 font-bold text-ink" colSpan={3}>Total activas ({herramientas.filter(h => h.estado === 'activa').length})</td>
+                      <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-cobalt">${consol.costoMensual}</td>
+                      <td className="px-3.5 py-2.5 text-right font-condensed font-bold text-slate-500">${herramientas.filter(h => h.estado === 'activa').reduce((s, h) => s + h.costo_anual_usd, 0)}</td>
+                      <td className="px-3.5 py-2.5 text-center font-bold">{consol.totalUsuarios}</td>
+                      <td colSpan={ce ? 2 : 1} />
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+
+            {/* Grafico view — horizontal bars by cost */}
+            {viewHerr === 'grafico' && (() => {
+              const activas = herramientas.filter(h => h.estado === 'activa')
+              const sorted = [...activas].sort((a, b) => (b.costo_mensual_usd * 12 + b.costo_anual_usd) - (a.costo_mensual_usd * 12 + a.costo_anual_usd))
+              const maxCost = sorted.length > 0 ? (sorted[0].costo_mensual_usd * 12 + sorted[0].costo_anual_usd) : 1
+              return (
+                <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                  <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-4">Costo anual estimado por herramienta (activas)</h4>
+                  <div className="space-y-2.5">
+                    {sorted.map(h => {
+                      const totalAnual = h.costo_mensual_usd * 12 + h.costo_anual_usd
+                      const pct = maxCost > 0 ? Math.round((totalAnual / maxCost) * 100) : 0
+                      return (
+                        <div key={h.id} className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-lg px-2 py-1 -mx-2 transition-colors" onClick={() => ce && setModalHerr({ ...h })}>
+                          <span className="w-32 text-xs font-semibold text-ink truncate flex-shrink-0">{h.nombre}</span>
+                          <div className="flex-1 h-5 bg-[#F1F5F9] rounded-full overflow-hidden">
+                            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #0B5ED7, #3B82F6)' }} />
+                          </div>
+                          <span className="text-xs font-condensed font-bold text-cobalt w-24 text-right flex-shrink-0">${totalAnual.toLocaleString()}/año</span>
+                        </div>
+                      )
+                    })}
+                    {sorted.length === 0 && <p className="text-xs text-slate-400 text-center py-4">Sin herramientas activas con costo.</p>}
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-[#E2E8F0] flex justify-end">
+                    <span className="text-xs font-bold text-ink">Total: <span className="font-condensed text-cobalt">${sorted.reduce((s, h) => s + h.costo_mensual_usd * 12 + h.costo_anual_usd, 0).toLocaleString()} USD/año</span></span>
+                  </div>
+                </div>
+              )
+            })()}
+          </>
         )
       )}
 
@@ -474,11 +550,17 @@ export default function ETIPanel() {
               </div>
               <div>
                 <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Costo mensual (USD)</label>
-                <input type="number" value={modalHerr.costo_mensual_usd || ''} onChange={e => setModalHerr(p => ({ ...p!, costo_mensual_usd: parseFloat(e.target.value) || 0 }))} className="inp" placeholder="0" />
+                <input type="number" value={modalHerr.costo_mensual_usd || ''} onChange={e => {
+                  const v = parseFloat(e.target.value) || 0
+                  setModalHerr(p => ({ ...p!, costo_mensual_usd: v, costo_anual_usd: Math.round(v * 12 * 100) / 100 }))
+                }} className="inp" placeholder="0" />
               </div>
               <div>
                 <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Costo anual (USD)</label>
-                <input type="number" value={modalHerr.costo_anual_usd || ''} onChange={e => setModalHerr(p => ({ ...p!, costo_anual_usd: parseFloat(e.target.value) || 0 }))} className="inp" placeholder="0" />
+                <input type="number" value={modalHerr.costo_anual_usd || ''} onChange={e => {
+                  const v = parseFloat(e.target.value) || 0
+                  setModalHerr(p => ({ ...p!, costo_anual_usd: v, costo_mensual_usd: Math.round((v / 12) * 100) / 100 }))
+                }} className="inp" placeholder="0" />
               </div>
               <div>
                 <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Usuarios</label>
@@ -487,6 +569,22 @@ export default function ETIPanel() {
               <div>
                 <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">URL</label>
                 <input value={modalHerr.url || ''} onChange={e => setModalHerr(p => ({ ...p!, url: e.target.value }))} className="inp" placeholder="https://..." />
+              </div>
+              {/* Contacto proveedor */}
+              <div className="col-span-2 mt-1">
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">Contacto proveedor</p>
+              </div>
+              <div>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Nombre contacto</label>
+                <input value={modalHerr.contacto_nombre || ''} onChange={e => setModalHerr(p => ({ ...p!, contacto_nombre: e.target.value }))} className="inp" placeholder="Nombre" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Teléfono contacto</label>
+                <input value={modalHerr.contacto_telefono || ''} onChange={e => setModalHerr(p => ({ ...p!, contacto_telefono: e.target.value }))} className="inp" placeholder="+56 9 1234 5678" />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Email contacto</label>
+                <input type="email" value={modalHerr.contacto_email || ''} onChange={e => setModalHerr(p => ({ ...p!, contacto_email: e.target.value }))} className="inp" placeholder="contacto@proveedor.com" />
               </div>
               <div className="col-span-2">
                 <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Descripción / uso</label>
