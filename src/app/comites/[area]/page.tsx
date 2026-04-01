@@ -17,6 +17,8 @@ import TaskStackedBar from '@/components/comites/TaskStackedBar'
 import UserSelect from '@/components/comites/UserSelect'
 import Modal, { Field, Input, Select, Row2, Btn } from '@/components/comites/Modal'
 import AnimatedBar from '@/components/comites/AnimatedBar'
+import ViewToggle from '@/components/comites/ViewToggle'
+import type { ViewMode } from '@/components/comites/ViewToggle'
 
 const TIPO_KEYS: TareaTipo[] = ['seguimiento', 'acuerdo', 'accion_correctiva', 'solicitud']
 
@@ -64,6 +66,9 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
   const [taskFecha, setTaskFecha] = useState('')
   const [taskTipo, setTaskTipo] = useState<TareaTipo>('seguimiento')
   const [taskAreaDestino, setTaskAreaDestino] = useState('')
+
+  // Task view mode
+  const [taskViewMode, setTaskViewMode] = useState<ViewMode>('cards')
 
   // Task edit modal
   const [editTask, setEditTask] = useState<Tarea | null>(null)
@@ -323,7 +328,10 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-slate">{tareas.length} tarea{tareas.length !== 1 ? 's' : ''}</span>
-              <button onClick={() => setShowTaskForm(!showTaskForm)} className="text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold" style={{ background: 'var(--org-primary)' }}>+ Agregar</button>
+              <div className="flex items-center gap-2">
+                <ViewToggle view={taskViewMode} onChange={v => setTaskViewMode(v)} options={['cards', 'tabla']} />
+                <button onClick={() => setShowTaskForm(!showTaskForm)} className="text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold" style={{ background: 'var(--org-primary)' }}>+ Agregar</button>
+              </div>
             </div>
             {/* Add form */}
             {showTaskForm && (
@@ -348,6 +356,7 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
             )}
 
             {/* Kanban 3 columns */}
+            {taskViewMode === 'cards' && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {([
                 { key: 'pendiente', label: 'Pendientes', color: '#64748B', bg: '#F8FAFC', items: tareas.filter(t => t.estado === 'pendiente' || t.estado === 'bloqueada') },
@@ -388,6 +397,68 @@ export default function AreaEditPage({ params }: { params: { area: string } }) {
                 </div>
               ))}
             </div>
+            )}
+
+            {/* Tabla view */}
+            {taskViewMode === 'tabla' && (
+              <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
+                <table className="w-full text-xs min-w-[700px]">
+                  <thead>
+                    <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                      <th className="text-left px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Estado</th>
+                      <th className="text-left px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Tarea</th>
+                      <th className="text-left px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Responsable</th>
+                      <th className="text-left px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Tipo</th>
+                      <th className="text-left px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Fecha compromiso</th>
+                      <th className="text-left px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate">Área destino</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      const estadoOrder: Record<string, number> = { bloqueada: 0, 'en-proceso': 1, pendiente: 2, completada: 3 }
+                      const sorted = [...tareas].sort((a, b) => (estadoOrder[a.estado] ?? 9) - (estadoOrder[b.estado] ?? 9))
+                      const ESTADO_META: Record<string, { label: string; color: string }> = {
+                        bloqueada: { label: 'Bloqueada', color: '#DC2626' },
+                        'en-proceso': { label: 'En proceso', color: '#0B5ED7' },
+                        pendiente: { label: 'Pendiente', color: '#64748B' },
+                        completada: { label: 'Completada', color: '#16A34A' },
+                      }
+                      return sorted.map(t => {
+                        const em = ESTADO_META[t.estado] || { label: t.estado, color: '#64748B' }
+                        const tipoColor = TAREA_TIPO_COLORS[t.tipo || 'seguimiento'] || '#64748B'
+                        const isOverdue = t.fecha_compromiso && new Date(t.fecha_compromiso) < new Date() && t.estado !== 'completada'
+                        return (
+                          <tr key={t.id} onClick={() => openEditTask(t)} className="border-b border-[#E2E8F0] hover:bg-[#F8FAFC] cursor-pointer transition-colors">
+                            <td className="px-3 py-2.5">
+                              <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: em.color }} />
+                                <span className="text-[11px] font-semibold" style={{ color: em.color }}>{em.label}</span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-2.5 text-[11px] font-medium text-ink max-w-[280px]">{t.texto}</td>
+                            <td className="px-3 py-2.5 text-[11px] text-slate">{t.responsable || '—'}</td>
+                            <td className="px-3 py-2.5">
+                              <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase" style={{ background: tipoColor + '15', color: tipoColor }}>
+                                {TAREA_TIPO_LABELS[t.tipo || 'seguimiento']}
+                              </span>
+                            </td>
+                            <td className={`px-3 py-2.5 text-[11px] font-mono ${isOverdue ? 'text-red-600 font-bold' : 'text-slate'}`}>
+                              {t.fecha_compromiso ? fmtFecha(t.fecha_compromiso) : '—'}
+                            </td>
+                            <td className="px-3 py-2.5 text-[11px] text-slate">
+                              {t.area_destino && t.area_destino !== areaId ? (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-purple-50 text-purple-600">→ {AREA_NAMES[t.area_destino] || t.area_destino}</span>
+                              ) : '—'}
+                            </td>
+                          </tr>
+                        )
+                      })
+                    })()}
+                  </tbody>
+                </table>
+                {tareas.length === 0 && <p className="text-xs text-slate text-center py-8">Sin tareas registradas.</p>}
+              </div>
+            )}
           </motion.div>
         )}
 

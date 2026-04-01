@@ -8,6 +8,8 @@ import { useAuth } from '@/lib/comites/hooks'
 import Modal, { Field, Input, Select, Row2, Btn } from '@/components/comites/Modal'
 import SummaryCard from '@/components/comites/SummaryCard'
 import KpiCards from '@/components/comites/KpiCards'
+import ViewToggle from '@/components/comites/ViewToggle'
+import HBar from '@/components/comites/HBar'
 import { toast } from '@/components/ui/Toast'
 
 // ── Config ──
@@ -138,6 +140,11 @@ function DotacionTab({ metricas, ultimo, canEdit, onSave, onRemove, docs, capaci
 }) {
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<MetricaRRHH | null>(null)
+  const [dotView, setDotView] = useState<'tabla' | 'grafico'>('tabla')
+
+  // Data for grafico: last 6 months reversed (oldest first)
+  const last6 = useMemo(() => metricas.slice(0, 6).reverse(), [metricas])
+  const maxDot = useMemo(() => Math.max(...last6.map(m => Math.max(m.dotacion_constructora, m.dotacion_subcontrato)), 1), [last6])
 
   return (
     <>
@@ -172,53 +179,73 @@ function DotacionTab({ metricas, ultimo, canEdit, onSave, onRemove, docs, capaci
       {/* Controls */}
       <div className="flex items-center justify-between mb-3">
         <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate">{metricas.length} mes{metricas.length !== 1 ? 'es' : ''} registrado{metricas.length !== 1 ? 's' : ''}</p>
-        {canEdit && (
-          <button onClick={() => { setEditing(null); setModal(true) }}
-            className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
-            + Registrar mes
-          </button>
-        )}
+        <div className="flex gap-2 items-center">
+          <ViewToggle view={dotView} onChange={v => setDotView(v as 'tabla' | 'grafico')} options={['tabla', 'grafico']} />
+          {canEdit && (
+            <button onClick={() => { setEditing(null); setModal(true) }}
+              className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
+              + Registrar mes
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tabla histórica */}
-      <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
-        <table className="w-full text-xs min-w-[750px]">
-          <thead>
-            <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
-              <th className="text-left p-3">Mes</th>
-              <th className="text-right p-3">Constructora</th>
-              <th className="text-right p-3">Subcontrato</th>
-              <th className="text-right p-3">Total</th>
-              <th className="text-right p-3">Asistencia</th>
-              <th className="text-right p-3">Lic. med.</th>
-              <th className="text-right p-3">Vac.</th>
-              <th className="text-right p-3">Ingresos</th>
-              <th className="text-right p-3">Salidas</th>
-              <th className="text-left p-3">Obs.</th>
-            </tr>
-          </thead>
-          <tbody>
-            {metricas.map(m => (
-              <tr key={m.id} onClick={() => { setEditing(m); setModal(true) }}
-                className="border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors cursor-pointer">
-                <td className="p-3 font-bold">{fmtMes(m.mes)}</td>
-                <td className="p-3 text-right font-condensed font-bold text-[#0B5ED7]">{m.dotacion_constructora}</td>
-                <td className="p-3 text-right font-condensed font-bold text-[#D97706]">{m.dotacion_subcontrato}</td>
-                <td className="p-3 text-right font-condensed font-bold text-ink">{m.trabajadores_vigentes}</td>
-                <td className="p-3 text-right font-bold" style={{ color: m.tasa_asistencia >= 90 ? '#16A34A' : m.tasa_asistencia >= 80 ? '#D97706' : '#DC2626' }}>
-                  {m.tasa_asistencia > 0 ? `${m.tasa_asistencia}%` : '—'}
-                </td>
-                <td className="p-3 text-right">{m.licencias_medicas || '—'}</td>
-                <td className="p-3 text-right">{m.vacaciones || '—'}</td>
-                <td className="p-3 text-right text-[#16A34A] font-bold">{m.contrataciones > 0 ? `+${m.contrataciones}` : '—'}</td>
-                <td className="p-3 text-right text-[#DC2626] font-bold">{m.desvinculaciones > 0 ? `-${m.desvinculaciones}` : '—'}</td>
-                <td className="p-3 text-[11px] text-slate max-w-[120px] truncate">{m.observacion || '—'}</td>
+      {dotView === 'tabla' && (
+        <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
+          <table className="w-full text-xs min-w-[750px]">
+            <thead>
+              <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
+                <th className="text-left p-3">Mes</th>
+                <th className="text-right p-3">Constructora</th>
+                <th className="text-right p-3">Subcontrato</th>
+                <th className="text-right p-3">Total</th>
+                <th className="text-right p-3">Asistencia</th>
+                <th className="text-right p-3">Lic. med.</th>
+                <th className="text-right p-3">Vac.</th>
+                <th className="text-right p-3">Ingresos</th>
+                <th className="text-right p-3">Salidas</th>
+                <th className="text-left p-3">Obs.</th>
               </tr>
-            ))}
-            {metricas.length === 0 && <tr><td colSpan={10} className="p-8 text-center text-slate">Sin registros mensuales. Agrega el primer mes.</td></tr>}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {metricas.map(m => (
+                <tr key={m.id} onClick={() => { setEditing(m); setModal(true) }}
+                  className="border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors cursor-pointer">
+                  <td className="p-3 font-bold">{fmtMes(m.mes)}</td>
+                  <td className="p-3 text-right font-condensed font-bold text-[#0B5ED7]">{m.dotacion_constructora}</td>
+                  <td className="p-3 text-right font-condensed font-bold text-[#D97706]">{m.dotacion_subcontrato}</td>
+                  <td className="p-3 text-right font-condensed font-bold text-ink">{m.trabajadores_vigentes}</td>
+                  <td className="p-3 text-right font-bold" style={{ color: m.tasa_asistencia >= 90 ? '#16A34A' : m.tasa_asistencia >= 80 ? '#D97706' : '#DC2626' }}>
+                    {m.tasa_asistencia > 0 ? `${m.tasa_asistencia}%` : '—'}
+                  </td>
+                  <td className="p-3 text-right">{m.licencias_medicas || '—'}</td>
+                  <td className="p-3 text-right">{m.vacaciones || '—'}</td>
+                  <td className="p-3 text-right text-[#16A34A] font-bold">{m.contrataciones > 0 ? `+${m.contrataciones}` : '—'}</td>
+                  <td className="p-3 text-right text-[#DC2626] font-bold">{m.desvinculaciones > 0 ? `-${m.desvinculaciones}` : '—'}</td>
+                  <td className="p-3 text-[11px] text-slate max-w-[120px] truncate">{m.observacion || '—'}</td>
+                </tr>
+              ))}
+              {metricas.length === 0 && <tr><td colSpan={10} className="p-8 text-center text-slate">Sin registros mensuales. Agrega el primer mes.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Gráfico dotación por mes */}
+      {dotView === 'grafico' && (
+        <div className="bg-white rounded-xl border border-[#E2E8F0] p-5 space-y-4">
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Dotacion por mes (ultimos 6 meses)</p>
+          {last6.length === 0 && <p className="text-xs text-slate text-center py-6">Sin datos para graficar.</p>}
+          {last6.map((m, i) => (
+            <div key={m.id} className="space-y-1.5">
+              <p className="text-[11px] font-bold text-ink">{fmtMes(m.mes)}</p>
+              <HBar label="Constructora" value={m.dotacion_constructora} max={maxDot} color="#0B5ED7" delay={i * 0.05} />
+              <HBar label="Subcontrato" value={m.dotacion_subcontrato} max={maxDot} color="#D97706" delay={i * 0.05 + 0.03} />
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Modal */}
       <MetricaModal open={modal} onClose={() => setModal(false)} editing={editing}
@@ -240,6 +267,7 @@ function AuditoriasTab({ auditorias, canEdit, onSave, onRemove }: {
   const [editing, setEditing] = useState<Auditoria | null>(null)
   const [filtro, setFiltro] = useState<string>('todas')
   const [searchAud, setSearchAud] = useState('')
+  const [audView, setAudView] = useState<'cards' | 'tabla'>('cards')
 
   const stats = useMemo(() => {
     const aprobadas = auditorias.filter(a => a.resultado === 'aprobada' || a.resultado === 'aprobada_observaciones').length
@@ -287,6 +315,7 @@ function AuditoriasTab({ auditorias, canEdit, onSave, onRemove }: {
           ))}
         </div>
         <div className="flex gap-2 items-center">
+          <ViewToggle view={audView} onChange={v => setAudView(v as 'cards' | 'tabla')} options={['cards', 'tabla']} />
           <input type="text" placeholder="Buscar auditoria..." value={searchAud} onChange={e => setSearchAud(e.target.value)}
             className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
           {canEdit && (
@@ -298,50 +327,89 @@ function AuditoriasTab({ auditorias, canEdit, onSave, onRemove }: {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
-        <table className="w-full text-xs min-w-[700px]">
-          <thead>
-            <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
-              <th className="text-left p-3">Auditoria</th>
-              <th className="text-left p-3">Tipo</th>
-              <th className="text-left p-3">Fecha</th>
-              <th className="text-left p-3">Resultado</th>
-              <th className="text-right p-3">Puntaje</th>
-              <th className="text-right p-3">Hallazgos</th>
-              <th className="text-left p-3">Auditor</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(a => {
-              const res = RESULTADO_AUD[a.resultado]
-              const abiertos = a.hallazgos - a.hallazgos_cerrados
-              return (
-                <tr key={a.id} onClick={() => { setEditing(a); setModal(true) }}
-                  className="border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors cursor-pointer">
-                  <td className="p-3 font-bold">{a.nombre}</td>
-                  <td className="p-3 text-[11px]">{TIPO_AUD[a.tipo] || a.tipo}</td>
-                  <td className="p-3 text-[11px] text-slate">{a.fecha || '—'}</td>
-                  <td className="p-3">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold"
-                      style={{ background: res.color + '18', color: res.color }}>{res.label}</span>
-                  </td>
-                  <td className="p-3 text-right font-bold">{a.puntaje != null ? `${a.puntaje}%` : '—'}</td>
-                  <td className="p-3 text-right">
-                    {a.hallazgos > 0 ? (
-                      <span>
-                        <span className="font-bold">{a.hallazgos_cerrados}/{a.hallazgos}</span>
-                        {abiertos > 0 && <span className="text-danger font-bold ml-1">({abiertos} abiertos)</span>}
-                      </span>
-                    ) : '—'}
-                  </td>
-                  <td className="p-3 text-[11px] text-slate">{a.auditor || '—'}</td>
-                </tr>
-              )
-            })}
-            {filtered.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-slate">{searchAud ? 'Sin resultados.' : 'Sin auditorias en este filtro.'}</td></tr>}
-          </tbody>
-        </table>
-      </div>
+      {/* Cards view */}
+      {audView === 'cards' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {filtered.map(a => {
+            const res = RESULTADO_AUD[a.resultado]
+            const abiertos = a.hallazgos - a.hallazgos_cerrados
+            return (
+              <div key={a.id} onClick={() => { setEditing(a); setModal(true) }}
+                className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md hover:border-[#CBD5E1] transition-all cursor-pointer"
+                style={{ borderLeftWidth: 3, borderLeftColor: res.color }}>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <p className="text-xs font-bold text-ink leading-tight">{a.nombre}</p>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold shrink-0"
+                    style={{ background: res.color + '18', color: res.color }}>{res.label}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+                  <span className="text-slate">Tipo</span>
+                  <span className="font-semibold">{TIPO_AUD[a.tipo] || a.tipo}</span>
+                  <span className="text-slate">Fecha</span>
+                  <span className="font-semibold">{a.fecha || '—'}</span>
+                  <span className="text-slate">Puntaje</span>
+                  <span className="font-bold">{a.puntaje != null ? `${a.puntaje}%` : '—'}</span>
+                  <span className="text-slate">Hallazgos</span>
+                  <span className="font-semibold">
+                    {a.hallazgos > 0 ? <>{a.hallazgos_cerrados}/{a.hallazgos}{abiertos > 0 && <span className="text-[#DC2626] ml-1">({abiertos})</span>}</> : '—'}
+                  </span>
+                  <span className="text-slate">Auditor</span>
+                  <span className="font-semibold">{a.auditor || '—'}</span>
+                </div>
+              </div>
+            )
+          })}
+          {filtered.length === 0 && <p className="col-span-full text-center text-slate text-xs py-8">{searchAud ? 'Sin resultados.' : 'Sin auditorias en este filtro.'}</p>}
+        </div>
+      )}
+
+      {/* Tabla view */}
+      {audView === 'tabla' && (
+        <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
+          <table className="w-full text-xs min-w-[700px]">
+            <thead>
+              <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
+                <th className="text-left p-3">Auditoria</th>
+                <th className="text-left p-3">Tipo</th>
+                <th className="text-left p-3">Fecha</th>
+                <th className="text-left p-3">Resultado</th>
+                <th className="text-right p-3">Puntaje</th>
+                <th className="text-right p-3">Hallazgos</th>
+                <th className="text-left p-3">Auditor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(a => {
+                const res = RESULTADO_AUD[a.resultado]
+                const abiertos = a.hallazgos - a.hallazgos_cerrados
+                return (
+                  <tr key={a.id} onClick={() => { setEditing(a); setModal(true) }}
+                    className="border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors cursor-pointer">
+                    <td className="p-3 font-bold">{a.nombre}</td>
+                    <td className="p-3 text-[11px]">{TIPO_AUD[a.tipo] || a.tipo}</td>
+                    <td className="p-3 text-[11px] text-slate">{a.fecha || '—'}</td>
+                    <td className="p-3">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold"
+                        style={{ background: res.color + '18', color: res.color }}>{res.label}</span>
+                    </td>
+                    <td className="p-3 text-right font-bold">{a.puntaje != null ? `${a.puntaje}%` : '—'}</td>
+                    <td className="p-3 text-right">
+                      {a.hallazgos > 0 ? (
+                        <span>
+                          <span className="font-bold">{a.hallazgos_cerrados}/{a.hallazgos}</span>
+                          {abiertos > 0 && <span className="text-danger font-bold ml-1">({abiertos} abiertos)</span>}
+                        </span>
+                      ) : '—'}
+                    </td>
+                    <td className="p-3 text-[11px] text-slate">{a.auditor || '—'}</td>
+                  </tr>
+                )
+              })}
+              {filtered.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-slate">{searchAud ? 'Sin resultados.' : 'Sin auditorias en este filtro.'}</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <AuditoriaModal open={modal} onClose={() => setModal(false)} editing={editing}
         onSave={async (input, id) => { await onSave({ ...input, id }); setModal(false); toast(id ? 'Auditoria actualizada' : 'Auditoria registrada') }}
@@ -362,6 +430,7 @@ function DocumentacionTab({ docs, canEdit, onSave, onRemove }: {
   const [editing, setEditing] = useState<DocRRHH | null>(null)
   const [filtroDoc, setFiltroDoc] = useState<string>('todos')
   const [searchDoc, setSearchDoc] = useState('')
+  const [docView, setDocView] = useState<'cards' | 'tabla'>('cards')
 
   const stats = useMemo(() => {
     const vigentes = docs.filter(d => d.estado === 'vigente').length
@@ -406,6 +475,7 @@ function DocumentacionTab({ docs, canEdit, onSave, onRemove }: {
           ))}
         </div>
         <div className="flex gap-2 items-center">
+          <ViewToggle view={docView} onChange={v => setDocView(v as 'cards' | 'tabla')} options={['cards', 'tabla']} />
           <input type="text" placeholder="Buscar documento..." value={searchDoc} onChange={e => setSearchDoc(e.target.value)}
             className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
           {canEdit && (
@@ -417,40 +487,78 @@ function DocumentacionTab({ docs, canEdit, onSave, onRemove }: {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
-        <table className="w-full text-xs min-w-[650px]">
-          <thead>
-            <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
-              <th className="text-left p-3">Documento</th>
-              <th className="text-left p-3">Tipo</th>
-              <th className="text-left p-3">Estado</th>
-              <th className="text-left p-3">Responsable</th>
-              <th className="text-left p-3">Vencimiento</th>
-              <th className="text-left p-3">Enlace</th>
-            </tr>
-          </thead>
-          <tbody>
-            {docsFiltrados.map(d => {
-              const est = ESTADO_DOC[d.estado]
-              return (
-                <tr key={d.id} onClick={() => { setEditing(d); setModal(true) }}
-                  className="border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors cursor-pointer">
-                  <td className="p-3 font-bold">{d.nombre}</td>
-                  <td className="p-3 text-[11px]">{TIPO_DOC[d.tipo] || d.tipo}</td>
-                  <td className="p-3">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold"
-                      style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
-                  </td>
-                  <td className="p-3 text-slate">{d.responsable || '—'}</td>
-                  <td className="p-3 text-[11px] text-slate">{d.fecha_vencimiento || '—'}</td>
-                  <td className="p-3">{d.url ? <a href={d.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-cobalt hover:underline text-[11px]">Ver</a> : '—'}</td>
-                </tr>
-              )
-            })}
-            {docsFiltrados.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-slate">{searchDoc ? 'Sin resultados.' : 'Sin documentos en este filtro.'}</td></tr>}
-          </tbody>
-        </table>
-      </div>
+      {/* Cards view */}
+      {docView === 'cards' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {docsFiltrados.map(d => {
+            const est = ESTADO_DOC[d.estado]
+            return (
+              <div key={d.id} onClick={() => { setEditing(d); setModal(true) }}
+                className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md hover:border-[#CBD5E1] transition-all cursor-pointer"
+                style={{ borderLeftWidth: 3, borderLeftColor: est.color }}>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <p className="text-xs font-bold text-ink leading-tight">{d.nombre}</p>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold shrink-0"
+                    style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+                  <span className="text-slate">Tipo</span>
+                  <span className="font-semibold">{TIPO_DOC[d.tipo] || d.tipo}</span>
+                  <span className="text-slate">Responsable</span>
+                  <span className="font-semibold">{d.responsable || '—'}</span>
+                  <span className="text-slate">Vencimiento</span>
+                  <span className="font-semibold">{d.fecha_vencimiento || '—'}</span>
+                </div>
+                {d.url && (
+                  <div className="mt-2 pt-2 border-t border-[#F1F5F9]">
+                    <a href={d.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                      className="text-cobalt hover:underline text-[11px] font-semibold">Ver documento</a>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+          {docsFiltrados.length === 0 && <p className="col-span-full text-center text-slate text-xs py-8">{searchDoc ? 'Sin resultados.' : 'Sin documentos en este filtro.'}</p>}
+        </div>
+      )}
+
+      {/* Tabla view */}
+      {docView === 'tabla' && (
+        <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
+          <table className="w-full text-xs min-w-[650px]">
+            <thead>
+              <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
+                <th className="text-left p-3">Documento</th>
+                <th className="text-left p-3">Tipo</th>
+                <th className="text-left p-3">Estado</th>
+                <th className="text-left p-3">Responsable</th>
+                <th className="text-left p-3">Vencimiento</th>
+                <th className="text-left p-3">Enlace</th>
+              </tr>
+            </thead>
+            <tbody>
+              {docsFiltrados.map(d => {
+                const est = ESTADO_DOC[d.estado]
+                return (
+                  <tr key={d.id} onClick={() => { setEditing(d); setModal(true) }}
+                    className="border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors cursor-pointer">
+                    <td className="p-3 font-bold">{d.nombre}</td>
+                    <td className="p-3 text-[11px]">{TIPO_DOC[d.tipo] || d.tipo}</td>
+                    <td className="p-3">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold"
+                        style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
+                    </td>
+                    <td className="p-3 text-slate">{d.responsable || '—'}</td>
+                    <td className="p-3 text-[11px] text-slate">{d.fecha_vencimiento || '—'}</td>
+                    <td className="p-3">{d.url ? <a href={d.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-cobalt hover:underline text-[11px]">Ver</a> : '—'}</td>
+                  </tr>
+                )
+              })}
+              {docsFiltrados.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-slate">{searchDoc ? 'Sin resultados.' : 'Sin documentos en este filtro.'}</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <DocModal open={modal} onClose={() => setModal(false)} editing={editing}
         onSave={async (input, id) => { await onSave({ ...input, id }); setModal(false); toast(id ? 'Actualizado' : 'Documento agregado') }}
@@ -471,6 +579,7 @@ function CapacitacionesTab({ capacitaciones, projects, canEdit, onSave, onRemove
   const [editing, setEditing] = useState<Capacitacion | null>(null)
   const [filtroCap, setFiltroCap] = useState<string>('todas')
   const [searchCap, setSearchCap] = useState('')
+  const [capView, setCapView] = useState<'cards' | 'tabla' | 'grafico'>('tabla')
 
   const stats = useMemo(() => {
     const completadas = capacitaciones.filter(c => c.estado === 'completada').length
@@ -478,6 +587,16 @@ function CapacitacionesTab({ capacitaciones, projects, canEdit, onSave, onRemove
     const horasTotal = capacitaciones.filter(c => c.estado === 'completada').reduce((s, c) => s + c.horas, 0)
     return { completadas, programadas, horasTotal }
   }, [capacitaciones])
+
+  const horasPorTipo = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const c of capacitaciones) {
+      map.set(c.tipo, (map.get(c.tipo) || 0) + c.horas)
+    }
+    return Array.from(map.entries()).map(([tipo, horas]) => ({ tipo, label: TIPO_CAP[tipo] || tipo, horas }))
+      .sort((a, b) => b.horas - a.horas)
+  }, [capacitaciones])
+  const maxHorasTipo = useMemo(() => Math.max(...horasPorTipo.map(h => h.horas), 1), [horasPorTipo])
 
   const capFiltradas = useMemo(() => {
     let list = filtroCap === 'todas' ? capacitaciones : capacitaciones.filter(c => c.estado === filtroCap)
@@ -514,6 +633,7 @@ function CapacitacionesTab({ capacitaciones, projects, canEdit, onSave, onRemove
           ))}
         </div>
         <div className="flex gap-2 items-center">
+          <ViewToggle view={capView} onChange={v => setCapView(v as 'cards' | 'tabla' | 'grafico')} options={['cards', 'tabla', 'grafico']} />
           <input type="text" placeholder="Buscar capacitacion..." value={searchCap} onChange={e => setSearchCap(e.target.value)}
             className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
           {canEdit && (
@@ -525,42 +645,95 @@ function CapacitacionesTab({ capacitaciones, projects, canEdit, onSave, onRemove
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
-        <table className="w-full text-xs min-w-[650px]">
-          <thead>
-            <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
-              <th className="text-left p-3">Capacitacion</th>
-              <th className="text-left p-3">Tipo</th>
-              <th className="text-left p-3">Persona / Area</th>
-              <th className="text-right p-3">Horas</th>
-              <th className="text-left p-3">Fecha</th>
-              <th className="text-left p-3">Estado</th>
-              <th className="text-left p-3">Proveedor</th>
-            </tr>
-          </thead>
-          <tbody>
-            {capFiltradas.map(c => {
-              const est = ESTADO_CAP[c.estado]
-              return (
-                <tr key={c.id} onClick={() => { setEditing(c); setModal(true) }}
-                  className="border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors cursor-pointer">
-                  <td className="p-3 font-bold">{c.nombre}</td>
-                  <td className="p-3 text-[11px]">{TIPO_CAP[c.tipo] || c.tipo}</td>
-                  <td className="p-3 text-[11px] text-slate">{c.persona || c.area || '—'}</td>
-                  <td className="p-3 text-right font-bold">{c.horas > 0 ? c.horas : '—'}</td>
-                  <td className="p-3 text-[11px] text-slate">{c.fecha || '—'}</td>
-                  <td className="p-3">
+      {/* Cards view */}
+      {capView === 'cards' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {capFiltradas.map(c => {
+            const est = ESTADO_CAP[c.estado]
+            const tipoColor = c.tipo === 'seguridad' ? '#DC2626' : c.tipo === 'induccion' ? '#16A34A' : c.tipo === 'tecnica' ? '#0B5ED7' : '#D97706'
+            return (
+              <div key={c.id} onClick={() => { setEditing(c); setModal(true) }}
+                className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md hover:border-[#CBD5E1] transition-all cursor-pointer"
+                style={{ borderLeftWidth: 3, borderLeftColor: tipoColor }}>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <p className="text-xs font-bold text-ink leading-tight">{c.nombre}</p>
+                  <div className="flex gap-1 shrink-0">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold"
+                      style={{ background: tipoColor + '18', color: tipoColor }}>{TIPO_CAP[c.tipo] || c.tipo}</span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-extrabold"
                       style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
-                  </td>
-                  <td className="p-3 text-[11px] text-slate">{c.proveedor || '—'}</td>
-                </tr>
-              )
-            })}
-            {capFiltradas.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-slate">{searchCap ? 'Sin resultados.' : 'Sin capacitaciones en este filtro.'}</td></tr>}
-          </tbody>
-        </table>
-      </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+                  <span className="text-slate">Persona</span>
+                  <span className="font-semibold">{c.persona || c.area || '—'}</span>
+                  <span className="text-slate">Horas</span>
+                  <span className="font-bold">{c.horas > 0 ? `${c.horas}h` : '—'}</span>
+                  <span className="text-slate">Fecha</span>
+                  <span className="font-semibold">{c.fecha || '—'}</span>
+                  {c.proveedor && <>
+                    <span className="text-slate">Proveedor</span>
+                    <span className="font-semibold">{c.proveedor}</span>
+                  </>}
+                </div>
+              </div>
+            )
+          })}
+          {capFiltradas.length === 0 && <p className="col-span-full text-center text-slate text-xs py-8">{searchCap ? 'Sin resultados.' : 'Sin capacitaciones en este filtro.'}</p>}
+        </div>
+      )}
+
+      {/* Tabla view */}
+      {capView === 'tabla' && (
+        <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
+          <table className="w-full text-xs min-w-[650px]">
+            <thead>
+              <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
+                <th className="text-left p-3">Capacitacion</th>
+                <th className="text-left p-3">Tipo</th>
+                <th className="text-left p-3">Persona / Area</th>
+                <th className="text-right p-3">Horas</th>
+                <th className="text-left p-3">Fecha</th>
+                <th className="text-left p-3">Estado</th>
+                <th className="text-left p-3">Proveedor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {capFiltradas.map(c => {
+                const est = ESTADO_CAP[c.estado]
+                return (
+                  <tr key={c.id} onClick={() => { setEditing(c); setModal(true) }}
+                    className="border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors cursor-pointer">
+                    <td className="p-3 font-bold">{c.nombre}</td>
+                    <td className="p-3 text-[11px]">{TIPO_CAP[c.tipo] || c.tipo}</td>
+                    <td className="p-3 text-[11px] text-slate">{c.persona || c.area || '—'}</td>
+                    <td className="p-3 text-right font-bold">{c.horas > 0 ? c.horas : '—'}</td>
+                    <td className="p-3 text-[11px] text-slate">{c.fecha || '—'}</td>
+                    <td className="p-3">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold"
+                        style={{ background: est.color + '18', color: est.color }}>{est.label}</span>
+                    </td>
+                    <td className="p-3 text-[11px] text-slate">{c.proveedor || '—'}</td>
+                  </tr>
+                )
+              })}
+              {capFiltradas.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-slate">{searchCap ? 'Sin resultados.' : 'Sin capacitaciones en este filtro.'}</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Gráfico horas por tipo */}
+      {capView === 'grafico' && (
+        <div className="bg-white rounded-xl border border-[#E2E8F0] p-5 space-y-3">
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Horas de capacitacion por tipo</p>
+          {horasPorTipo.length === 0 && <p className="text-xs text-slate text-center py-6">Sin datos para graficar.</p>}
+          {horasPorTipo.map((h, i) => {
+            const color = h.tipo === 'seguridad' ? '#DC2626' : h.tipo === 'induccion' ? '#16A34A' : h.tipo === 'tecnica' ? '#0B5ED7' : h.tipo === 'liderazgo' ? '#7C3AED' : h.tipo === 'normativa' ? '#D97706' : '#94A3B8'
+            return <HBar key={h.tipo} label={h.label} value={h.horas} max={maxHorasTipo} color={color} delay={i * 0.06} formatValue={v => `${v}h`} />
+          })}
+        </div>
+      )}
 
       <CapacitacionModal open={modal} onClose={() => setModal(false)} editing={editing} projects={projects}
         onSave={async (input, id) => { await onSave({ ...input, id }); setModal(false); toast(id ? 'Actualizada' : 'Capacitacion agregada') }}

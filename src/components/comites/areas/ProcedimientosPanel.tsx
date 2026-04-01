@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/comites/hooks'
 import { fmtFecha } from '@/lib/comites/data'
 import Modal, { Field, Input, Select, Row2, Btn, Divider } from '@/components/comites/Modal'
 import UserSelect from '@/components/comites/UserSelect'
+import ViewToggle from '@/components/comites/ViewToggle'
 import { toast } from '@/components/ui/Toast'
 
 const FECHA_FIELDS: { key: keyof Procedimiento; label: string; etapa: ProcEstado }[] = [
@@ -65,6 +66,7 @@ export default function ProcedimientosPanel({ areaId }: Props) {
   const [modal, setModal] = useState<Procedimiento | 'new' | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<'todos' | 'activos' | 'vigentes'>('todos')
+  const [view, setView] = useState<'cards' | 'tabla'>('cards')
   const [uploading, setUploading] = useState(false)
 
   // Form state
@@ -134,11 +136,14 @@ export default function ProcedimientosPanel({ areaId }: Props) {
             </button>
           ))}
         </div>
-        {ce && (
-          <button onClick={openNew} className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
-            + Nuevo procedimiento
-          </button>
-        )}
+        <div className="flex gap-2 items-center">
+          <ViewToggle view={view} onChange={v => setView(v as 'cards' | 'tabla')} options={['cards', 'tabla']} />
+          {ce && (
+            <button onClick={openNew} className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
+              + Nuevo procedimiento
+            </button>
+          )}
+        </div>
       </div>
 
       {/* List */}
@@ -146,7 +151,10 @@ export default function ProcedimientosPanel({ areaId }: Props) {
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate text-sm">
           Sin procedimientos en este filtro.
         </div>
-      ) : (
+      ) : (<>
+
+      {/* ═══ CARDS (lista expandible original) ═══ */}
+      {view === 'cards' && (
         <div className="space-y-2">
           {filtered.map(p => {
             const cfg = etapaConfig(p.estado)
@@ -244,6 +252,46 @@ export default function ProcedimientosPanel({ areaId }: Props) {
           })}
         </div>
       )}
+
+      {/* ═══ TABLA ═══ */}
+      {view === 'tabla' && (
+        <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
+          <table className="w-full text-xs min-w-[700px]">
+            <thead>
+              <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
+                <th className="text-left p-3">Código</th>
+                <th className="text-left p-3">Nombre</th>
+                <th className="text-left p-3">Tipo</th>
+                <th className="text-left p-3">Estado</th>
+                <th className="text-left p-3">Responsable</th>
+                <th className="text-center p-3">Versión</th>
+                <th className="text-center p-3">Progreso</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(p => {
+                const cfg = etapaConfig(p.estado)
+                return (
+                  <tr key={p.id} onClick={() => ce && openEdit(p)}
+                    className={`border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors ${ce ? 'cursor-pointer' : ''}`}>
+                    <td className="p-3 font-mono text-[10px] font-bold text-slate">{p.codigo || '—'}</td>
+                    <td className="p-3 font-bold text-ink">{p.nombre}</td>
+                    <td className="p-3 text-slate-500">{tipoLabel(p.tipo)}</td>
+                    <td className="p-3">
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: cfg.color + '18', color: cfg.color }}>{cfg.label}</span>
+                    </td>
+                    <td className="p-3 text-slate-500">{p.responsable || '—'}</td>
+                    <td className="p-3 text-center text-slate-500">v{p.version}</td>
+                    <td className="p-3"><EtapaBar proc={p} /></td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      </>)}
 
       {/* ══ MODAL ══ */}
       <Modal open={!!modal} onClose={() => setModal(null)}

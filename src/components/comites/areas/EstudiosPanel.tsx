@@ -6,6 +6,8 @@ import type { ProyectoEstado } from '@/lib/types'
 import { isEstudio, ESTADO_LABELS, ESTADO_COLORS } from '@/lib/types'
 import { fmtMM, fmtFecha } from '@/lib/comites/data'
 import KpiCards from '@/components/comites/KpiCards'
+import ViewToggle from '@/components/comites/ViewToggle'
+import HBar from '@/components/comites/HBar'
 import PlanInversionPanel from './PlanInversionPanel'
 
 const ESTUDIO_ESTADOS: ProyectoEstado[] = ['en_evaluacion', 'en_estudio', 'en_aclaracion', 'sin_informacion']
@@ -15,6 +17,7 @@ type SubTab = 'pipeline' | 'inversion'
 
 export default function EstudiosPanel() {
   const [subTab, setSubTab] = useState<SubTab>('pipeline')
+  const [pipeView, setPipeView] = useState<'cards' | 'tabla' | 'grafico'>('tabla')
   const { projects, loading } = useProjects()
 
   // Pipeline: proyectos en etapa de estudio
@@ -129,12 +132,21 @@ export default function EstudiosPanel() {
         )
       })()}
 
-      {/* Pipeline tabla */}
+      {/* ViewToggle + Pipeline */}
+      {pipeline.length > 0 && (
+        <div className="flex justify-end mb-3">
+          <ViewToggle view={pipeView} onChange={v => setPipeView(v)} options={['cards', 'tabla', 'grafico']} />
+        </div>
+      )}
+
       {pipeline.length === 0 ? (
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-500 text-sm">
           Sin proyectos en estudio. Agrega proyectos desde el Maestro de Proyectos.
         </div>
-      ) : (
+      ) : (<>
+
+      {/* ═══ TABLA ═══ */}
+      {pipeView === 'tabla' && (
         <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden mb-4">
           <table className="w-full text-xs">
             <thead>
@@ -201,6 +213,95 @@ export default function EstudiosPanel() {
           </table>
         </div>
       )}
+
+      {/* ═══ CARDS ═══ */}
+      {pipeView === 'cards' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+          {pipeline.map(p => (
+              <motion.div key={p.id}
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
+                className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md hover:border-[#CBD5E1] transition-all cursor-pointer"
+                style={{ borderLeftWidth: 3, borderLeftColor: ESTADO_COLORS[p.estado] }}>
+                <div className="flex items-start justify-between mb-2">
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-bold text-ink truncate">{p.nombre}</h3>
+                    {p.mandante && <p className="text-[11px] text-slate-500">{p.mandante}</p>}
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
+                    style={{ background: ESTADO_COLORS[p.estado] + '15', color: ESTADO_COLORS[p.estado] }}>
+                    {ESTADO_LABELS[p.estado]}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-[11px]">
+                  <div>
+                    <p className="text-slate-400">Monto</p>
+                    <p className="font-condensed font-bold text-ink">{p.monto_licitacion > 0 ? fmtMM(p.monto_licitacion) : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Margen</p>
+                    <p className="font-condensed font-bold" style={{ color: p.margen_estudio_pct >= 15 ? '#16A34A' : '#D97706' }}>
+                      {p.margen_estudio_pct > 0 ? `${p.margen_estudio_pct}%` : '—'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Oferta</p>
+                    <p className="font-bold text-ink">
+                      {p.fecha_oferta ? fmtFecha(p.fecha_oferta) : <span className="text-red-400">sin fecha</span>}
+                    </p>
+                  </div>
+                </div>
+                {p.observacion && <p className="text-[10px] text-slate-500 mt-2 truncate">{p.observacion}</p>}
+              </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* ═══ GRÁFICO ═══ */}
+      {pipeView === 'grafico' && (() => {
+        const porMandante = new Map<string, { name: string; monto: number; count: number }>()
+        pipeline.forEach(p => {
+          const key = p.mandante || 'Sin mandante'
+          const entry = porMandante.get(key) || { name: key, monto: 0, count: 0 }
+          entry.monto += p.monto_licitacion
+          entry.count++
+          porMandante.set(key, entry)
+        })
+        const groups = Array.from(porMandante.values()).sort((a, b) => b.monto - a.monto)
+        const maxMonto = groups[0]?.monto || 1
+
+        const porEstado = ESTUDIO_ESTADOS.map(est => ({
+          name: ESTADO_LABELS[est],
+          monto: consol.porEstado[est]?.monto || 0,
+          count: consol.porEstado[est]?.count || 0,
+          color: ESTADO_COLORS[est],
+        })).filter(e => e.count > 0)
+        const maxEstMonto = porEstado[0]?.monto || 1
+
+        return (
+          <div className="space-y-4 mb-4">
+            <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Pipeline por mandante</p>
+              <div className="space-y-2.5">
+                {groups.map((g, i) => (
+                  <HBar key={g.name} label={`${g.name} (${g.count})`} value={g.monto} max={maxMonto}
+                    color="#0B5ED7" delay={i * 0.06} />
+                ))}
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Monto por estado</p>
+              <div className="space-y-2.5">
+                {porEstado.map((e, i) => (
+                  <HBar key={e.name} label={`${e.name} (${e.count})`} value={e.monto} max={maxEstMonto}
+                    color={e.color} delay={i * 0.06} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      </>)}
 
       {/* Resultados recientes */}
       {resultados.length > 0 && (

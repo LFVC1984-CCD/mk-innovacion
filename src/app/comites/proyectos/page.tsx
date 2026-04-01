@@ -11,6 +11,7 @@ import { ESTADO_LABELS, ESTADO_COLORS } from '@/lib/types'
 import { toast } from '@/components/ui/Toast'
 import ViewToggle from '@/components/comites/ViewToggle'
 import type { ViewMode } from '@/components/comites/ViewToggle'
+import HBar from '@/components/comites/HBar'
 import { fmtFecha, fmtMM } from '@/lib/comites/data'
 
 type FilterKey = 'todos' | 'estudio' | 'adjudicados' | 'cerrados' | 'no_adjudicados'
@@ -171,7 +172,7 @@ export default function ProyectosPage() {
             {/* View toggle */}
             <div className="flex items-center justify-between mb-3">
               <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate">{filtered.length} proyecto{filtered.length !== 1 ? 's' : ''}</p>
-              <ViewToggle view={view} onChange={setView} options={['cards', 'tabla']} />
+              <ViewToggle view={view} onChange={setView} options={['cards', 'tabla', 'grafico']} />
             </div>
 
             {/* Content */}
@@ -179,7 +180,9 @@ export default function ProyectosPage() {
               <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-400 text-sm">
                 Sin proyectos en este filtro.
               </div>
-            ) : view === 'cards' ? (
+            ) : (<>
+
+            {view === 'cards' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {filtered.map(p => (
                   <ProyectoCard
@@ -190,7 +193,9 @@ export default function ProyectosPage() {
                   />
                 ))}
               </div>
-            ) : (
+            )}
+
+            {view === 'tabla' && (
               <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
@@ -237,6 +242,43 @@ export default function ProyectosPage() {
                 </table>
               </div>
             )}
+
+            {view === 'grafico' && (() => {
+              const conContrato = filtered.filter(p => p.contrato > 0).sort((a, b) => b.contrato - a.contrato)
+              const maxContrato = conContrato[0]?.contrato || 1
+              const porEstado = new Map<string, { label: string; count: number; color: string }>()
+              filtered.forEach(p => {
+                const entry = porEstado.get(p.estado) || { label: ESTADO_LABELS[p.estado], count: 0, color: ESTADO_COLORS[p.estado] }
+                entry.count++
+                porEstado.set(p.estado, entry)
+              })
+              const estadoGroups = Array.from(porEstado.values()).sort((a, b) => b.count - a.count)
+              const maxEst = estadoGroups[0]?.count || 1
+              return (
+                <div className="space-y-4">
+                  {conContrato.length > 0 && (
+                    <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Monto contrato por proyecto</p>
+                      <div className="space-y-2.5">
+                        {conContrato.slice(0, 15).map((p, i) => (
+                          <HBar key={p.id} label={p.nombre} value={p.contrato} max={maxContrato} color="#0B5ED7" delay={i * 0.06} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Proyectos por estado</p>
+                    <div className="space-y-2.5">
+                      {estadoGroups.map((g, i) => (
+                        <HBar key={g.label} label={g.label} value={g.count} max={maxEst} color={g.color} delay={i * 0.06} formatValue={v => String(v)} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+
+            </>)}
 
             {/* Modal */}
             <ProyectoModal

@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/comites/hooks'
 import MiembroCard from '@/components/comites/MiembroCard'
 import MiembroModal from '@/components/comites/MiembroModal'
 import ViewToggle, { type ViewMode } from '@/components/comites/ViewToggle'
+import HBar from '@/components/comites/HBar'
 import type { Miembro, Proyecto } from '@/lib/types'
 import { toast } from '@/components/ui/Toast'
 import { ESTADO_COLORS, fechaTerminoEfectiva } from '@/lib/types'
@@ -193,7 +194,7 @@ function ListadoView({
             </button>
           ))}
         </div>
-        <ViewToggle view={viewMode} onChange={setViewMode} options={['cards', 'tabla']} />
+        <ViewToggle view={viewMode} onChange={setViewMode} options={['cards', 'tabla', 'grafico']} />
       </div>
 
       {/* Proyecto + Cargo filters */}
@@ -232,7 +233,9 @@ function ListadoView({
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate-500 text-sm">
           Sin profesionales en este filtro.
         </div>
-      ) : viewMode === 'cards' ? (
+      ) : (<>
+
+      {viewMode === 'cards' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {filtered.map(m => (
             <MiembroCard
@@ -244,8 +247,9 @@ function ListadoView({
             />
           ))}
         </div>
-      ) : (
-        /* Tabla view */
+      )}
+
+      {viewMode === 'tabla' && (
         <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden shadow-sm">
           <table className="w-full text-left">
             <thead>
@@ -291,6 +295,51 @@ function ListadoView({
           </table>
         </div>
       )}
+
+      {viewMode === 'grafico' && (() => {
+        const porProyecto = new Map<string, { name: string; count: number }>()
+        filtered.forEach(m => {
+          const name = m.proyecto_nombre || 'Sin asignar'
+          const entry = porProyecto.get(name) || { name, count: 0 }
+          entry.count++
+          porProyecto.set(name, entry)
+        })
+        const projGroups = Array.from(porProyecto.values()).sort((a, b) => b.count - a.count)
+        const maxProj = projGroups[0]?.count || 1
+
+        const porCargo = new Map<string, { name: string; count: number }>()
+        filtered.forEach(m => {
+          const name = m.cargo || 'Sin cargo'
+          const entry = porCargo.get(name) || { name, count: 0 }
+          entry.count++
+          porCargo.set(name, entry)
+        })
+        const cargoGroups = Array.from(porCargo.values()).sort((a, b) => b.count - a.count)
+        const maxCargo = cargoGroups[0]?.count || 1
+
+        return (
+          <div className="space-y-4">
+            <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Personas por proyecto</p>
+              <div className="space-y-2.5">
+                {projGroups.map((g, i) => (
+                  <HBar key={g.name} label={g.name} value={g.count} max={maxProj} color="#0B5ED7" delay={i * 0.06} formatValue={v => String(v)} />
+                ))}
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Personas por cargo</p>
+              <div className="space-y-2.5">
+                {cargoGroups.map((g, i) => (
+                  <HBar key={g.name} label={g.name} value={g.count} max={maxCargo} color="#D97706" delay={i * 0.06} formatValue={v => String(v)} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      </>)}
     </>
   )
 }

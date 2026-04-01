@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtMoney } from '@/lib/comites/data'
 import KpiCards from '@/components/comites/KpiCards'
+import { toast } from '@/components/ui/Toast'
 import ViewToggle from '@/components/comites/ViewToggle'
 import type { ViewMode } from '@/components/comites/ViewToggle'
 import type { HerramientaETI, HerramientaEstado, HerramientaCategoria, ProyectoInnovacion, EtapaInnovacion, TipoRutaInnovacion } from '@/lib/types'
@@ -75,6 +76,7 @@ export default function ETIPanel() {
   const [tab, setTab] = useState<'herramientas' | 'innovacion' | 'equipo'>('herramientas')
   const [viewInn, setViewInn] = useState<'gantt' | 'cards' | 'tabla'>('gantt')
   const [viewHerr, setViewHerr] = useState<ViewMode>('tabla')
+  const [chartGroupBy, setChartGroupBy] = useState<'proveedor' | 'categoria'>('proveedor')
   const [modalHerr, setModalHerr] = useState<Partial<HerramientaETI> | null>(null)
   const [modalProy, setModalProy] = useState<Partial<ProyectoInnovacion> | null>(null)
   const [modalMiembro, setModalMiembro] = useState<Partial<MiembroETI> | null>(null)
@@ -110,14 +112,18 @@ export default function ETIPanel() {
   // ── CRUD Herramientas ──
   async function saveHerr() {
     if (!modalHerr || !modalHerr.nombre?.trim()) return
-    // Strip non-column fields before sending to Supabase
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id, created_at, ...payload } = modalHerr as HerramientaETI & { created_at?: string }
+    let error
     if (id) {
-      await supabase.from('herramientas_eti').update(payload).eq('id', id)
+      const res = await supabase.from('herramientas_eti').update(payload).eq('id', id)
+      error = res.error
     } else {
-      await supabase.from('herramientas_eti').insert(payload)
+      const res = await supabase.from('herramientas_eti').insert(payload)
+      error = res.error
     }
+    if (error) { toast(`Error: ${error.message}`); return }
+    toast('Herramienta guardada')
     setModalHerr(null)
     load()
   }
@@ -131,12 +137,20 @@ export default function ETIPanel() {
   // ── CRUD Proyectos Innovación ──
   async function saveProy() {
     if (!modalProy || !modalProy.nombre?.trim()) return
+    let error
     if ((modalProy as ProyectoInnovacion).id) {
-      const { id, ...rest } = modalProy as ProyectoInnovacion
-      await supabase.from('proyectos_innovacion').update(rest).eq('id', id)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, created_at, ...rest } = modalProy as ProyectoInnovacion & { created_at?: string }
+      const res = await supabase.from('proyectos_innovacion').update(rest).eq('id', id)
+      error = res.error
     } else {
-      await supabase.from('proyectos_innovacion').insert(modalProy)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { created_at, ...rest } = modalProy as ProyectoInnovacion & { created_at?: string }
+      const res = await supabase.from('proyectos_innovacion').insert(rest)
+      error = res.error
     }
+    if (error) { toast(`Error: ${error.message}`); return }
+    toast('Proyecto guardado')
     setModalProy(null)
     load()
   }
@@ -144,18 +158,27 @@ export default function ETIPanel() {
   async function deleteProy(id: string) {
     if (!confirm('¿Eliminar este proyecto?')) return
     await supabase.from('proyectos_innovacion').delete().eq('id', id)
+    toast('Proyecto eliminado')
     load()
   }
 
   // ── CRUD Equipo ETI ──
   async function saveMiembro() {
     if (!modalMiembro || !modalMiembro.nombre?.trim()) return
+    let error
     if ((modalMiembro as MiembroETI).id) {
-      const { id, ...rest } = modalMiembro as MiembroETI
-      await supabase.from('equipo_eti').update(rest).eq('id', id)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, created_at: _ca3, ...rest } = modalMiembro as MiembroETI & { created_at?: string }
+      const res = await supabase.from('equipo_eti').update(rest).eq('id', id)
+      error = res.error
     } else {
-      await supabase.from('equipo_eti').insert(modalMiembro)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { created_at: _created2, ...rest } = modalMiembro as MiembroETI & { created_at?: string }
+      const res = await supabase.from('equipo_eti').insert(rest)
+      error = res.error
     }
+    if (error) { toast(`Error: ${error.message}`); return }
+    toast('Miembro guardado')
     setModalMiembro(null)
     load()
   }
@@ -319,32 +342,57 @@ export default function ETIPanel() {
               </div>
             )}
 
-            {/* Grafico view — horizontal bars by cost */}
+            {/* Grafico view — horizontal bars grouped by proveedor or categoria */}
             {viewHerr === 'grafico' && (() => {
               const activas = herramientas.filter(h => h.estado === 'activa')
-              const sorted = [...activas].sort((a, b) => (b.costo_mensual_usd * 12 + b.costo_anual_usd) - (a.costo_mensual_usd * 12 + a.costo_anual_usd))
-              const maxCost = sorted.length > 0 ? (sorted[0].costo_mensual_usd * 12 + sorted[0].costo_anual_usd) : 1
+              // Group by selected dimension
+              const groupMap = new Map<string, { name: string; count: number; total: number }>()
+              for (const h of activas) {
+                const key = chartGroupBy === 'proveedor'
+                  ? (h.proveedor || 'Sin proveedor')
+                  : (CAT_LABELS[h.categoria] || h.categoria || 'Sin categoría')
+                const entry = groupMap.get(key) || { name: key, count: 0, total: 0 }
+                entry.count += 1
+                entry.total += h.costo_mensual_usd * 12 + h.costo_anual_usd
+                groupMap.set(key, entry)
+              }
+              const groups = Array.from(groupMap.values()).sort((a, b) => b.total - a.total)
+              const maxCost = groups.length > 0 ? groups[0].total : 1
+              const grandTotal = groups.reduce((s, g) => s + g.total, 0)
               return (
                 <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
-                  <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-4">Costo anual estimado por herramienta (activas)</h4>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Costo anual por {chartGroupBy === 'proveedor' ? 'proveedor' : 'categoría'} (activas)</h4>
+                    <div className="flex gap-0.5 bg-[#F1F5F9] rounded-lg p-0.5 border border-[#E2E8F0]">
+                      {(['proveedor', 'categoria'] as const).map(opt => (
+                        <button key={opt} onClick={() => setChartGroupBy(opt)}
+                          className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all ${
+                            chartGroupBy === opt ? 'bg-white text-ink shadow-sm' : 'text-slate hover:text-ink'
+                          }`}>
+                          {opt === 'proveedor' ? 'Proveedor' : 'Categoría'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="space-y-2.5">
-                    {sorted.map(h => {
-                      const totalAnual = h.costo_mensual_usd * 12 + h.costo_anual_usd
-                      const pct = maxCost > 0 ? Math.round((totalAnual / maxCost) * 100) : 0
+                    {groups.map(g => {
+                      const pct = maxCost > 0 ? Math.round((g.total / maxCost) * 100) : 0
                       return (
-                        <div key={h.id} className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-lg px-2 py-1 -mx-2 transition-colors" onClick={() => ce && setModalHerr({ ...h })}>
-                          <span className="w-32 text-xs font-semibold text-ink truncate flex-shrink-0">{h.nombre}</span>
+                        <div key={g.name} className="flex items-center gap-3 rounded-lg px-2 py-1 -mx-2">
+                          <span className="w-40 text-xs font-semibold text-ink truncate flex-shrink-0">
+                            {g.name} <span className="text-slate-400 font-normal">({g.count})</span>
+                          </span>
                           <div className="flex-1 h-5 bg-[#F1F5F9] rounded-full overflow-hidden">
                             <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #0B5ED7, #3B82F6)' }} />
                           </div>
-                          <span className="text-xs font-condensed font-bold text-cobalt w-24 text-right flex-shrink-0">${totalAnual.toLocaleString()}/año</span>
+                          <span className="text-xs font-condensed font-bold text-cobalt w-28 text-right flex-shrink-0">${g.total.toLocaleString()}/año</span>
                         </div>
                       )
                     })}
-                    {sorted.length === 0 && <p className="text-xs text-slate-400 text-center py-4">Sin herramientas activas con costo.</p>}
+                    {groups.length === 0 && <p className="text-xs text-slate-400 text-center py-4">Sin herramientas activas con costo.</p>}
                   </div>
                   <div className="mt-4 pt-3 border-t border-[#E2E8F0] flex justify-end">
-                    <span className="text-xs font-bold text-ink">Total: <span className="font-condensed text-cobalt">${sorted.reduce((s, h) => s + h.costo_mensual_usd * 12 + h.costo_anual_usd, 0).toLocaleString()} USD/año</span></span>
+                    <span className="text-xs font-bold text-ink">Total: <span className="font-condensed text-cobalt">${grandTotal.toLocaleString()} USD/año</span></span>
                   </div>
                 </div>
               )

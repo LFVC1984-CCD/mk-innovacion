@@ -5,6 +5,8 @@ import { useProjects } from '@/lib/comites/use-projects'
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtFecha } from '@/lib/comites/data'
 import KpiCards from '@/components/comites/KpiCards'
+import ViewToggle from '@/components/comites/ViewToggle'
+import HBar from '@/components/comites/HBar'
 import type { EventoSeguridad, EstadisticaMensual, TipoEvento, Gravedad } from '@/lib/types'
 
 const EMPTY_EVENTO: Omit<EventoSeguridad, 'id'> = {
@@ -40,6 +42,7 @@ export default function PrevencionPanel() {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<'abiertos' | 'cerrados' | 'todos'>('abiertos')
   const [search, setSearch] = useState('')
+  const [view, setView] = useState<'cards' | 'tabla' | 'grafico'>('cards')
 
   async function load() {
     setLoading(true)
@@ -217,6 +220,7 @@ export default function PrevencionPanel() {
         <div className="flex gap-2 items-center">
           <input type="text" placeholder="Buscar evento, trabajador..." value={search} onChange={e => setSearch(e.target.value)}
             className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
+          <ViewToggle view={view} onChange={v => setView(v)} options={['cards', 'tabla', 'grafico']} />
           {ce && (
             <button onClick={() => setModalEvento({ ...EMPTY_EVENTO })} className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
               + Registrar evento
@@ -230,23 +234,116 @@ export default function PrevencionPanel() {
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate text-sm">
           {search ? 'Sin resultados para esta busqueda.' : 'Sin eventos en este filtro.'}
         </div>
-      ) : (
-        <>
-          {eventosFiltrados.length > 0 && (
-            <div className="mb-4">
-              {eventosFiltrados.map(e => (
-                <EventoRow key={e.id} evento={e} proyectoName={proyectoName(e.proyecto_id)}
-                  expanded={expanded === e.id} onToggle={() => setExpanded(expanded === e.id ? null : e.id)}
-                  onEdit={ce ? () => setModalEvento({ ...e }) : undefined}
-                  onDelete={ce ? () => deleteEvento(e.id) : undefined}
-                  onToggleCerrado={ce ? () => toggleCerrado(e) : undefined}
-                />
-              ))}
+      ) : (<>
+
+        {/* ═══ CARDS (lista expandible original) ═══ */}
+        {view === 'cards' && (
+          <div className="mb-4">
+            {eventosFiltrados.map(e => (
+              <EventoRow key={e.id} evento={e} proyectoName={proyectoName(e.proyecto_id)}
+                expanded={expanded === e.id} onToggle={() => setExpanded(expanded === e.id ? null : e.id)}
+                onEdit={ce ? () => setModalEvento({ ...e }) : undefined}
+                onDelete={ce ? () => deleteEvento(e.id) : undefined}
+                onToggleCerrado={ce ? () => toggleCerrado(e) : undefined}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* ═══ TABLA ═══ */}
+        {view === 'tabla' && (
+          <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto mb-4">
+            <table className="w-full text-xs min-w-[800px]">
+              <thead>
+                <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
+                  <th className="text-left p-3">Tipo</th>
+                  <th className="text-left p-3">Gravedad</th>
+                  <th className="text-left p-3">Obra</th>
+                  <th className="text-left p-3">Trabajador</th>
+                  <th className="text-left p-3">Fecha</th>
+                  <th className="text-center p-3">Días Perd.</th>
+                  <th className="text-center p-3">Estado</th>
+                  <th className="text-left p-3">Descripción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {eventosFiltrados.map(e => {
+                  const tipo = TIPO_CONFIG[e.tipo]
+                  const grav = GRAVEDAD_CONFIG[e.gravedad]
+                  return (
+                    <tr key={e.id} onClick={() => ce && setModalEvento({ ...e })}
+                      className={`border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors ${ce ? 'cursor-pointer' : ''} ${e.cerrado ? 'opacity-60' : ''}`}>
+                      <td className="p-3">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: tipo.color + '15', color: tipo.color }}>{tipo.label}</span>
+                      </td>
+                      <td className="p-3">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: grav.color + '15', color: grav.color }}>{grav.label}</span>
+                      </td>
+                      <td className="p-3 font-semibold text-ink">{proyectoName(e.proyecto_id)}</td>
+                      <td className="p-3 text-slate-500">{e.trabajador || '—'}</td>
+                      <td className="p-3 text-slate-500">{e.fecha ? fmtFecha(e.fecha) : '—'}</td>
+                      <td className="p-3 text-center">
+                        <span className={`font-condensed font-bold ${e.dias_perdidos > 0 ? 'text-red-500' : 'text-slate-400'}`}>{e.dias_perdidos}</span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${e.cerrado ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}>
+                          {e.cerrado ? 'Cerrado' : 'Abierto'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-slate-500 max-w-[200px] truncate" title={e.descripcion || ''}>{e.descripcion || '—'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ═══ GRÁFICO ═══ */}
+        {view === 'grafico' && (() => {
+          const porTipo = Object.entries(TIPO_CONFIG).map(([key, cfg]) => ({
+            name: cfg.label,
+            count: eventosFiltrados.filter(e => e.tipo === key).length,
+            color: cfg.color,
+          })).filter(t => t.count > 0).sort((a, b) => b.count - a.count)
+          const maxTipo = porTipo[0]?.count || 1
+
+          const porObra = new Map<string, { name: string; count: number; dias: number }>()
+          eventosFiltrados.forEach(e => {
+            const name = proyectoName(e.proyecto_id)
+            const entry = porObra.get(name) || { name, count: 0, dias: 0 }
+            entry.count++
+            entry.dias += e.dias_perdidos
+            porObra.set(name, entry)
+          })
+          const obraGroups = Array.from(porObra.values()).sort((a, b) => b.count - a.count)
+          const maxObra = obraGroups[0]?.count || 1
+
+          return (
+            <div className="space-y-4 mb-4">
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Eventos por tipo</p>
+                <div className="space-y-2.5">
+                  {porTipo.map((t, i) => (
+                    <HBar key={t.name} label={t.name} value={t.count} max={maxTipo}
+                      color={t.color} delay={i * 0.06} formatValue={v => String(v)} />
+                  ))}
+                </div>
+              </div>
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Eventos por obra</p>
+                <div className="space-y-2.5">
+                  {obraGroups.map((g, i) => (
+                    <HBar key={g.name} label={`${g.name} (${g.dias}d)`} value={g.count} max={maxObra}
+                      color={g.dias > 0 ? '#DC2626' : '#0B5ED7'} delay={i * 0.06} formatValue={v => String(v)} />
+                  ))}
+                </div>
+              </div>
             </div>
-          )}
-          {/* Cerrados se muestran con el filtro */}
-        </>
-      )}
+          )
+        })()}
+
+      </>)}
 
       {/* ══ MODAL EVENTO ══ */}
       {modalEvento && (

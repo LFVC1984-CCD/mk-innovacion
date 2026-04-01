@@ -10,6 +10,7 @@ import { isObra } from '@/lib/types'
 import Modal, { Field, Input, Select, Row2, Btn } from '@/components/comites/Modal'
 import UserSelect from '@/components/comites/UserSelect'
 import KpiCards from '@/components/comites/KpiCards'
+import ViewToggle from '@/components/comites/ViewToggle'
 import { toast } from '@/components/ui/Toast'
 
 const ESTADO_BADGE: Record<string, { bg: string; text: string; label: string }> = {
@@ -46,6 +47,7 @@ export default function ReunionesObraPanel() {
   const [modalReunion, setModalReunion] = useState<ReunionObra | 'new' | null>(null)
   const [modalTarea, setModalTarea] = useState<{ proyectoId: string } | null>(null)
   const [filtroObra, setFiltroObra] = useState<string>('todos')
+  const [view, setView] = useState<'cards' | 'tabla'>('cards')
 
   // ── Form state reunión ──
   const [form, setForm] = useState({
@@ -160,14 +162,62 @@ export default function ReunionesObraPanel() {
           </select>
           <span className="text-[10px] text-slate">{filtered.length} reunion{filtered.length !== 1 ? 'es' : ''}</span>
         </div>
-        {ce && (
-          <button onClick={openNewReunion} className="bg-cobalt text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
-            + Nueva reunion
-          </button>
-        )}
+        <div className="flex gap-2 items-center">
+          <ViewToggle view={view} onChange={v => setView(v as 'cards' | 'tabla')} options={['cards', 'tabla']} />
+          {ce && (
+            <button onClick={openNewReunion} className="bg-cobalt text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
+              + Nueva reunion
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* ── Timeline por obra ── */}
+      {/* ═══ TABLA ═══ */}
+      {view === 'tabla' && (
+        <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto">
+          <table className="w-full text-xs min-w-[800px]">
+            <thead>
+              <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
+                <th className="text-left p-3">Fecha</th>
+                <th className="text-left p-3">Obra</th>
+                <th className="text-center p-3">Estado</th>
+                <th className="text-right p-3">Avance</th>
+                <th className="text-right p-3">Próx EP</th>
+                <th className="text-center p-3">Tareas Pend.</th>
+                <th className="text-center p-3">Duración</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(r => {
+                const obraNombre = obras.find(p => p.id === r.proyecto_id)?.nombre || 'Proyecto'
+                const tareasR = tareas.filter(t => t.proyecto_id === r.proyecto_id)
+                const pend = tareasR.filter(t => t.estado !== 'completada').length
+                return (
+                  <tr key={r.id} onClick={() => setSelected(selected?.id === r.id ? null : r)}
+                    className="border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors cursor-pointer">
+                    <td className="p-3 font-bold text-ink">{fmtFechaCorta(r.fecha)}</td>
+                    <td className="p-3 font-semibold text-ink">{obraNombre}</td>
+                    <td className="p-3 text-center"><Badge estado={r.estado} /></td>
+                    <td className="p-3 text-right font-condensed font-bold" style={{ color: r.avance_reportado >= 50 ? '#16A34A' : '#0B5ED7' }}>
+                      {r.avance_reportado > 0 ? `${r.avance_reportado}%` : '—'}
+                    </td>
+                    <td className="p-3 text-right font-condensed font-bold text-green-600">
+                      {r.proximo_ep_monto > 0 ? fmtMM(r.proximo_ep_monto) : '—'}
+                    </td>
+                    <td className="p-3 text-center">
+                      <span className={`font-bold ${pend > 0 ? 'text-amber-600' : 'text-green-600'}`}>{pend}</span>
+                    </td>
+                    <td className="p-3 text-center text-slate-500">{r.duracion_min > 0 ? `${r.duracion_min}m` : '—'}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ═══ CARDS (Timeline por obra) ═══ */}
+      {view === 'cards' && (
       <div className="space-y-4">
         {porProyecto.length === 0 && (
           <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate text-sm">
@@ -328,6 +378,7 @@ export default function ReunionesObraPanel() {
           </div>
         ))}
       </div>
+      )}
 
       {/* ══ MODAL REUNION ══ */}
       <Modal open={!!modalReunion} onClose={() => setModalReunion(null)}

@@ -26,24 +26,7 @@ function SectionLabel({ children }: { children: string }) {
   return <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-2.5">{children}</p>
 }
 
-function HBar({ label, value, max, color, delay = 0 }: { label: string; value: number; max: number; color: string; delay?: number }) {
-  const pct = max > 0 ? Math.min(100, Math.round(value / max * 100)) : 0
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-[11px] font-semibold w-36 truncate">{label}</span>
-      <div className="flex-1 h-2 bg-[#F1F5F9] rounded-full overflow-hidden">
-        <motion.div
-          className="h-full rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
-          style={{ background: color }}
-        />
-      </div>
-      <span className="text-[11px] font-bold min-w-[50px] text-right" style={{ color }}>{fmtShort(value)}</span>
-    </div>
-  )
-}
+import HBar from '@/components/comites/HBar'
 
 export default function GarantiasPanel() {
   const { loading, garantias, entidades, instrumentos, lineas, proyectos, saveGarantia, deleteGarantia, saveEntidad, deleteEntidad, saveLinea, deleteLinea, uploadFile } = useGarantias()

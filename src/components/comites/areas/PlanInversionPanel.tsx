@@ -8,6 +8,7 @@ import { fmtMM } from '@/lib/comites/data'
 import KpiCards from '@/components/comites/KpiCards'
 import Modal, { Field, Input, Select, Row2, Btn } from '@/components/comites/Modal'
 import ViewToggle from '@/components/comites/ViewToggle'
+import HBar from '@/components/comites/HBar'
 import { toast } from '@/components/ui/Toast'
 
 const SEGMENTO_LABELS: Record<string, string> = {
@@ -19,7 +20,7 @@ export default function PlanInversionPanel() {
   const { items, loading, save, remove } = usePlanInversion()
   const { canEdit } = useAuth()
   const ce = canEdit('estudios')
-  const [view, setView] = useState<'cards' | 'tabla'>('tabla')
+  const [view, setView] = useState<'cards' | 'tabla' | 'grafico'>('tabla')
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<PlanInversion | null>(null)
   const [filterEstado, setFilterEstado] = useState<string>('activos')
@@ -101,7 +102,7 @@ export default function PlanInversionPanel() {
           ))}
         </div>
         <div className="flex gap-2 items-center">
-          <ViewToggle view={view} onChange={v => setView(v as typeof view)} options={['cards', 'tabla']} />
+          <ViewToggle view={view} onChange={v => setView(v as typeof view)} options={['cards', 'tabla', 'grafico']} />
           {ce && (
             <button onClick={openNew} className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
               + Nueva oportunidad
@@ -230,6 +231,55 @@ export default function PlanInversionPanel() {
           )}
         </div>
       )}
+
+      {/* ═══ GRÁFICO ═══ */}
+      {view === 'grafico' && (() => {
+        const porCliente = new Map<string, { name: string; monto: number; ponderado: number; count: number }>()
+        filtered.forEach(item => {
+          const key = item.cliente || 'Sin cliente'
+          const entry = porCliente.get(key) || { name: key, monto: 0, ponderado: 0, count: 0 }
+          entry.monto += item.monto_estimado
+          entry.ponderado += item.monto_estimado * (item.probabilidad / 100)
+          entry.count++
+          porCliente.set(key, entry)
+        })
+        const groups = Array.from(porCliente.values()).sort((a, b) => b.ponderado - a.ponderado)
+        const maxPond = groups[0]?.ponderado || 1
+
+        const porEstado = new Map<string, { name: string; monto: number; count: number; color: string }>()
+        filtered.forEach(item => {
+          const est = ESTADO_PLAN[item.estado]
+          const entry = porEstado.get(item.estado) || { name: est.label, monto: 0, count: 0, color: est.color }
+          entry.monto += item.monto_estimado
+          entry.count++
+          porEstado.set(item.estado, entry)
+        })
+        const estadoGroups = Array.from(porEstado.values()).sort((a, b) => b.monto - a.monto)
+        const maxEstado = estadoGroups[0]?.monto || 1
+
+        return (
+          <div className="space-y-4">
+            <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Monto ponderado por cliente</p>
+              <div className="space-y-2.5">
+                {groups.map((g, i) => (
+                  <HBar key={g.name} label={`${g.name} (${g.count})`} value={g.ponderado} max={maxPond}
+                    color="#0B5ED7" delay={i * 0.06} />
+                ))}
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Pipeline por estado</p>
+              <div className="space-y-2.5">
+                {estadoGroups.map((g, i) => (
+                  <HBar key={g.name} label={`${g.name} (${g.count})`} value={g.monto} max={maxEstado}
+                    color={g.color} delay={i * 0.06} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Modal */}
       <PlanInversionModal

@@ -5,6 +5,8 @@ import { useProjects } from '@/lib/comites/use-projects'
 import { useAuth } from '@/lib/comites/hooks'
 import { fmtFecha, fmtMM } from '@/lib/comites/data'
 import KpiCards from '@/components/comites/KpiCards'
+import ViewToggle from '@/components/comites/ViewToggle'
+import HBar from '@/components/comites/HBar'
 import type { CausaLegal, CausaEstado, CausaTipo, DocumentoLegal, DocTipo } from '@/lib/types'
 
 type FiltroEstado = 'activas' | 'cerradas' | 'todas'
@@ -83,6 +85,7 @@ export default function LegalPanel() {
   const [newDoc, setNewDoc] = useState<{ tipo: DocTipo; nombre: string; url: string }>({ tipo: 'contrato', nombre: '', url: '' })
   const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>('activas')
   const [search, setSearch] = useState('')
+  const [view, setView] = useState<'cards' | 'tabla' | 'grafico'>('cards')
 
   const abogados = useAbogados(causas)
   const contrapartes = useContrapartes(causas)
@@ -225,6 +228,7 @@ export default function LegalPanel() {
         <div className="flex gap-2 items-center">
           <input type="text" placeholder="Buscar causa, contraparte..." value={search} onChange={e => setSearch(e.target.value)}
             className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
+          <ViewToggle view={view} onChange={v => setView(v)} options={['cards', 'tabla', 'grafico']} />
           {ce && (
             <button onClick={() => setModalCausa({ proyecto_id: null, titulo: '', tipo: 'reclamo', estado: 'activa', contraparte: null, monto_reclamado: 0, monto_provision: 0, fecha_inicio: null, fecha_audiencia: null, abogado_responsable: null, descripcion: null, riesgo: 'medio' })}
               className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
@@ -234,132 +238,222 @@ export default function LegalPanel() {
         </div>
       </div>
 
-      {/* ── Lista ── */}
+      {/* ── Vistas ── */}
       {causasFiltradas.length === 0 ? (
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center text-slate text-sm">
           {search ? 'Sin resultados para esta busqueda.' : 'Sin causas en este filtro.'}
         </div>
-      ) : (
-        <>
-          {causasFiltradas.length > 0 && (
-            <div className="space-y-2.5 mb-5">
-              {causasFiltradas.map(c => {
-                const est = ESTADO_CFG[c.estado]
-                const riesgo = RIESGO_CFG[c.riesgo]
-                const causaDocs = docs.filter(d => d.causa_id === c.id)
-                const isExp = expanded === c.id
-                return (
-                  <div key={c.id} className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden hover:shadow-md transition-shadow">
-                    {/* Row */}
-                    <div className="px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-[#F8FAFC] transition-colors" onClick={() => setExpanded(isExp ? null : c.id)}>
-                      <span className="w-1 h-8 rounded-full shrink-0" style={{ background: est.color }} />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-xs font-bold text-ink truncate">{c.titulo}</h3>
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: riesgo.color + '15', color: riesgo.color }}>{riesgo.label}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate">
-                          <span>{TIPO_OPTS.find(t => t.value === c.tipo)?.label}</span>
-                          <span>·</span>
-                          <span>{proyectoName(c.proyecto_id)}</span>
-                          {c.contraparte && <><span>·</span><span>vs {c.contraparte}</span></>}
-                        </div>
+      ) : (<>
+
+        {/* ═══ CARDS (expandible con docs inline) ═══ */}
+        {view === 'cards' && (
+          <div className="space-y-2.5 mb-5">
+            {causasFiltradas.map(c => {
+              const est = ESTADO_CFG[c.estado]
+              const riesgo = RIESGO_CFG[c.riesgo]
+              const causaDocs = docs.filter(d => d.causa_id === c.id)
+              const isExp = expanded === c.id
+              return (
+                <div key={c.id} className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden hover:shadow-md transition-shadow">
+                  <div className="px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-[#F8FAFC] transition-colors" onClick={() => setExpanded(isExp ? null : c.id)}>
+                    <span className="w-1 h-8 rounded-full shrink-0" style={{ background: est.color }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xs font-bold text-ink truncate">{c.titulo}</h3>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: riesgo.color + '15', color: riesgo.color }}>{riesgo.label}</span>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {c.monto_reclamado > 0 && <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-50 text-amber font-bold">{fmtMM(c.monto_reclamado)}</span>}
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: est.color + '15', color: est.color }}>{est.label}</span>
-                        {causaDocs.length > 0 && <span className="text-[10px] text-slate">{causaDocs.length} doc{causaDocs.length !== 1 ? 's' : ''}</span>}
-                        <span className="text-slate text-sm">{isExp ? '▾' : '▸'}</span>
+                      <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate">
+                        <span>{TIPO_OPTS.find(t => t.value === c.tipo)?.label}</span>
+                        <span>·</span>
+                        <span>{proyectoName(c.proyecto_id)}</span>
+                        {c.contraparte && <><span>·</span><span>vs {c.contraparte}</span></>}
                       </div>
                     </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {c.monto_reclamado > 0 && <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-50 text-amber font-bold">{fmtMM(c.monto_reclamado)}</span>}
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: est.color + '15', color: est.color }}>{est.label}</span>
+                      {causaDocs.length > 0 && <span className="text-[10px] text-slate">{causaDocs.length} doc{causaDocs.length !== 1 ? 's' : ''}</span>}
+                      <span className="text-slate text-sm">{isExp ? '▾' : '▸'}</span>
+                    </div>
+                  </div>
 
-                    {/* Expanded detail */}
-                    {isExp && (
-                      <div className="px-4 pb-4 border-t border-[#E2E8F0]">
-                        <div className="grid grid-cols-4 gap-3 py-3 text-[11px]">
-                          <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-0.5">Abogado</span><span className="text-ink font-semibold">{c.abogado_responsable || '—'}</span></div>
-                          <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-0.5">Inicio</span><span className="text-ink font-semibold">{c.fecha_inicio ? fmtFecha(c.fecha_inicio) : '—'}</span></div>
-                          <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-0.5">Audiencia</span><span className={`font-semibold ${c.fecha_audiencia && new Date(c.fecha_audiencia) <= new Date(Date.now() + 30*86400000) ? 'text-danger' : 'text-ink'}`}>{c.fecha_audiencia ? fmtFecha(c.fecha_audiencia) : '—'}</span></div>
-                          <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-0.5">Provisión</span><span className="font-condensed font-bold" style={{ color: c.monto_provision > 0 ? '#DC2626' : '#64748B' }}>{c.monto_provision > 0 ? fmtMM(c.monto_provision) : '—'}</span></div>
+                  {isExp && (
+                    <div className="px-4 pb-4 border-t border-[#E2E8F0]">
+                      <div className="grid grid-cols-4 gap-3 py-3 text-[11px]">
+                        <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-0.5">Abogado</span><span className="text-ink font-semibold">{c.abogado_responsable || '—'}</span></div>
+                        <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-0.5">Inicio</span><span className="text-ink font-semibold">{c.fecha_inicio ? fmtFecha(c.fecha_inicio) : '—'}</span></div>
+                        <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-0.5">Audiencia</span><span className={`font-semibold ${c.fecha_audiencia && new Date(c.fecha_audiencia) <= new Date(Date.now() + 30*86400000) ? 'text-danger' : 'text-ink'}`}>{c.fecha_audiencia ? fmtFecha(c.fecha_audiencia) : '—'}</span></div>
+                        <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-0.5">Provisión</span><span className="font-condensed font-bold" style={{ color: c.monto_provision > 0 ? '#DC2626' : '#64748B' }}>{c.monto_provision > 0 ? fmtMM(c.monto_provision) : '—'}</span></div>
+                      </div>
+
+                      {c.descripcion && (
+                        <div className="bg-[#F8FAFC] rounded-lg p-3 mb-3">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-1">Contexto</span>
+                          <p className="text-xs text-ink leading-relaxed whitespace-pre-wrap">{c.descripcion}</p>
                         </div>
+                      )}
 
-                        {c.descripcion && (
-                          <div className="bg-[#F8FAFC] rounded-lg p-3 mb-3">
-                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate block mb-1">Contexto</span>
-                            <p className="text-xs text-ink leading-relaxed whitespace-pre-wrap">{c.descripcion}</p>
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate">Documentos ({causaDocs.length})</span>
+                          {ce && (
+                            <button onClick={() => { setAddingDocFor(addingDocFor === c.id ? null : c.id); setNewDoc({ tipo: 'contrato', nombre: '', url: '' }) }}
+                              className="text-[10px] font-bold text-cobalt hover:underline">
+                              {addingDocFor === c.id ? 'Cancelar' : '+ Agregar'}
+                            </button>
+                          )}
+                        </div>
+                        {causaDocs.map(d => (
+                          <div key={d.id} className="flex items-center gap-2 py-1.5 border-b border-[#F1F5F9] last:border-0 text-xs">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#F1F5F9] text-slate shrink-0">{DOC_TIPO_OPTS.find(t => t.value === d.tipo)?.label || d.tipo}</span>
+                            {d.url ? (
+                              <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-cobalt hover:underline flex-1 truncate">{d.nombre}</a>
+                            ) : (
+                              <span className="text-ink flex-1 truncate">{d.nombre}</span>
+                            )}
+                            {d.fecha && <span className="text-slate text-[10px] shrink-0">{fmtFecha(d.fecha)}</span>}
+                            {ce && <button onClick={() => deleteDoc(d.id)} className="text-[#CBD5E1] hover:text-danger text-sm shrink-0">×</button>}
                           </div>
+                        ))}
+                        {causaDocs.length === 0 && !addingDocFor && (
+                          <p className="text-[10px] text-slate italic py-1">Sin documentos aún</p>
                         )}
 
-                        {/* ── Documentos de esta causa ── */}
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate">Documentos ({causaDocs.length})</span>
-                            {ce && (
-                              <button onClick={() => { setAddingDocFor(addingDocFor === c.id ? null : c.id); setNewDoc({ tipo: 'contrato', nombre: '', url: '' }) }}
-                                className="text-[10px] font-bold text-cobalt hover:underline">
-                                {addingDocFor === c.id ? 'Cancelar' : '+ Agregar'}
-                              </button>
-                            )}
+                        {addingDocFor === c.id && (
+                          <div className="flex gap-1.5 mt-2 items-end">
+                            <div className="w-32">
+                              <span className="text-[10px] font-bold text-slate block mb-0.5">Tipo</span>
+                              <select value={newDoc.tipo} onChange={e => setNewDoc(p => ({ ...p, tipo: e.target.value as DocTipo }))}
+                                className="w-full px-2 py-1.5 border border-[#E2E8F0] rounded text-xs outline-none focus:border-cobalt">
+                                {DOC_TIPO_OPTS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                              </select>
+                            </div>
+                            <div className="flex-1">
+                              <span className="text-[10px] font-bold text-slate block mb-0.5">Nombre</span>
+                              <input value={newDoc.nombre} onChange={e => setNewDoc(p => ({ ...p, nombre: e.target.value }))}
+                                placeholder="Ej: Contrato principal"
+                                className="w-full px-2 py-1.5 border border-[#E2E8F0] rounded text-xs outline-none focus:border-cobalt" />
+                            </div>
+                            <div className="flex-1">
+                              <span className="text-[10px] font-bold text-slate block mb-0.5">URL (opcional)</span>
+                              <input value={newDoc.url} onChange={e => setNewDoc(p => ({ ...p, url: e.target.value }))}
+                                placeholder="https://..."
+                                className="w-full px-2 py-1.5 border border-[#E2E8F0] rounded text-xs outline-none focus:border-cobalt" />
+                            </div>
+                            <button onClick={() => addDoc(c.id)} className="px-3 py-1.5 bg-cobalt text-white rounded text-[10px] font-bold hover:bg-cobalt-dark shrink-0">Agregar</button>
                           </div>
-                          {causaDocs.map(d => (
-                            <div key={d.id} className="flex items-center gap-2 py-1.5 border-b border-[#F1F5F9] last:border-0 text-xs">
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#F1F5F9] text-slate shrink-0">{DOC_TIPO_OPTS.find(t => t.value === d.tipo)?.label || d.tipo}</span>
-                              {d.url ? (
-                                <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-cobalt hover:underline flex-1 truncate">{d.nombre}</a>
-                              ) : (
-                                <span className="text-ink flex-1 truncate">{d.nombre}</span>
-                              )}
-                              {d.fecha && <span className="text-slate text-[10px] shrink-0">{fmtFecha(d.fecha)}</span>}
-                              {ce && <button onClick={() => deleteDoc(d.id)} className="text-[#CBD5E1] hover:text-danger text-sm shrink-0">×</button>}
-                            </div>
-                          ))}
-                          {causaDocs.length === 0 && !addingDocFor && (
-                            <p className="text-[10px] text-slate italic py-1">Sin documentos aún</p>
-                          )}
-
-                          {/* Inline add doc */}
-                          {addingDocFor === c.id && (
-                            <div className="flex gap-1.5 mt-2 items-end">
-                              <div className="w-32">
-                                <span className="text-[10px] font-bold text-slate block mb-0.5">Tipo</span>
-                                <select value={newDoc.tipo} onChange={e => setNewDoc(p => ({ ...p, tipo: e.target.value as DocTipo }))}
-                                  className="w-full px-2 py-1.5 border border-[#E2E8F0] rounded text-xs outline-none focus:border-cobalt">
-                                  {DOC_TIPO_OPTS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                                </select>
-                              </div>
-                              <div className="flex-1">
-                                <span className="text-[10px] font-bold text-slate block mb-0.5">Nombre</span>
-                                <input value={newDoc.nombre} onChange={e => setNewDoc(p => ({ ...p, nombre: e.target.value }))}
-                                  placeholder="Ej: Contrato principal"
-                                  className="w-full px-2 py-1.5 border border-[#E2E8F0] rounded text-xs outline-none focus:border-cobalt" />
-                              </div>
-                              <div className="flex-1">
-                                <span className="text-[10px] font-bold text-slate block mb-0.5">URL (opcional)</span>
-                                <input value={newDoc.url} onChange={e => setNewDoc(p => ({ ...p, url: e.target.value }))}
-                                  placeholder="https://..."
-                                  className="w-full px-2 py-1.5 border border-[#E2E8F0] rounded text-xs outline-none focus:border-cobalt" />
-                              </div>
-                              <button onClick={() => addDoc(c.id)} className="px-3 py-1.5 bg-cobalt text-white rounded text-[10px] font-bold hover:bg-cobalt-dark shrink-0">Agregar</button>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-1.5 pt-1">
-                          {ce && <button onClick={() => setModalCausa({ ...c })} className="px-3 py-1 border border-[#E2E8F0] rounded text-[10px] font-semibold hover:border-cobalt hover:text-cobalt transition-all">Editar causa</button>}
-                          {ce && <button onClick={() => deleteCausa(c.id)} className="px-3 py-1 border border-[#E2E8F0] rounded text-[10px] font-semibold text-[#CBD5E1] hover:border-danger hover:text-danger transition-all">Eliminar</button>}
-                        </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          )}
 
-          {/* Cerradas ya se muestran con el filtro */}
-        </>
-      )}
+                      <div className="flex gap-1.5 pt-1">
+                        {ce && <button onClick={() => setModalCausa({ ...c })} className="px-3 py-1 border border-[#E2E8F0] rounded text-[10px] font-semibold hover:border-cobalt hover:text-cobalt transition-all">Editar causa</button>}
+                        {ce && <button onClick={() => deleteCausa(c.id)} className="px-3 py-1 border border-[#E2E8F0] rounded text-[10px] font-semibold text-[#CBD5E1] hover:border-danger hover:text-danger transition-all">Eliminar</button>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* ═══ TABLA ═══ */}
+        {view === 'tabla' && (
+          <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-x-auto mb-5">
+            <table className="w-full text-xs min-w-[900px]">
+              <thead>
+                <tr className="bg-[#F1F5F9] text-[10px] font-extrabold uppercase tracking-wider text-slate">
+                  <th className="text-left p-3">Causa</th>
+                  <th className="text-left p-3">Tipo</th>
+                  <th className="text-left p-3">Estado</th>
+                  <th className="text-left p-3">Riesgo</th>
+                  <th className="text-left p-3">Contraparte</th>
+                  <th className="text-right p-3">Reclamado</th>
+                  <th className="text-right p-3">Provisión</th>
+                  <th className="text-left p-3">Audiencia</th>
+                  <th className="text-left p-3">Abogado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {causasFiltradas.map(c => {
+                  const est = ESTADO_CFG[c.estado]
+                  const riesgo = RIESGO_CFG[c.riesgo]
+                  return (
+                    <tr key={c.id} onClick={() => ce && setModalCausa({ ...c })}
+                      className={`border-t border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors ${ce ? 'cursor-pointer' : ''}`}>
+                      <td className="p-3 font-bold text-ink">{c.titulo}</td>
+                      <td className="p-3 text-slate-500">{TIPO_OPTS.find(t => t.value === c.tipo)?.label}</td>
+                      <td className="p-3">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: est.color + '15', color: est.color }}>{est.label}</span>
+                      </td>
+                      <td className="p-3">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: riesgo.color + '15', color: riesgo.color }}>{riesgo.label}</span>
+                      </td>
+                      <td className="p-3 text-slate-500">{c.contraparte || '—'}</td>
+                      <td className="p-3 text-right font-condensed font-bold" style={{ color: '#D97706' }}>{c.monto_reclamado > 0 ? fmtMM(c.monto_reclamado) : '—'}</td>
+                      <td className="p-3 text-right font-condensed font-bold" style={{ color: c.monto_provision > 0 ? '#DC2626' : '#64748B' }}>{c.monto_provision > 0 ? fmtMM(c.monto_provision) : '—'}</td>
+                      <td className="p-3 text-slate-500">{c.fecha_audiencia ? fmtFecha(c.fecha_audiencia) : '—'}</td>
+                      <td className="p-3 text-slate-500">{c.abogado_responsable || '—'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+              {causasFiltradas.length > 0 && (
+                <tfoot>
+                  <tr className="bg-[#F1F5F9] border-t border-[#E2E8F0]">
+                    <td className="p-3 font-bold" colSpan={5}>Total ({causasFiltradas.length})</td>
+                    <td className="p-3 text-right font-condensed font-bold" style={{ color: '#D97706' }}>{fmtMM(causasFiltradas.reduce((s, c) => s + c.monto_reclamado, 0))}</td>
+                    <td className="p-3 text-right font-condensed font-bold" style={{ color: '#DC2626' }}>{fmtMM(causasFiltradas.reduce((s, c) => s + c.monto_provision, 0))}</td>
+                    <td className="p-3" colSpan={2} />
+                  </tr>
+                </tfoot>
+              )}
+            </table>
+          </div>
+        )}
+
+        {/* ═══ GRÁFICO ═══ */}
+        {view === 'grafico' && (() => {
+          const porTipo = TIPO_OPTS.map(t => ({
+            name: t.label,
+            monto: causasFiltradas.filter(c => c.tipo === t.value).reduce((s, c) => s + c.monto_reclamado, 0),
+            count: causasFiltradas.filter(c => c.tipo === t.value).length,
+          })).filter(t => t.count > 0).sort((a, b) => b.monto - a.monto)
+          const maxTipo = porTipo[0]?.monto || 1
+
+          const porRiesgo = (['alto', 'medio', 'bajo'] as const).map(r => ({
+            name: RIESGO_CFG[r].label,
+            monto: causasFiltradas.filter(c => c.riesgo === r).reduce((s, c) => s + c.monto_reclamado, 0),
+            count: causasFiltradas.filter(c => c.riesgo === r).length,
+            color: RIESGO_CFG[r].color,
+          })).filter(r => r.count > 0)
+          const maxRiesgo = Math.max(...porRiesgo.map(r => r.monto), 1)
+
+          return (
+            <div className="space-y-4 mb-5">
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Exposición por tipo de causa</p>
+                <div className="space-y-2.5">
+                  {porTipo.map((t, i) => (
+                    <HBar key={t.name} label={`${t.name} (${t.count})`} value={t.monto} max={maxTipo}
+                      color="#D97706" delay={i * 0.06} />
+                  ))}
+                </div>
+              </div>
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate mb-3">Exposición por nivel de riesgo</p>
+                <div className="space-y-2.5">
+                  {porRiesgo.map((r, i) => (
+                    <HBar key={r.name} label={`${r.name} (${r.count})`} value={r.monto} max={maxRiesgo}
+                      color={r.color} delay={i * 0.06} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
+      </>)}
 
       {/* ══ MODAL CAUSA ══ */}
       {modalCausa && (
