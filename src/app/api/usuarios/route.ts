@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Validate area_id is a known value
-  const validAreas = ['admin', 'finanzas', 'rrhh', 'legal', 'prevencion', 'estudios', 'obras', 'eti']
+  const validAreas = ['admin', 'viewer', 'finanzas', 'rrhh', 'legal', 'prevencion', 'estudios', 'obras', 'eti']
   if (typeof area_id !== 'string' || !validAreas.includes(area_id)) {
     return NextResponse.json({ error: 'Área inválida' }, { status: 400 })
   }
