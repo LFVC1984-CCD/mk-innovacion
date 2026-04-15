@@ -3,25 +3,33 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import Link from 'next/link'
 
-export default function LoginPage() {
-  const [email, setEmail] = useState('')
+export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+
+    if (password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres.')
+      return
+    }
+    if (password !== confirm) {
+      setError('Las contraseñas no coinciden.')
+      return
+    }
+
     setLoading(true)
+    const { error: updateError } = await supabase.auth.updateUser({ password })
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (error) {
-      setError('Credenciales incorrectas. Contacta a Felipe Valenzuela si no tienes acceso.')
+    if (updateError) {
+      setError('No pudimos actualizar tu contraseña. El link puede haber expirado — solicita uno nuevo.')
       setLoading(false)
       return
     }
@@ -32,7 +40,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden" style={{ background: '#0F172A' }}>
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-cobalt/10 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-gold/8 blur-3xl" />
@@ -45,59 +52,54 @@ export default function LoginPage() {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="bg-white rounded-2xl border border-[#E2E8F0] p-8 w-full max-w-sm shadow-2xl shadow-black/20 relative"
       >
-        {/* Top accent */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#E8000D] via-cobalt to-gold rounded-t-2xl" />
 
-        <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.15, duration: 0.4 }}
-          className="flex items-center gap-3 mb-1"
-        >
+        <div className="flex items-center gap-3 mb-1">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E8000D] to-[#B8000A] flex items-center justify-center font-condensed font-black text-white text-sm leading-none select-none shadow-lg shadow-red-900/20">
             MK
           </div>
           <div>
-            <h1 className="font-condensed font-black text-cobalt text-2xl leading-tight">MK Ingeniería</h1>
+            <h1 className="font-condensed font-black text-cobalt text-2xl leading-tight">Nueva contraseña</h1>
             <p className="text-[10px] text-slate font-semibold">Portal de Gestión de Comités</p>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.25, duration: 0.3 }}
-          className="text-xs text-slate mb-6 mt-3"
-        >
-          Ingresa con tu cuenta para acceder al portal
-        </motion.p>
+        <p className="text-xs text-slate mb-6 mt-3">
+          Define una nueva contraseña para tu cuenta. Mínimo 8 caracteres.
+        </p>
 
         <motion.form
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-          onSubmit={handleLogin}
+          transition={{ delay: 0.15, duration: 0.3 }}
+          onSubmit={handleSubmit}
         >
-          <label htmlFor="login-email" className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">Correo electrónico</label>
+          <label htmlFor="new-password" className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">
+            Nueva contraseña
+          </label>
           <input
-            id="login-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-sm mb-3 outline-none focus:border-cobalt focus:shadow-[0_0_0_3px_rgba(11,94,215,0.1)] transition-all placeholder:text-[#CBD5E1]"
-            placeholder="tu@mkingenieria.cl"
-            required
-          />
-
-          <label htmlFor="login-password" className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">Contraseña</label>
-          <input
-            id="login-password"
+            id="new-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-sm mb-3 outline-none focus:border-cobalt focus:shadow-[0_0_0_3px_rgba(11,94,215,0.1)] transition-all placeholder:text-[#CBD5E1]"
+            placeholder="••••••••"
+            required
+            minLength={8}
+          />
+
+          <label htmlFor="confirm-password" className="block text-[10px] font-bold uppercase tracking-wide text-slate mb-1">
+            Confirmar contraseña
+          </label>
+          <input
+            id="confirm-password"
+            type="password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
             className="w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-sm mb-4 outline-none focus:border-cobalt focus:shadow-[0_0_0_3px_rgba(11,94,215,0.1)] transition-all placeholder:text-[#CBD5E1]"
             placeholder="••••••••"
             required
+            minLength={8}
           />
 
           {error && (
@@ -119,24 +121,11 @@ export default function LoginPage() {
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Ingresando...
+                Guardando...
               </span>
-            ) : 'Ingresar →'}
+            ) : 'Guardar y continuar →'}
           </button>
-
-          <div className="text-center mt-3">
-            <Link
-              href="/login/olvide-password"
-              className="text-[11px] text-cobalt hover:text-cobalt-dark font-medium hover:underline transition-colors"
-            >
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </div>
         </motion.form>
-
-        <p className="text-[10px] text-slate text-center mt-5">
-          ¿No tienes cuenta? Contacta a Felipe Valenzuela
-        </p>
       </motion.div>
     </div>
   )

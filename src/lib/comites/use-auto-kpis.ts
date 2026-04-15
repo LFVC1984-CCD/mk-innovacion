@@ -53,7 +53,16 @@ export function useAutoKpis(areaId: AreaId | string) {
           supabase.from('metricas_rrhh').select('*').order('mes', { ascending: false }).limit(1),
         ])
         data.eventos = (eventos || []).map((e: Record<string, unknown>) => ({ ...e, dias_perdidos: Number(e.dias_perdidos) || 0 }))
-        data.stats = (stats || []).map((s: Record<string, unknown>) => ({ ...s, hh_trabajadas: Number(s.hh_trabajadas) || 0, capacitaciones_horas: Number(s.capacitaciones_horas) || 0 }))
+        data.stats = (stats || []).map((s: Record<string, unknown>) => ({
+          ...s,
+          hh_trabajadas: Number(s.hh_trabajadas) || 0,
+          capacitaciones_horas: Number(s.capacitaciones_horas) || 0,
+          n_accidentes: Number(s.n_accidentes) || 0,
+          dias_perdidos_accidentes: Number(s.dias_perdidos_accidentes) || 0,
+          dias_perdidos_enfermedad: Number(s.dias_perdidos_enfermedad) || 0,
+          tasa_frecuencia: Number(s.tasa_frecuencia) || 0,
+          tasa_gravedad: Number(s.tasa_gravedad) || 0,
+        }))
         data.metricas_rrhh = (metricas || []).map((m: Record<string, unknown>) => ({
           ...m,
           dotacion_constructora: Number(m.dotacion_constructora) || 0,
