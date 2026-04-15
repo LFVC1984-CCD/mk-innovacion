@@ -338,16 +338,39 @@ export interface EventoSeguridad {
   created_at?: string
 }
 
-export interface EstadisticaMensual {
+export interface EstadisticaSemanal {
   id: string
   proyecto_id: string | null
-  mes: string
+  semana: string                        // ISO date del lunes de la semana
+
+  // Base (manuales)
+  n_accidentes: number
+  n_enfermedades_profesionales: number
+  dias_perdidos_accidentes: number
+  dias_perdidos_enfermedad: number
+  promedio_trabajadores: number
+  n_accidentes_fatales: number
+  n_pensionados: number
+  n_indemnizados: number
   hh_trabajadas: number
+
+  // Tasas (auto-calculadas, editables)
+  tasa_siniestralidad_temporal: number
+  factor_siniestralidad_invalidez: number
+  tasa_accidentabilidad: number
+  tasa_frecuencia: number
+  tasa_gravedad: number
+
+  // Compatibilidad con KPIs existentes
   capacitaciones_horas: number
   inspecciones: number
   charlas_realizadas: number
+
   created_at?: string
 }
+
+/** @deprecated usar EstadisticaSemanal */
+export type EstadisticaMensual = EstadisticaSemanal
 
 // ── ETI ──
 

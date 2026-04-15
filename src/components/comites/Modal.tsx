@@ -9,9 +9,17 @@ interface Props {
   accent?: string
   children: React.ReactNode
   footer?: React.ReactNode
+  size?: 'sm' | 'md' | 'lg' | 'xl'
 }
 
-export default function Modal({ open, onClose, title, accent, children, footer }: Props) {
+const SIZE_CLASS: Record<NonNullable<Props['size']>, string> = {
+  sm: 'max-w-[420px]',
+  md: 'max-w-[560px]',
+  lg: 'max-w-[820px]',
+  xl: 'max-w-[1100px]',
+}
+
+export default function Modal({ open, onClose, title, accent, children, footer, size = 'md' }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null)
   const dialogRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
@@ -76,7 +84,7 @@ export default function Modal({ open, onClose, title, accent, children, footer }
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-[560px] max-h-[90vh] overflow-y-auto ring-1 ring-black/5"
+            className={`bg-white rounded-2xl shadow-2xl w-[90%] ${SIZE_CLASS[size]} max-h-[90vh] overflow-y-auto ring-1 ring-black/5`}
           >
             {/* Header */}
             <div className="flex justify-between items-center p-6 pb-0">

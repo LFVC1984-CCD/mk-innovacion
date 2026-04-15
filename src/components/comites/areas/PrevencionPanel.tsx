@@ -7,7 +7,8 @@ import { fmtFecha } from '@/lib/comites/data'
 import KpiCards from '@/components/comites/KpiCards'
 import ViewToggle from '@/components/comites/ViewToggle'
 import HBar from '@/components/comites/HBar'
-import type { EventoSeguridad, EstadisticaMensual, TipoEvento, Gravedad } from '@/lib/types'
+import EstadisticasSeguridadModal from '@/components/comites/EstadisticasSeguridadModal'
+import type { EventoSeguridad, EstadisticaSemanal, TipoEvento, Gravedad } from '@/lib/types'
 
 const EMPTY_EVENTO: Omit<EventoSeguridad, 'id'> = {
   proyecto_id: null, tipo: 'incidente', gravedad: 'leve', fecha: null,
@@ -36,9 +37,10 @@ export default function PrevencionPanel() {
   const ce = canEdit('prevencion')
 
   const [eventos, setEventos] = useState<EventoSeguridad[]>([])
-  const [stats, setStats] = useState<EstadisticaMensual[]>([])
+  const [stats, setStats] = useState<EstadisticaSemanal[]>([])
   const [loading, setLoading] = useState(true)
   const [modalEvento, setModalEvento] = useState<Partial<EventoSeguridad> | null>(null)
+  const [modalStats, setModalStats] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<'abiertos' | 'cerrados' | 'todos'>('abiertos')
   const [search, setSearch] = useState('')
@@ -48,10 +50,10 @@ export default function PrevencionPanel() {
     setLoading(true)
     const [eRes, sRes] = await Promise.all([
       supabase.from('eventos_seguridad').select('*').order('fecha', { ascending: false }),
-      supabase.from('estadisticas_seguridad').select('*').order('mes', { ascending: false }),
+      supabase.from('estadisticas_seguridad').select('*').order('semana', { ascending: false }),
     ])
     setEventos((eRes.data || []) as EventoSeguridad[])
-    setStats((sRes.data || []) as EstadisticaMensual[])
+    setStats((sRes.data || []) as EstadisticaSemanal[])
     setLoading(false)
   }
 
@@ -221,6 +223,10 @@ export default function PrevencionPanel() {
           <input type="text" placeholder="Buscar evento, trabajador..." value={search} onChange={e => setSearch(e.target.value)}
             className="w-48 px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-xs outline-none focus:border-cobalt transition-colors placeholder:text-[#CBD5E1]" />
           <ViewToggle view={view} onChange={v => setView(v)} options={['cards', 'tabla', 'grafico']} />
+          <button onClick={() => setModalStats(true)}
+            className="bg-white border border-cobalt/30 text-cobalt px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-light btn-scale">
+            📊 Estadísticas
+          </button>
           {ce && (
             <button onClick={() => setModalEvento({ ...EMPTY_EVENTO })} className="bg-cobalt text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-cobalt-dark btn-scale">
               + Registrar evento
@@ -403,6 +409,13 @@ export default function PrevencionPanel() {
           </div>
         </div>
       )}
+
+      <EstadisticasSeguridadModal
+        open={modalStats}
+        onClose={() => setModalStats(false)}
+        projects={projects.filter(p => ['adjudicado', 'activo'].includes(p.estado))}
+        onSaved={load}
+      />
     </div>
   )
 }
