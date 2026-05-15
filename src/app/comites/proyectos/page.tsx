@@ -28,7 +28,7 @@ type PageTab = 'proyectos' | 'mandantes'
 
 export default function ProyectosPage() {
   const { projects, loading, save, remove } = useProjects()
-  const { isAdmin, loading: authLoading } = useAuth()
+  const { isAdmin, canEdit, loading: authLoading } = useAuth()
   const [filter, setFilter] = useState<FilterKey>('todos')
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Proyecto | null>(null)
@@ -116,7 +116,7 @@ export default function ProyectosPage() {
                 </h1>
                 <p className="text-xs text-slate-500">Proyectos compartidos entre todas las áreas</p>
               </div>
-              {isAdmin && (
+              {(isAdmin || canEdit('proyectos')) && (
                 <button
                   onClick={openNew}
                   className="bg-cobalt text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cobalt-dark transition-colors"
