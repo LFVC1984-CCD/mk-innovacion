@@ -269,7 +269,21 @@ export default function GarantiasViewer() {
         onSave={async (input, id) => {
           await saveGarantia({ ...input, estado: 'solicitada' }, id)
           setSolicitarModal(false)
-          toast('Garantia solicitada — Finanzas la gestionara')
+          toast('Garantía solicitada — Finanzas la gestionará')
+          fetch('/api/garantias/solicitar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tipo: input.tipo,
+              instrumento: input.instrumento,
+              entidad: input.entidad,
+              monto: input.monto,
+              divisa: input.divisa ?? 'CLP',
+              fecha_solicitud: input.fecha_solicitud,
+              observacion: input.observacion,
+              proyecto_nombre: allProyectos.find(p => p.id === input.proyecto_id)?.nombre ?? '',
+            }),
+          }).catch(() => {})
         }}
         onDelete={async () => {}}
       />
